@@ -1,0 +1,15 @@
+gym-frontend/node_modules/
+gym-frontend/dist/
+gym-frontend/.env.local
+GymAdmin/src/**/bin/
+GymAdmin/src/**/obj/
+GymAdmin/build-check/
+GymAdmin/build-verify/
+GymAdmin/src/GymAdmin.Api/gymadmin.db
+GymAdmin/src/GymAdmin.Api/gymadmin.db-shm
+GymAdmin/src/GymAdmin.Api/gymadmin.db-wal
+client-package/
+publish-client.bat~
+*.user
+*.suo
+*.cache
