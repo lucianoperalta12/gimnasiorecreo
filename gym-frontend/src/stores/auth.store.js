@@ -3,44 +3,81 @@ import { ref, computed } from 'vue'
 import { authApi } from '@/api/auth.api'
 
 export const useAuthStore = defineStore('auth', () => {
-  const user = ref(JSON.parse(localStorage.getItem('user') || 'null'))
+
+  function safeParse(value) {
+    try {
+      if (!value || value === 'undefined') {
+        return null
+      }
+
+      return JSON.parse(value)
+    } catch {
+      return null
+    }
+  }
+
+  const user = ref(safeParse(localStorage.getItem('user')))
+
   const isAuthenticated = computed(() => !!user.value)
+
   const userRole = computed(() => user.value?.rol || null)
 
   function setUser(userData) {
     user.value = userData
+
+    if (!userData) {
+      localStorage.removeItem('user')
+      return
+    }
+
     localStorage.setItem('user', JSON.stringify(userData))
   }
 
   async function loginWithGoogle(credential) {
     const { data } = await authApi.loginGoogle(credential)
+
     saveAuthData(data)
+
     return data
   }
 
   async function loginAdmin(credentials) {
-    const { data } = await authApi.loginAdmin(credentials.username, credentials.password)
+    const { data } = await authApi.loginAdmin(
+      credentials.username,
+      credentials.password
+    )
+
     saveAuthData(data)
+
     return data
   }
 
   function saveAuthData(data) {
+    if (!data) {
+      throw new Error('Auth data is required')
+    }
+
+    if (!data.accessToken || !data.refreshToken || !data.user) {
+      throw new Error('Invalid auth response')
+    }
+
     localStorage.setItem('accessToken', data.accessToken)
     localStorage.setItem('refreshToken', data.refreshToken)
+
     setUser(data.user)
   }
 
   async function logout() {
-    // Clear local state first to prevent infinite loops if the API call fails
     user.value = null
+
     localStorage.removeItem('accessToken')
     localStorage.removeItem('refreshToken')
     localStorage.removeItem('user')
 
     try {
       await authApi.logout()
-    } catch {
-      // Ignore errors on logout
+    } catch (error) {
+      console.error('Logout error:', error)
     }
   }
 
