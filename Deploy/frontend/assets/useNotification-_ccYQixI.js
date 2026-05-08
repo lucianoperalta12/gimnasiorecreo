@@ -1,0 +1,1 @@
+import{r as a}from"./index-LnPInT5S.js";const i=a([]);let l=0;function m(){function t(n,u="success",c=4e3){const o=l++;i.value.push({id:o,message:n,type:u}),setTimeout(()=>{i.value=i.value.filter(f=>f.id!==o)},c)}function e(n){t(n,"success")}function s(n){t(n,"error")}function r(n){t(n,"warning")}return{notifications:i,notify:t,success:e,error:s,warning:r}}export{m as u};
