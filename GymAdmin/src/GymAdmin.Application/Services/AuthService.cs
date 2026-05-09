@@ -72,14 +72,36 @@ public class AuthService : IAuthService
     {
         // Requerimiento específico: usuario "admin" contraseña "admin"
         // Buscamos un usuario que tenga ese nombre o email y sea Superusuario
+        var lowerUsername = username.ToLower();
         var user = await _context.Users
-            .FirstOrDefaultAsync(u => (u.Nombre == username || u.Email == username));
+            .FirstOrDefaultAsync(u => (u.Nombre.ToLower() == lowerUsername || u.Email.ToLower() == lowerUsername));
 
         if (user == null || user.PasswordHash == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
             throw new UnauthorizedAccessException("Credenciales inválidas.");
 
         if (!user.Activo)
             throw new UnauthorizedAccessException("Tu cuenta ha sido desactivada.");
+
+        return GenerateAuthResponse(user);
+    }
+
+    public async Task<AuthResponse> RegisterAsync(string nombre, string email, string password)
+    {
+        if (await _context.Users.AnyAsync(u => u.Email == email))
+            throw new InvalidOperationException("El correo ya está registrado.");
+
+        var user = new User
+        {
+            Nombre = nombre,
+            Email = email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
+            Rol = UserRole.Alumno,
+            FechaCreacion = DateTime.UtcNow,
+            Activo = true
+        };
+
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
 
         return GenerateAuthResponse(user);
     }

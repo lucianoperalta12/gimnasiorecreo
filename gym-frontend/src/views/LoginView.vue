@@ -18,6 +18,7 @@
       <!-- Card -->
       <div class="card p-6 sm:p-8 border border-dark-800 shadow-2xl backdrop-blur-md bg-dark-900/80">
         <!-- Google Login -->
+        <!--
         <div class="mb-8">
           <div id="googleButton" class="flex justify-center"></div>
           <div class="relative mt-8">
@@ -25,14 +26,15 @@
             <div class="relative flex justify-center text-xs uppercase"><span class="bg-dark-900 px-2 text-dark-500">O acceso administrador</span></div>
           </div>
         </div>
+        -->
 
-        <!-- Admin Login Form -->
+        <!-- Main Login Form -->
         <form @submit.prevent="handleAdminLogin" class="space-y-4">
           <AppInput
             id="admin-user"
             v-model="adminForm.username"
-            label="Usuario"
-            placeholder="admin"
+            label="Usuario o Email"
+            placeholder="tu@email.com"
             :error="errors.username"
           />
           <AppInput
@@ -44,9 +46,16 @@
             :error="errors.password"
           />
           <AppButton type="submit" :loading="loading" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3">
-            Entrar como Admin
+            Entrar
           </AppButton>
         </form>
+
+        <div class="mt-6 text-center">
+          <p class="text-sm text-dark-400">
+            ¿No tenés cuenta?
+            <button @click.prevent="showRegisterModal = true" class="text-primary-400 hover:text-primary-300 font-medium transition-colors">Crear cuenta</button>
+          </p>
+        </div>
 
         <!-- Error message -->
         <div v-if="errorMessage" class="mt-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center animate-fade-in">
@@ -54,6 +63,17 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal Registro -->
+    <AppModal v-model="showRegisterModal" title="Crear Cuenta" size="sm">
+      <form @submit.prevent="handleRegister" class="space-y-4">
+        <AppInput id="reg-name" v-model="registerForm.nombre" label="Nombre completo" placeholder="Ej: Juan Pérez" required />
+        <AppInput id="reg-email" v-model="registerForm.email" label="Correo electrónico" type="email" placeholder="tu@email.com" required />
+        <AppInput id="reg-password" v-model="registerForm.password" label="Contraseña" type="password" placeholder="••••••••" required />
+        <div v-if="registerError" class="p-2 rounded bg-red-500/10 border border-red-500/20 text-red-400 text-xs text-center">{{ registerError }}</div>
+        <AppButton type="submit" :loading="registerLoading" class="w-full">Registrarme</AppButton>
+      </form>
+    </AppModal>
   </div>
 </template>
 
@@ -63,6 +83,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
 import AppInput from '@/components/ui/AppInput.vue'
 import AppButton from '@/components/ui/AppButton.vue'
+import AppModal from '@/components/ui/AppModal.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -72,6 +93,11 @@ const loading = ref(false)
 const errorMessage = ref('')
 const errors = reactive({})
 const adminForm = reactive({ username: '', password: '' })
+
+const showRegisterModal = ref(false)
+const registerForm = reactive({ nombre: '', email: '', password: '' })
+const registerLoading = ref(false)
+const registerError = ref('')
 
 // Google Identity Services Setup
 onMounted(() => {
@@ -118,9 +144,28 @@ async function handleAdminLogin() {
     await authStore.loginAdmin(adminForm)
     router.push('/')
   } catch (err) {
-    errorMessage.value = 'Credenciales de administrador inválidas'
+    errorMessage.value = err.response?.data?.error || 'Credenciales inválidas'
   } finally {
     loading.value = false
+  }
+}
+
+async function handleRegister() {
+  registerError.value = ''
+  if (!registerForm.nombre || !registerForm.email || !registerForm.password) {
+    registerError.value = 'Complete todos los campos'
+    return
+  }
+  
+  registerLoading.value = true
+  try {
+    await authStore.register(registerForm)
+    showRegisterModal.value = false
+    router.push('/')
+  } catch (err) {
+    registerError.value = err.response?.data?.error || 'Error al crear la cuenta'
+  } finally {
+    registerLoading.value = false
   }
 }
 </script>

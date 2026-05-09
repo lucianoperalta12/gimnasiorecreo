@@ -34,9 +34,7 @@ public class AssignmentsController : ControllerBase
     [Authorize(Roles = "Profesor,Superusuario")]
     public async Task<ActionResult<List<StudentRoutineDto>>> GetByStudent(int studentId)
     {
-        var role = GetUserRole();
-        int? profesorId = role == "Superusuario" ? null : GetUserId();
-        var assignments = await _assignmentService.GetByStudentIdAsync(studentId, profesorId);
+        var assignments = await _assignmentService.GetByStudentIdAsync(studentId);
         return Ok(assignments);
     }
 
@@ -52,9 +50,7 @@ public class AssignmentsController : ControllerBase
     [Authorize(Roles = "Profesor,Superusuario")]
     public async Task<ActionResult<StudentRoutineDto>> Assign([FromBody] AssignRoutineRequest request)
     {
-        var role = GetUserRole();
-        int? profesorId = role == "Superusuario" ? null : GetUserId();
-        var assignment = await _assignmentService.AssignAsync(request, profesorId);
+        var assignment = await _assignmentService.AssignAsync(request);
         return Ok(assignment);
     }
 
@@ -62,9 +58,7 @@ public class AssignmentsController : ControllerBase
     [Authorize(Roles = "Profesor,Superusuario")]
     public async Task<IActionResult> Unassign(int id)
     {
-        var role = GetUserRole();
-        int? profesorId = role == "Superusuario" ? null : GetUserId();
-        await _assignmentService.UnassignAsync(id, profesorId);
+        await _assignmentService.UnassignAsync(id);
         return NoContent();
     }
 }

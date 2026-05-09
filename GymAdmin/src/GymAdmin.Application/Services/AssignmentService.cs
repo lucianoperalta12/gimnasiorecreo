@@ -16,7 +16,7 @@ public class AssignmentService : IAssignmentService
         _context = context;
     }
 
-    public async Task<StudentRoutineDto> AssignAsync(AssignRoutineRequest request, int? profesorId = null)
+    public async Task<StudentRoutineDto> AssignAsync(AssignRoutineRequest request)
     {
         var student = await _context.Users.FindAsync(request.AlumnoId)
             ?? throw new KeyNotFoundException("Alumno no encontrado.");
@@ -26,9 +26,6 @@ public class AssignmentService : IAssignmentService
 
         var routine = await _context.Routines.FindAsync(request.RutinaId)
             ?? throw new KeyNotFoundException("Rutina no encontrada.");
-
-        if (profesorId.HasValue && routine.ProfesorId != profesorId.Value)
-            throw new UnauthorizedAccessException("No tenés permiso para asignar esta rutina.");
 
         var exists = await _context.StudentRoutines
             .AnyAsync(sr => sr.AlumnoId == request.AlumnoId && sr.RutinaId == request.RutinaId);
@@ -58,21 +55,18 @@ public class AssignmentService : IAssignmentService
         );
     }
 
-    public async Task UnassignAsync(int assignmentId, int? profesorId = null)
+    public async Task UnassignAsync(int assignmentId)
     {
         var assignment = await _context.StudentRoutines
             .Include(sr => sr.Rutina)
             .FirstOrDefaultAsync(sr => sr.Id == assignmentId)
             ?? throw new KeyNotFoundException("Asignación no encontrada.");
 
-        if (profesorId.HasValue && assignment.Rutina.ProfesorId != profesorId.Value)
-            throw new UnauthorizedAccessException("No tenés permiso para quitar esta asignación.");
-
         _context.StudentRoutines.Remove(assignment);
         await _context.SaveChangesAsync();
     }
 
-    public async Task<List<StudentRoutineDto>> GetByStudentIdAsync(int studentId, int? profesorId = null)
+    public async Task<List<StudentRoutineDto>> GetByStudentIdAsync(int studentId)
     {
         var query = _context.StudentRoutines
             .AsNoTracking()
@@ -80,9 +74,6 @@ public class AssignmentService : IAssignmentService
             .Include(sr => sr.Alumno)
             .Include(sr => sr.Rutina)
             .AsQueryable();
-
-        if (profesorId.HasValue)
-            query = query.Where(sr => sr.Rutina.ProfesorId == profesorId.Value);
 
         return await query
             .OrderByDescending(sr => sr.FechaAsignacion)

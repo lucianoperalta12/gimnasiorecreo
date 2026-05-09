@@ -25,9 +25,7 @@ public class RoutinesController : ControllerBase
     [Authorize(Roles = "Profesor,Superusuario")]
     public async Task<ActionResult<List<RoutineListDto>>> GetAll()
     {
-        var role = GetUserRole();
-        int? profesorId = role == "Superusuario" ? null : GetUserId();
-        var routines = await _routineService.GetAllAsync(profesorId);
+        var routines = await _routineService.GetAllAsync();
         return Ok(routines);
     }
 
@@ -53,7 +51,7 @@ public class RoutinesController : ControllerBase
     [Authorize(Roles = "Profesor,Superusuario")]
     public async Task<ActionResult<RoutineDto>> Update(int id, [FromBody] UpdateRoutineRequest request)
     {
-        var routine = await _routineService.UpdateAsync(id, GetUserId(), request);
+        var routine = await _routineService.UpdateAsync(id, request);
         return Ok(routine);
     }
 
@@ -61,7 +59,7 @@ public class RoutinesController : ControllerBase
     [Authorize(Roles = "Profesor,Superusuario")]
     public async Task<IActionResult> Delete(int id)
     {
-        await _routineService.DeleteAsync(id, GetUserId());
+        await _routineService.DeleteAsync(id);
         return NoContent();
     }
 }

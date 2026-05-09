@@ -14,16 +14,13 @@ public class RoutineService : IRoutineService
         _context = context;
     }
 
-    public async Task<List<RoutineListDto>> GetAllAsync(int? profesorId = null)
+    public async Task<List<RoutineListDto>> GetAllAsync()
     {
         var query = _context.Routines
             .AsNoTracking()
             .Include(r => r.Profesor)
             .Include(r => r.Ejercicios)
             .AsQueryable();
-
-        if (profesorId.HasValue)
-            query = query.Where(r => r.ProfesorId == profesorId.Value);
 
         return await query
             .OrderByDescending(r => r.FechaCreacion)
@@ -105,15 +102,12 @@ public class RoutineService : IRoutineService
         return (await GetByIdAsync(routine.Id))!;
     }
 
-    public async Task<RoutineDto> UpdateAsync(int id, int profesorId, UpdateRoutineRequest request)
+    public async Task<RoutineDto> UpdateAsync(int id, UpdateRoutineRequest request)
     {
         var routine = await _context.Routines
             .Include(r => r.Ejercicios)
             .FirstOrDefaultAsync(r => r.Id == id)
             ?? throw new KeyNotFoundException("Rutina no encontrada.");
-
-        if (routine.ProfesorId != profesorId)
-            throw new UnauthorizedAccessException("No tenés permiso para editar esta rutina.");
 
         if (string.IsNullOrWhiteSpace(request.Nombre))
             throw new ArgumentException("El nombre de la rutina es obligatorio.");
@@ -153,13 +147,10 @@ public class RoutineService : IRoutineService
         return (await GetByIdAsync(routine.Id))!;
     }
 
-    public async Task DeleteAsync(int id, int profesorId)
+    public async Task DeleteAsync(int id)
     {
         var routine = await _context.Routines.FindAsync(id)
             ?? throw new KeyNotFoundException("Rutina no encontrada.");
-
-        if (routine.ProfesorId != profesorId)
-            throw new UnauthorizedAccessException("No tenés permiso para eliminar esta rutina.");
 
         _context.Routines.Remove(routine);
         await _context.SaveChangesAsync();

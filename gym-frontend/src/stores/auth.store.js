@@ -52,6 +52,12 @@ export const useAuthStore = defineStore('auth', () => {
     return data
   }
 
+  async function register(data) {
+    const response = await authApi.register(data.nombre, data.email, data.password)
+    saveAuthData(response.data)
+    return response.data
+  }
+
   function saveAuthData(data) {
     if (!data) {
       throw new Error('Auth data is required')
@@ -92,6 +98,7 @@ export const useAuthStore = defineStore('auth', () => {
     setUser,
     loginWithGoogle,
     loginAdmin,
+    register,
     logout,
     hasRole
   }

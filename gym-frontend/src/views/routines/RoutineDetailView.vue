@@ -45,7 +45,7 @@
             <span v-else-if="section.value === 'parteMedia'">⚙️</span>
             <span v-else-if="section.value === 'fuerza'">💪</span>
           </span>
-          <span class="uppercase tracking-tighter">{{ section.label.split(' ')[0] }}</span>
+          <span class="uppercase tracking-tighter">{{ section.label }}</span>
           <span 
             v-if="section.ejercicios.length > 0"
             class="absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black border-2 border-dark-950"

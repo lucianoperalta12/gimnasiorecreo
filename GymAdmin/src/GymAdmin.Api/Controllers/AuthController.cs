@@ -31,6 +31,17 @@ public class AuthController : ControllerBase
         return Ok(result);
     }
 
+    [HttpPost("register")]
+    public async Task<ActionResult<AuthResponse>> Register([FromBody] RegisterRequest request)
+    {
+        try {
+            var result = await _authService.RegisterAsync(request.Nombre, request.Email, request.Password);
+            return Ok(result);
+        } catch (InvalidOperationException ex) {
+            return BadRequest(new { error = ex.Message });
+        }
+    }
+
     [HttpPost("refresh")]
     public async Task<ActionResult<AuthResponse>> Refresh([FromBody] TokenRefreshRequest request)
     {

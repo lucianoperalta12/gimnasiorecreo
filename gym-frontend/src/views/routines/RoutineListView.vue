@@ -6,11 +6,11 @@
         <p class="page-subtitle">Gestión de rutinas de entrenamiento</p>
       </div>
       <router-link to="/routines/new">
-        <AppButton>
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <AppButton variant="danger" class="md:px-4 px-2.5 !rounded-xl md:!rounded-lg">
+          <svg class="w-5 h-5 md:w-4 md:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
-          Nueva Rutina
+          <span class="hidden md:inline ml-1">Nueva Rutina</span>
         </AppButton>
       </router-link>
     </div>

@@ -1,6 +1,6 @@
 export const ROUTINE_SECTIONS = [
-  { value: 'calentamientoInicial', label: 'Calentamiento inicial' },
-  { value: 'parteMedia', label: 'Parte media' },
+  { value: 'calentamientoInicial', label: 'Calentamiento' },
+  { value: 'parteMedia', label: 'Parte Media' },
   { value: 'fuerza', label: 'Fuerza' }
 ]
 

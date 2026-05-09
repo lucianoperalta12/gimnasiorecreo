@@ -94,7 +94,7 @@
                       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                   </div>
-                  <select v-model="ej.ejercicioId" class="input !py-2 text-sm font-bold">
+                  <select v-model="form.ejercicios[ej.originalIndex].ejercicioId" class="input !py-2 text-sm font-bold">
                     <option :value="0" disabled>Seleccionar...</option>
                     <option v-for="ex in exercises" :key="ex.id" :value="ex.id">{{ ex.nombre }} ({{ ex.grupoMuscular }})</option>
                   </select>
@@ -104,26 +104,26 @@
                 <div class="grid grid-cols-4 gap-2 sm:w-[320px]">
                   <div class="flex flex-col gap-1">
                     <span class="text-[8px] font-black text-dark-500 uppercase text-center">Series</span>
-                    <input v-model.number="ej.series" type="number" class="input !px-2 !py-2 text-center text-sm font-black" />
+                    <input v-model.number="form.ejercicios[ej.originalIndex].series" type="number" class="input !px-2 !py-2 text-center text-sm font-black" />
                   </div>
                   <div class="flex flex-col gap-1">
                     <span class="text-[8px] font-black text-dark-500 uppercase text-center">Reps</span>
-                    <input v-model.number="ej.repeticiones" type="number" class="input !px-2 !py-2 text-center text-sm font-black" />
+                    <input v-model.number="form.ejercicios[ej.originalIndex].repeticiones" type="number" class="input !px-2 !py-2 text-center text-sm font-black" />
                   </div>
                   <div class="flex flex-col gap-1">
                     <span class="text-[8px] font-black text-dark-500 uppercase text-center">Peso</span>
-                    <input v-model.number="ej.peso" type="number" step="0.5" class="input !px-2 !py-2 text-center text-sm font-black text-primary-400" placeholder="0" />
+                    <input v-model.number="form.ejercicios[ej.originalIndex].peso" type="number" step="0.5" class="input !px-2 !py-2 text-center text-sm font-black text-primary-400" placeholder="0" />
                   </div>
                   <div class="flex flex-col gap-1">
                     <span class="text-[8px] font-black text-dark-500 uppercase text-center">Desc</span>
-                    <input v-model.number="ej.descansoSegundos" type="number" class="input !px-2 !py-2 text-center text-sm font-black" placeholder="90" />
+                    <input v-model.number="form.ejercicios[ej.originalIndex].descansoSegundos" type="number" class="input !px-2 !py-2 text-center text-sm font-black" placeholder="90" />
                   </div>
                 </div>
               </div>
 
               <!-- Observations (Compact) -->
               <div class="mt-3 pt-3 border-t border-dark-800/50">
-                <input v-model="ej.observaciones" class="bg-transparent border-none text-[11px] text-dark-400 w-full focus:ring-0 placeholder-dark-600 font-medium" placeholder="Añadir observaciones..." />
+                <input v-model="form.ejercicios[ej.originalIndex].observaciones" class="bg-transparent border-none text-[11px] text-dark-400 w-full focus:ring-0 placeholder-dark-600 font-medium" placeholder="Añadir observaciones..." />
               </div>
             </div>
           </div>
