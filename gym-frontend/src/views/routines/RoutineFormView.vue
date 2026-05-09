@@ -101,7 +101,7 @@
                 </div>
 
                 <!-- Specs Grid -->
-                <div class="grid grid-cols-4 gap-2 sm:w-[320px]">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:w-[320px]">
                   <div class="flex flex-col gap-1">
                     <span class="text-[8px] font-black text-dark-500 uppercase text-center">Series</span>
                     <input v-model.number="form.ejercicios[ej.originalIndex].series" type="number" class="input !px-2 !py-2 text-center text-sm font-black" />
