@@ -101,91 +101,111 @@ public static class DbSeeder
             context.Users.Update(personal);
         }
 
+        // Seed more students for testing
+        var moreStudents = new List<(string Name, string Email)>
+        {
+            ("Ana García", "ana.garcia@test.com"),
+            ("Beto Casella", "beto.casella@test.com"),
+            ("Carlos Martínez", "carlos.mtz@test.com"),
+            ("Diana Prince", "diana.prince@test.com"),
+            ("Eduardo Galeano", "eduardo.g@test.com"),
+            ("Facundo Cabral", "facundo.c@test.com"),
+            ("Gisela Dulko", "gisela.d@test.com"),
+            ("Horacio Pagani", "horacio.p@test.com"),
+            ("Ivana Nadal", "ivana.n@test.com"),
+            ("Juan Román Riquelme", "jrr@test.com"),
+            ("Karina La Princesita", "karina@test.com"),
+            ("Lionel Messi", "leo.messi@test.com")
+        };
+
+        foreach (var (name, email) in moreStudents)
+        {
+            if (!await context.Users.AnyAsync(u => u.Email == email))
+            {
+                context.Users.Add(new User
+                {
+                    Nombre = name,
+                    Email = email,
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("123456"),
+                    Rol = UserRole.Alumno,
+                    Activo = true,
+                    FechaCreacion = DateTime.UtcNow
+                });
+            }
+        }
+
         await context.SaveChangesAsync();
 
-        if (await context.Exercises.AnyAsync())
-            return;
-
-        // Seed exercises
-        var exercises = new List<Exercise>
+        // Seed exercises if none exist
+        if (!await context.Exercises.AnyAsync())
         {
-            new() { Nombre = "Press de banca", Descripcion = "Ejercicio compuesto para pecho", GrupoMuscular = "Pecho" },
-            new() { Nombre = "Sentadilla", Descripcion = "Ejercicio compuesto para piernas", GrupoMuscular = "Piernas" },
-            new() { Nombre = "Peso muerto", Descripcion = "Ejercicio compuesto para espalda baja y piernas", GrupoMuscular = "Espalda" },
-            new() { Nombre = "Press militar", Descripcion = "Ejercicio compuesto para hombros", GrupoMuscular = "Hombros" },
-            new() { Nombre = "Curl de bíceps", Descripcion = "Ejercicio de aislamiento para bíceps", GrupoMuscular = "Bíceps" },
-            new() { Nombre = "Extensión de tríceps", Descripcion = "Ejercicio de aislamiento para tríceps", GrupoMuscular = "Tríceps" },
-            new() { Nombre = "Dominadas", Descripcion = "Ejercicio compuesto para espalda", GrupoMuscular = "Espalda" },
-            new() { Nombre = "Remo con barra", Descripcion = "Ejercicio compuesto para espalda media", GrupoMuscular = "Espalda" },
-            new() { Nombre = "Elevaciones laterales", Descripcion = "Ejercicio de aislamiento para deltoides lateral", GrupoMuscular = "Hombros" },
-            new() { Nombre = "Prensa de piernas", Descripcion = "Ejercicio compuesto para cuádriceps", GrupoMuscular = "Piernas" },
-            new() { Nombre = "Curl femoral", Descripcion = "Ejercicio de aislamiento para isquiotibiales", GrupoMuscular = "Piernas" },
-            new() { Nombre = "Plancha", Descripcion = "Ejercicio isométrico para core", GrupoMuscular = "Abdominales" },
+            var exercises = new List<Exercise>
+            {
+                new() { Nombre = "Press de banca", Descripcion = "Ejercicio compuesto para pecho", GrupoMuscular = "Pecho" },
+                new() { Nombre = "Sentadilla", Descripcion = "Ejercicio compuesto para piernas", GrupoMuscular = "Piernas" },
+                new() { Nombre = "Peso muerto", Descripcion = "Ejercicio compuesto para espalda baja y piernas", GrupoMuscular = "Espalda" },
+                new() { Nombre = "Press militar", Descripcion = "Ejercicio compuesto para hombros", GrupoMuscular = "Hombros" },
+                new() { Nombre = "Curl de bíceps", Descripcion = "Ejercicio de aislamiento para bíceps", GrupoMuscular = "Bíceps" },
+                new() { Nombre = "Extensión de tríceps", Descripcion = "Ejercicio de aislamiento para tríceps", GrupoMuscular = "Tríceps" },
+                new() { Nombre = "Dominadas", Descripcion = "Ejercicio compuesto para espalda", GrupoMuscular = "Espalda" },
+                new() { Nombre = "Remo con barra", Descripcion = "Ejercicio compuesto para espalda media", GrupoMuscular = "Espalda" },
+                new() { Nombre = "Elevaciones laterales", Descripcion = "Ejercicio de aislamiento para deltoides lateral", GrupoMuscular = "Hombros" },
+                new() { Nombre = "Prensa de piernas", Descripcion = "Ejercicio compuesto para cuádriceps", GrupoMuscular = "Piernas" },
+                new() { Nombre = "Curl femoral", Descripcion = "Ejercicio de aislamiento para isquiotibiales", GrupoMuscular = "Piernas" },
+                new() { Nombre = "Plancha", Descripcion = "Ejercicio isométrico para core", GrupoMuscular = "Abdominales" },
+            };
+            context.Exercises.AddRange(exercises);
+            await context.SaveChangesAsync();
+        }
+
+        // Seed basic routines if they don't exist
+        var basicRoutines = new List<(string Name, string Desc)>
+        {
+            ("Rutina Full Body Principiante", "Ideal para comenzar tu entrenamiento con ejercicios compuestos."),
+            ("Tren Inferior y Glúteos", "Enfoque en fuerza de piernas y estabilidad.")
         };
 
-        context.Exercises.AddRange(exercises);
-        await context.SaveChangesAsync();
-
-        // Add video URLs to some exercises for demonstration
-        exercises[0].VideoUrl = "https://www.youtube.com/watch?v=tuwHzzPrzSA"; // Bench Press
-        exercises[1].VideoUrl = "https://www.youtube.com/watch?v=UXJrBgI2RxM"; // Squat
-        exercises[6].VideoUrl = "https://www.youtube.com/watch?v=eGo4IYlbE5g"; // Pull-ups
-
-        context.Exercises.UpdateRange(exercises);
-        await context.SaveChangesAsync();
-
-        // Seed a routine
-        var rutina1 = new Routine
+        foreach (var (name, desc) in basicRoutines)
         {
-            Nombre = "Rutina Full Body Principiante",
-            Descripcion = "Ideal para comenzar tu entrenamiento con ejercicios compuestos.",
-            ProfesorId = profesor.Id,
-            Activa = true,
-            FechaCreacion = DateTime.UtcNow
+            if (!await context.Routines.AnyAsync(r => r.Nombre == name))
+            {
+                context.Routines.Add(new Routine
+                {
+                    Nombre = name,
+                    Descripcion = desc,
+                    ProfesorId = profesor.Id,
+                    Activa = true,
+                    FechaCreacion = DateTime.UtcNow
+                });
+            }
+        }
+
+        // Seed more routines for testing
+        var moreRoutines = new List<(string Name, string Desc)>
+        {
+            ("Hipertrofia Pecho y Espalda", "Enfoque en volumen muscular para el torso."),
+            ("Acondicionamiento Físico", "Rutina de alta intensidad y poco descanso."),
+            ("Powerlifting Iniciación", "Enfoque en los tres grandes: Sentadilla, Banco y Peso Muerto."),
+            ("Movilidad y Flexibilidad", "Ideal para días de recuperación activa."),
+            ("Fuerza de Hombros", "Enfoque en deltoides y trapecio."),
+            ("Rutina Express 30 min", "Para cuando tenés poco tiempo pero querés entrenar.")
         };
 
-        var rutina2 = new Routine
+        foreach (var (name, desc) in moreRoutines)
         {
-            Nombre = "Tren Inferior y Glúteos",
-            Descripcion = "Enfoque en fuerza de piernas y estabilidad.",
-            ProfesorId = profesor.Id,
-            Activa = true,
-            FechaCreacion = DateTime.UtcNow
-        };
+            if (!await context.Routines.AnyAsync(r => r.Nombre == name))
+            {
+                context.Routines.Add(new Routine
+                {
+                    Nombre = name,
+                    Descripcion = desc,
+                    ProfesorId = profesor.Id,
+                    Activa = true,
+                    FechaCreacion = DateTime.UtcNow
+                });
+            }
+        }
 
-        context.Routines.AddRange(rutina1, rutina2);
-        await context.SaveChangesAsync();
-
-        // Add exercises to routine 1
-        var re1 = new List<RoutineExercise>
-        {
-            new() { RutinaId = rutina1.Id, EjercicioId = exercises[0].Id, Bloque = RoutineExerciseSectionLabels.CalentamientoInicial, Series = 3, Repeticiones = 10, Peso = 40, DescansoSegundos = 90, Orden = 1 },
-            new() { RutinaId = rutina1.Id, EjercicioId = exercises[1].Id, Bloque = RoutineExerciseSectionLabels.ParteMedia, Series = 4, Repeticiones = 8, Peso = 50, DescansoSegundos = 120, Orden = 2 },
-            new() { RutinaId = rutina1.Id, EjercicioId = exercises[6].Id, Bloque = RoutineExerciseSectionLabels.Fuerza, Series = 3, Repeticiones = 8, DescansoSegundos = 90, Orden = 3 },
-        };
-
-        // Add exercises to routine 2
-        var re2 = new List<RoutineExercise>
-        {
-            new() { RutinaId = rutina2.Id, EjercicioId = exercises[1].Id, Bloque = RoutineExerciseSectionLabels.CalentamientoInicial, Series = 4, Repeticiones = 10, Peso = 60, DescansoSegundos = 120, Orden = 1 },
-            new() { RutinaId = rutina2.Id, EjercicioId = exercises[9].Id, Bloque = RoutineExerciseSectionLabels.ParteMedia, Series = 3, Repeticiones = 12, Peso = 80, DescansoSegundos = 90, Orden = 2 },
-            new() { RutinaId = rutina2.Id, EjercicioId = exercises[10].Id, Bloque = RoutineExerciseSectionLabels.Fuerza, Series = 3, Repeticiones = 15, Peso = 30, DescansoSegundos = 60, Orden = 3 },
-        };
-
-        context.RoutineExercises.AddRange(re1);
-        context.RoutineExercises.AddRange(re2);
-        await context.SaveChangesAsync();
-
-        // Assign routines to students
-        var assignments = new List<StudentRoutine>
-        {
-            new() { AlumnoId = alumno.Id, RutinaId = rutina1.Id, FechaAsignacion = DateTime.UtcNow, Activa = true },
-            new() { AlumnoId = alumno.Id, RutinaId = rutina2.Id, FechaAsignacion = DateTime.UtcNow, Activa = true },
-            new() { AlumnoId = personal.Id, RutinaId = rutina1.Id, FechaAsignacion = DateTime.UtcNow, Activa = true },
-            new() { AlumnoId = personal.Id, RutinaId = rutina2.Id, FechaAsignacion = DateTime.UtcNow, Activa = true }
-        };
-
-        context.StudentRoutines.AddRange(assignments);
         await context.SaveChangesAsync();
     }
 }

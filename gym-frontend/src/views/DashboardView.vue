@@ -66,70 +66,34 @@
           </div>
         </router-link>
 
-        <router-link v-if="authStore.hasRole('Superusuario')" to="/users" class="group flex items-center p-4 rounded-2xl bg-dark-900/40 border border-dark-800/50 hover:bg-dark-800/60 hover:border-primary-500/30 transition-all duration-300">
-          <div class="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-            </svg>
-          </div>
-          <div>
-            <h3 class="text-sm font-bold text-white">Gestionar Usuarios</h3>
-            <p class="text-xs text-dark-500">Control de acceso y roles</p>
-          </div>
-        </router-link>
       </div>
     </div>
 
-    <div v-if="authStore.hasRole('Alumno')" class="space-y-6">
-      <h2 class="text-sm font-bold text-dark-500 uppercase tracking-[0.2em] mb-4 ml-1">Tus Rutinas Activas</h2>
-      
-      <LoadingSpinner v-if="loadingRoutines" />
-      
-      <div v-else-if="myRoutines.length === 0" class="p-12 rounded-[2rem] bg-dark-900/40 border border-dark-800/50 backdrop-blur-md text-center">
-        <div class="w-16 h-16 rounded-2xl bg-dark-800 flex items-center justify-center mx-auto mb-4 text-2xl">
-          😴
+   
+    <div v-if="authStore.hasRole('Alumno')" class="space-y-4">
+  <h2 class="text-lg font-semibold text-white">Tus Rutinas Activas</h2>
+  <LoadingSpinner v-if="loadingRoutines" />
+  <div v-else-if="myRoutines.length === 0" class="card text-center py-12">
+    <p class="text-dark-400">No tenes rutinas asignadas todavia.</p>
+    <p class="text-sm text-dark-500 mt-1">Tu profesor te asignara rutinas pronto.</p>
+  </div>
+  <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <router-link
+      v-for="routine in myRoutines"
+      :key="routine.id"
+      :to="`/routines/${routine.id}`"
+      class="card-hover group"
+    >
+      <div class="flex items-start justify-between">
+        <div>
+          <h3 class="font-semibold text-white group-hover:text-primary-300 transition-colors">{{ routine.nombre }}</h3>
+          <p class="text-sm text-dark-400 mt-1">{{ routine.descripcion || 'Sin descripcion' }}</p>
         </div>
-        <p class="text-white font-bold">No tienes rutinas asignadas todavía</p>
-        <p class="text-sm text-dark-500 mt-2">Tu profesor te asignará planes de entrenamiento pronto.</p>
+        <span class="badge-success">Activa</span>
       </div>
-
-      <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <router-link
-          v-for="routine in myRoutines"
-          :key="routine.id"
-          :to="`/routines/${routine.id}`"
-          class="group p-6 rounded-[2rem] bg-dark-900/40 border border-dark-800/50 backdrop-blur-md hover:border-primary-500/30 hover:bg-dark-800/60 active:scale-[0.98] transition-all duration-300 relative overflow-hidden"
-        >
-          <!-- Decorative accent -->
-          <div class="absolute -right-4 -top-4 w-24 h-24 bg-primary-500/5 rounded-full blur-2xl group-hover:bg-primary-500/10 transition-colors"></div>
-
-          <div class="flex items-center justify-between relative z-10">
-            <div class="flex-1">
-              <div class="flex items-center gap-3 mb-2">
-                <span class="w-8 h-8 rounded-lg bg-primary-500/10 text-primary-400 flex items-center justify-center text-sm">
-                  💪
-                </span>
-                <h3 class="font-bold text-white group-hover:text-primary-300 transition-colors">{{ routine.nombre }}</h3>
-              </div>
-              <p class="text-sm text-dark-400 line-clamp-2">{{ routine.descripcion || 'Sin descripción detallada' }}</p>
-              
-              <div class="flex items-center gap-4 mt-4">
-                <div class="flex items-center text-[10px] font-bold text-dark-500 uppercase tracking-widest">
-                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-2 animate-pulse"></span>
-                  Disponible
-                </div>
-                <div class="flex items-center text-[10px] font-bold text-primary-400 uppercase tracking-widest group-hover:translate-x-1 transition-transform">
-                  Ver Detalles
-                  <svg class="w-3 h-3 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 5l7 7-7 7" />
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
-        </router-link>
-      </div>
-    </div>
+    </router-link>
+  </div>
+  </div>
   </div>
 </template>
 
