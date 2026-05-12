@@ -5,10 +5,23 @@
     <template v-else-if="routine">
       <div class="space-y-4 mb-6">
         <div class="flex items-start justify-between gap-4">
-          <h1 class="text-2xl font-black text-white leading-tight">{{ routine.nombre }}</h1>
-          <span :class="routine.activa ? 'badge-success' : 'badge-danger'" class="shrink-0">
-            {{ routine.activa ? 'Activa' : 'Inactiva' }}
-          </span>
+          <div class="flex-1">
+            <h1 class="text-2xl font-black text-white leading-tight">{{ routine.nombre }}</h1>
+            <div class="flex items-center gap-3 mt-1">
+              <span :class="routine.activa ? 'badge-success' : 'badge-danger'" class="shrink-0">
+                {{ routine.activa ? 'Activa' : 'Inactiva' }}
+              </span>
+            </div>
+          </div>
+          <button 
+            @click="goBack" 
+            class="text-[10px] font-black text-dark-400 hover:text-white transition-all uppercase tracking-[0.2em] py-2 px-4 rounded-xl border border-dark-800 hover:border-primary-500/50 bg-dark-900/50 hover:bg-dark-800 flex items-center gap-2 shadow-sm"
+          >
+            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+            </svg>
+            Volver
+          </button>
         </div>
         <p class="text-dark-400 text-sm leading-relaxed">{{ routine.descripcion || 'Sin descripción' }}</p>
       </div>
@@ -76,7 +89,6 @@
               <table class="table">
                 <thead>
                   <tr>
-                    <th class="w-12">#</th>
                     <th>Ejercicio</th>
                     <th>Grupo</th>
                     <th>Series</th>
@@ -88,7 +100,6 @@
                 </thead>
                 <tbody>
                   <tr v-for="ej in currentSection.ejercicios" :key="ej.id" class="group">
-                    <td class="text-dark-500 font-mono text-xs">{{ ej.orden }}</td>
                     <td class="font-medium text-white">
                       <div class="flex items-center gap-2">
                         {{ ej.ejercicioNombre }}
@@ -130,7 +141,6 @@
                 
                 <div class="flex items-start justify-between relative z-10">
                   <div class="flex items-center gap-4">
-                    <span class="w-10 h-10 rounded-2xl bg-dark-800 text-dark-100 flex items-center justify-center text-sm font-black border border-dark-700 shadow-inner">{{ ej.orden }}</span>
                     <div>
                       <h3 class="font-black text-base text-white leading-none">{{ ej.ejercicioNombre }}</h3>
                       <div class="flex items-center gap-2 mt-2">
@@ -198,16 +208,27 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useRoutineStore } from '@/stores/routine.store'
+import { useAuthStore } from '@/stores/auth.store'
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
 import { groupRoutineExercises } from '@/constants/routineSections'
 
 const route = useRoute()
+const router = useRouter()
 const store = useRoutineStore()
+const authStore = useAuthStore()
 const loading = ref(true)
 const routine = ref(null)
 const activeTab = ref('calentamientoInicial')
+
+function goBack() {
+  if (authStore.hasRole('Alumno')) {
+    router.push('/dashboard')
+  } else {
+    router.push('/routines')
+  }
+}
 
 const groupedSections = computed(() => groupRoutineExercises(routine.value?.ejercicios || []))
 const currentSection = computed(() => groupedSections.value.find(s => s.value === activeTab.value))

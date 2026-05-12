@@ -88,7 +88,7 @@ import AppModal from '@/components/ui/AppModal.vue'
 const router = useRouter()
 const authStore = useAuthStore()
 
-const logoUrl = ref('/logo-recreo.png')
+const logoUrl = ref('/logo.png')
 const loading = ref(false)
 const errorMessage = ref('')
 const errors = reactive({})

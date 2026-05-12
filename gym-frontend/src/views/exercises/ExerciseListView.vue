@@ -5,12 +5,23 @@
         <h1 class="page-title">Ejercicios</h1>
         <p class="page-subtitle">Gestión del catálogo global de ejercicios</p>
       </div>
-      <AppButton variant="danger" @click="openCreateModal" class="md:px-4 px-2.5 !rounded-xl md:!rounded-lg">
-        <svg class="w-5 h-5 md:w-4 md:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-        </svg>
-        <span class="hidden md:inline ml-1">Nuevo Ejercicio</span>
-      </AppButton>
+      <div class="flex items-center gap-3">
+        <button 
+          @click="router.push('/dashboard')" 
+          class="text-[10px] font-black text-dark-400 hover:text-white transition-all uppercase tracking-[0.2em] py-2 px-4 rounded-xl border border-dark-800 hover:border-primary-500/50 bg-dark-900/50 hover:bg-dark-800 flex items-center gap-2 shadow-sm"
+        >
+          <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+          </svg>
+          Volver
+        </button>
+        <AppButton variant="danger" @click="openCreateModal" class="md:px-4 px-2.5 !rounded-xl md:!rounded-lg">
+          <svg class="w-5 h-5 md:w-4 md:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          <span class="hidden md:inline ml-1">Nuevo Ejercicio</span>
+        </AppButton>
+      </div>
     </div>
 
     <LoadingSpinner v-if="store.loading" />
@@ -112,6 +123,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useRoutineStore } from '@/stores/routine.store'
 import { useNotification } from '@/composables/useNotification'
 import AppButton from '@/components/ui/AppButton.vue'
@@ -119,6 +131,7 @@ import AppInput from '@/components/ui/AppInput.vue'
 import AppModal from '@/components/ui/AppModal.vue'
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
 
+const router = useRouter()
 const store = useRoutineStore()
 const { success, error: showError } = useNotification()
 

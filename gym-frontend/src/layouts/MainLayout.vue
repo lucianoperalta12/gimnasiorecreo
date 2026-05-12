@@ -108,7 +108,7 @@ const router = useRouter()
 const authStore = useAuthStore()
 const { notifications } = useNotification()
 const sidebarOpen = ref(false)
-const logoUrl = ref('/logo-recreo.png')
+const logoUrl = ref('/logo.png')
 
 const user = computed(() => authStore.user)
 

@@ -3,14 +3,19 @@
     <!-- Sticky Header -->
     <div class="sticky top-[70px] z-30 -mx-6 px-6 py-4 bg-dark-950/80 backdrop-blur-md border-b border-dark-800 flex items-center justify-between mb-8">
       <div>
-        <router-link to="/routines" class="text-[10px] uppercase font-black text-dark-500 hover:text-primary-400 transition-colors tracking-widest flex items-center gap-1">
-          <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
-          Volver
-        </router-link>
         <h1 class="text-xl font-black text-white mt-0.5">{{ isEditing ? 'Editar Rutina' : 'Nueva Rutina' }}</h1>
       </div>
       <div class="flex items-center gap-3">
-        <button type="button" @click="router.push('/routines')" class="hidden sm:block btn-secondary btn-sm">Cancelar</button>
+        <button 
+          type="button"
+          @click="router.push('/routines')" 
+          class="text-[10px] font-black text-dark-400 hover:text-white transition-all uppercase tracking-[0.2em] py-2 px-4 rounded-xl border border-dark-800 hover:border-primary-500/50 bg-dark-900/50 hover:bg-dark-800 flex items-center gap-2 shadow-sm"
+        >
+          <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+          </svg>
+          Volver
+        </button>
         <AppButton @click="handleSubmit" :loading="saving" size="sm" class="shadow-glow-sm">
           {{ isEditing ? 'Guardar Cambios' : 'Crear Rutina' }}
         </AppButton>
