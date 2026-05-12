@@ -57,6 +57,9 @@ namespace GymAdmin.Infrastructure.Migrations
                         .HasColumnType("INTEGER")
                         .HasDefaultValue(true);
 
+                    b.Property<int>("DaysCount")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Descripcion")
                         .HasMaxLength(1000)
                         .HasColumnType("TEXT");
@@ -65,6 +68,9 @@ namespace GymAdmin.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<bool>("IsByDays")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -91,6 +97,9 @@ namespace GymAdmin.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("DayNumber")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int?>("DescansoSegundos")
                         .HasColumnType("INTEGER");

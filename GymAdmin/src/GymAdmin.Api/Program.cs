@@ -3,6 +3,7 @@ using GymAdmin.Api.Middleware;
 using GymAdmin.Application.Services;
 using GymAdmin.Infrastructure.Data;
 using GymAdmin.Infrastructure.Seed;
+using GymAdmin.Api.BackgroundServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -29,6 +30,9 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IExerciseService, ExerciseService>();
 builder.Services.AddScoped<IRoutineService, RoutineService>();
 builder.Services.AddScoped<IAssignmentService, AssignmentService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+
+builder.Services.AddHostedService<StartupNotificationService>();
 
 // ===== Authentication =====
 builder.Services.AddAuthentication(options =>

@@ -13,15 +13,16 @@
               </span>
             </div>
           </div>
-          <button 
-            @click="goBack" 
-            class="text-[10px] font-black text-dark-400 hover:text-white transition-all uppercase tracking-[0.2em] py-2 px-4 rounded-xl border border-dark-800 hover:border-primary-500/50 bg-dark-900/50 hover:bg-dark-800 flex items-center gap-2 shadow-sm"
+          <AppButton 
+            variant="secondary" 
+            @click="goBack"
+            class="md:px-4 px-2.5 !rounded-xl md:!rounded-lg"
           >
-            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+            <svg class="w-5 h-5 md:w-3 md:h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
               <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
             </svg>
-            Volver
-          </button>
+            <span class="hidden md:inline ml-1 text-[10px] font-black uppercase tracking-[0.2em]">Volver</span>
+          </AppButton>
         </div>
         <p class="text-dark-400 text-sm leading-relaxed">{{ routine.descripcion || 'Sin descripción' }}</p>
       </div>
@@ -42,6 +43,21 @@
         </div>
       </div>
 
+      <!-- Day Selector Navigation -->
+      <div v-if="routine.isByDays" class="flex p-1.5 gap-1.5 bg-dark-950/80 backdrop-blur-md border border-dark-800 rounded-2xl mb-4 overflow-x-auto no-scrollbar">
+        <button
+          v-for="day in routine.daysCount"
+          :key="day"
+          @click="currentDay = day"
+          class="flex-1 min-w-[80px] py-2 text-xs font-black rounded-xl transition-all duration-300"
+          :class="currentDay === day 
+            ? 'bg-primary-600/20 text-primary-400 border border-primary-500/30' 
+            : 'text-dark-400 hover:text-dark-200 hover:bg-dark-900'"
+        >
+          Día {{ day }}
+        </button>
+      </div>
+
       <!-- Tabs Navigation (Optimized for Mobile) -->
       <div class="flex p-1.5 gap-1.5 bg-dark-950/80 backdrop-blur-md border border-dark-800 rounded-2xl mb-8 sticky top-[72px] z-20 shadow-xl overflow-x-auto no-scrollbar">
         <button
@@ -56,7 +72,7 @@
           <span class="text-lg transition-transform duration-300 group-active:scale-125">
             <span v-if="section.value === 'calentamientoInicial'">🔥</span>
             <span v-else-if="section.value === 'parteMedia'">⚙️</span>
-            <span v-else-if="section.value === 'fuerza'">💪</span>
+            <span v-else-if="section.value === 'fuerza'">🤸</span>
           </span>
           <span class="uppercase tracking-tighter">{{ section.label }}</span>
           <span 
@@ -107,7 +123,7 @@
                           v-if="ej.videoUrl"
                           :href="ej.videoUrl"
                           target="_blank"
-                          class="p-1 rounded-md bg-primary-600/10 text-primary-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                          class="p-1 rounded-md bg-primary-600/10 text-primary-400 hover:bg-primary-600/20 transition-all"
                           title="Ver video"
                         >
                           <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -211,6 +227,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useRoutineStore } from '@/stores/routine.store'
 import { useAuthStore } from '@/stores/auth.store'
+import AppButton from '@/components/ui/AppButton.vue'
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
 import { groupRoutineExercises } from '@/constants/routineSections'
 
@@ -221,6 +238,7 @@ const authStore = useAuthStore()
 const loading = ref(true)
 const routine = ref(null)
 const activeTab = ref('calentamientoInicial')
+const currentDay = ref(1)
 
 function goBack() {
   if (authStore.hasRole('Alumno')) {
@@ -230,7 +248,13 @@ function goBack() {
   }
 }
 
-const groupedSections = computed(() => groupRoutineExercises(routine.value?.ejercicios || []))
+const filteredExercises = computed(() => {
+  if (!routine.value) return []
+  if (!routine.value.isByDays) return routine.value.ejercicios
+  return routine.value.ejercicios.filter(ej => ej.dayNumber === currentDay.value)
+})
+
+const groupedSections = computed(() => groupRoutineExercises(filteredExercises.value))
 const currentSection = computed(() => groupedSections.value.find(s => s.value === activeTab.value))
 
 function formatDate(dateStr) {

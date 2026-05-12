@@ -9,10 +9,11 @@
     <div class="relative w-full max-w-md">
       <!-- Logo -->
       <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-24 h-24 mb-4">
-          <img :src="logoUrl" alt="Recreo Logo" class="w-full h-full object-contain shadow-glow-lg rounded-2xl" />
+        <div class="relative inline-flex items-center justify-center w-34 h-34 mb-4 group">
+          <div class="absolute -inset-2 bg-primary-500 rounded-full blur opacity-10 group-hover:opacity-25 transition duration-500"></div>
+          <img :src="logoUrl" alt="Recreo Logo" class="relative w-full h-full object-contain transform group-hover:scale-105 transition-all duration-500" />
         </div>
-        <p class="text-dark-400 mt-2 font-medium">Espacio Fitness</p>
+        <p class="text-dark-400 mt-2 font-medium">Gestión de Gimnasios </p>
       </div>
 
       <!-- Card -->
@@ -67,7 +68,7 @@
     <!-- Modal Registro -->
     <AppModal v-model="showRegisterModal" title="Crear Cuenta" size="sm">
       <form @submit.prevent="handleRegister" class="space-y-4">
-        <AppInput id="reg-name" v-model="registerForm.nombre" label="Nombre completo" placeholder="Ej: Juan Pérez" required />
+        <AppInput id="reg-name" v-model="registerForm.nombre" label="Nombre completo o Usuario" placeholder="Ej: Juan Pérez" required />
         <AppInput id="reg-email" v-model="registerForm.email" label="Correo electrónico" type="email" placeholder="tu@email.com" required />
         <AppInput id="reg-password" v-model="registerForm.password" label="Contraseña" type="password" placeholder="••••••••" required />
         <div v-if="registerError" class="p-2 rounded bg-red-500/10 border border-red-500/20 text-red-400 text-xs text-center">{{ registerError }}</div>

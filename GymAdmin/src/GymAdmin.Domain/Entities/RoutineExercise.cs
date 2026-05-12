@@ -12,6 +12,7 @@ public class RoutineExercise
     public int? DescansoSegundos { get; set; }
     public int Orden { get; set; }
     public string? Observaciones { get; set; }
+    public int DayNumber { get; set; } = 1;
 
     // Navigation properties
     public Routine Rutina { get; set; } = null!;

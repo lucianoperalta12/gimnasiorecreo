@@ -6,18 +6,22 @@
         <h1 class="text-xl font-black text-white mt-0.5">{{ isEditing ? 'Editar Rutina' : 'Nueva Rutina' }}</h1>
       </div>
       <div class="flex items-center gap-3">
-        <button 
-          type="button"
-          @click="router.push('/routines')" 
-          class="text-[10px] font-black text-dark-400 hover:text-white transition-all uppercase tracking-[0.2em] py-2 px-4 rounded-xl border border-dark-800 hover:border-primary-500/50 bg-dark-900/50 hover:bg-dark-800 flex items-center gap-2 shadow-sm"
+        <AppButton 
+          variant="secondary" 
+          @click="router.push('/routines')"
+          class="md:px-4 px-2.5 !rounded-xl md:!rounded-lg"
         >
-          <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+          <svg class="w-5 h-5 md:w-3 md:h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
             <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
           </svg>
-          Volver
-        </button>
-        <AppButton @click="handleSubmit" :loading="saving" size="sm" class="shadow-glow-sm">
-          {{ isEditing ? 'Guardar Cambios' : 'Crear Rutina' }}
+          <span class="hidden md:inline ml-1 text-[10px] font-black uppercase tracking-[0.2em]">Volver</span>
+        </AppButton>
+        <AppButton 
+          @click="handleSubmit" 
+          :loading="saving" 
+          class="md:px-4 px-2.5 !rounded-xl md:!rounded-lg shadow-glow-sm"
+        >
+          {{ isEditing ? 'Guardar' : 'Crear Rutina' }}
         </AppButton>
       </div>
     </div>
@@ -54,19 +58,61 @@
                 />
               </button>
             </div>
+
+            <div class="flex items-center justify-between p-3 rounded-xl bg-dark-900/50 border border-dark-800">
+              <span class="text-xs font-bold text-dark-300">Rutina por días</span>
+              <button
+                type="button"
+                class="relative w-10 h-5 rounded-full transition-colors duration-200"
+                :class="form.isByDays ? 'bg-primary-600' : 'bg-dark-700'"
+                @click="form.isByDays = !form.isByDays; if (!form.isByDays) currentDay = 1;"
+              >
+                <span
+                  class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200"
+                  :class="form.isByDays ? 'translate-x-5' : ''"
+                />
+              </button>
+            </div>
+
+            <div v-if="form.isByDays" class="flex items-center justify-between p-3 rounded-xl bg-dark-900/50 border border-dark-800">
+              <span class="text-xs font-bold text-dark-300">Cantidad de Días (1-5)</span>
+              <input 
+                type="number" 
+                v-model.number="form.daysCount" 
+                min="1" 
+                max="5"
+                class="input !w-20 text-center !py-1 text-sm font-bold"
+                @change="onDaysCountChange"
+              />
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Main: Exercises List -->
       <div class="lg:col-span-8 space-y-8">
+        
+        <!-- Day Selector Tabs -->
+        <div v-if="form.isByDays" class="flex items-center gap-2 overflow-x-auto pb-2 border-b border-dark-800">
+          <button
+            v-for="day in form.daysCount"
+            :key="day"
+            type="button"
+            @click="currentDay = day"
+            class="px-4 py-2 text-sm font-bold rounded-lg transition-colors flex-shrink-0"
+            :class="currentDay === day ? 'bg-primary-600/20 text-primary-400 border border-primary-500/30' : 'text-dark-400 hover:text-white hover:bg-dark-800'"
+          >
+            Día {{ day }}
+          </button>
+        </div>
+
         <div v-for="section in routineSections" :key="section.value" class="space-y-4">
           <div class="flex items-center justify-between">
             <h3 class="text-sm font-black text-white uppercase tracking-widest flex items-center gap-3">
               <span class="text-lg">
                 <span v-if="section.value === 'calentamientoInicial'">🔥</span>
                 <span v-else-if="section.value === 'parteMedia'">⚙️</span>
-                <span v-else-if="section.value === 'fuerza'">💪</span>
+                <span v-else-if="section.value === 'fuerza'">🤸</span>
               </span>
               {{ section.label }}
             </h3>
@@ -163,14 +209,24 @@ const form = reactive({
   nombre: '',
   descripcion: '',
   activa: true,
+  isByDays: false,
+  daysCount: 1,
   ejercicios: []
 })
+
+const currentDay = ref(1)
+
+function onDaysCountChange() {
+  if (form.daysCount < 1) form.daysCount = 1
+  if (form.daysCount > 5) form.daysCount = 5
+  if (currentDay.value > form.daysCount) currentDay.value = form.daysCount
+}
 
 // Helper to get exercises for a specific section with tracking for original index
 function getExercisesBySection(sectionValue) {
   return form.ejercicios
     .map((ej, index) => ({ ...ej, originalIndex: index }))
-    .filter(ej => ej.bloque === sectionValue)
+    .filter(ej => ej.bloque === sectionValue && (!form.isByDays || ej.dayNumber === currentDay.value))
     .map((ej, idx) => ({ ...ej, ordenGlobal: idx + 1 }))
 }
 
@@ -183,7 +239,8 @@ function addExercise(sectionValue = 'parteMedia') {
     peso: null,
     descansoSegundos: 90,
     orden: form.ejercicios.length + 1,
-    observaciones: ''
+    observaciones: '',
+    dayNumber: form.isByDays ? currentDay.value : 1
   })
 }
 
@@ -195,7 +252,7 @@ function removeExercise(index) {
 }
 
 async function handleSubmit() {
-  if (!form.nombre.trim()) return showError('El nombre es obligatorio')
+  if (!form.nombre.trim()) return showError('El nombre de la rutina es obligatorio')
   if (form.ejercicios.length === 0) return showError('Agregá al menos un ejercicio')
   if (form.ejercicios.some((ejercicio) => !ejercicio.ejercicioId)) return showError('Seleccioná todos los ejercicios')
   if (form.ejercicios.some((ejercicio) => !ejercicio.bloque)) return showError('Seleccioná el bloque de cada ejercicio')
@@ -231,6 +288,8 @@ onMounted(async () => {
         form.nombre = routine.nombre
         form.descripcion = routine.descripcion || ''
         form.activa = routine.activa
+        form.isByDays = routine.isByDays || false
+        form.daysCount = routine.daysCount || 1
         form.ejercicios = routine.ejercicios.map((ejercicio) => ({
           ejercicioId: ejercicio.ejercicioId,
           bloque: ejercicio.bloque || 'parteMedia',
@@ -239,7 +298,8 @@ onMounted(async () => {
           peso: ejercicio.peso,
           descansoSegundos: ejercicio.descansoSegundos,
           orden: ejercicio.orden,
-          observaciones: ejercicio.observaciones || ''
+          observaciones: ejercicio.observaciones || '',
+          dayNumber: ejercicio.dayNumber || 1
         }))
       }
     }

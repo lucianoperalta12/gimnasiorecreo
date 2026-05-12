@@ -13,6 +13,9 @@ export const usersApi = {
   changeRole(id, rol) {
     return api.put(`/users/${id}/role`, { rol })
   },
+  changePassword(id, password) {
+    return api.put(`/users/${id}/password`, { password })
+  },
   toggleStatus(id) {
     return api.patch(`/users/${id}/toggle-status`)
   },

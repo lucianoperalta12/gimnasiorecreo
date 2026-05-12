@@ -9,6 +9,8 @@ public record RoutineDto(
     DateTime FechaCreacion,
     DateTime? FechaAsignacion,
     bool Activa,
+    bool IsByDays,
+    int DaysCount,
     List<RoutineExerciseDto> Ejercicios
 );
 
@@ -34,12 +36,15 @@ public record RoutineExerciseDto(
     decimal? Peso,
     int? DescansoSegundos,
     int Orden,
-    string? Observaciones
+    string? Observaciones,
+    int DayNumber = 1
 );
 
 public record CreateRoutineRequest(
     string Nombre,
     string? Descripcion,
+    bool IsByDays,
+    int DaysCount,
     List<CreateRoutineExerciseRequest> Ejercicios
 );
 
@@ -51,12 +56,15 @@ public record CreateRoutineExerciseRequest(
     decimal? Peso,
     int? DescansoSegundos,
     int Orden,
-    string? Observaciones
+    string? Observaciones,
+    int DayNumber = 1
 );
 
 public record UpdateRoutineRequest(
     string Nombre,
     string? Descripcion,
     bool Activa,
+    bool IsByDays,
+    int DaysCount,
     List<CreateRoutineExerciseRequest> Ejercicios
 );

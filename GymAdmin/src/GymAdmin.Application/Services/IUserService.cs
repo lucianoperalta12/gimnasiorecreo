@@ -8,6 +8,7 @@ public interface IUserService
     Task<UserDto?> GetUserByIdAsync(int id);
     Task<List<UserDto>> GetStudentsAsync();
     Task<UserDto> ChangeRoleAsync(int userId, ChangeRoleRequest request);
+    Task ChangePasswordAsync(int userId, ChangePasswordRequest request);
     Task<UserDto> ToggleStatusAsync(int userId);
     Task DeleteUserAsync(int userId);
 }

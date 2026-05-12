@@ -135,6 +135,8 @@ public class AssignmentService : IAssignmentService
             sr.Rutina.FechaCreacion,
             sr.FechaAsignacion,
             sr.Rutina.Activa,
+            sr.Rutina.IsByDays,
+            sr.Rutina.DaysCount,
             sr.Rutina.Ejercicios.Select(re => new RoutineExerciseDto(
                 re.Id,
                 re.EjercicioId,
@@ -147,7 +149,8 @@ public class AssignmentService : IAssignmentService
                 re.Peso,
                 re.DescansoSegundos,
                 re.Orden,
-                re.Observaciones
+                re.Observaciones,
+                re.DayNumber
             )).ToList()
         )).ToList();
     }

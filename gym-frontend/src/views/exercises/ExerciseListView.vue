@@ -3,19 +3,20 @@
     <div class="flex items-center justify-between mb-6">
       <div>
         <h1 class="page-title">Ejercicios</h1>
-        <p class="page-subtitle">Gestión del catálogo global de ejercicios</p>
+        <p class="page-subtitle">Gestión ejercicios</p>
       </div>
       <div class="flex items-center gap-3">
-        <button 
-          @click="router.push('/dashboard')" 
-          class="text-[10px] font-black text-dark-400 hover:text-white transition-all uppercase tracking-[0.2em] py-2 px-4 rounded-xl border border-dark-800 hover:border-primary-500/50 bg-dark-900/50 hover:bg-dark-800 flex items-center gap-2 shadow-sm"
+        <AppButton 
+          variant="secondary" 
+          @click="router.push('/dashboard')"
+          class="md:px-4 px-2.5 !rounded-xl md:!rounded-lg"
         >
-          <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+          <svg class="w-5 h-5 md:w-3 md:h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
             <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
           </svg>
-          Volver
-        </button>
-        <AppButton variant="danger" @click="openCreateModal" class="md:px-4 px-2.5 !rounded-xl md:!rounded-lg">
+          <span class="hidden md:inline ml-1 text-[10px] font-black uppercase tracking-[0.2em]">Volver</span>
+        </AppButton>
+        <AppButton variant="primary" @click="openCreateModal" class="md:px-4 px-2.5 !rounded-xl md:!rounded-lg">
           <svg class="w-5 h-5 md:w-4 md:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
@@ -112,7 +113,7 @@
     <!-- Delete Confirmation -->
     <AppModal v-model="showDeleteModal" title="Eliminar Ejercicio" size="sm">
       <p class="text-dark-300">¿Estás seguro de que querés eliminar <strong class="text-white">{{ deletingExercise?.nombre }}</strong>?</p>
-      <p class="text-sm text-dark-500 mt-2">Esta acción no se puede deshacer.</p>
+      <p class="text-sm text-dark-600 mt-2">Esta acción no se puede deshacer.</p>
       <template #footer>
         <AppButton variant="secondary" @click="showDeleteModal = false">Cancelar</AppButton>
         <AppButton variant="danger" :loading="saving" @click="handleDelete">Eliminar</AppButton>

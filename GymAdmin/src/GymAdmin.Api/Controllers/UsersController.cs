@@ -50,6 +50,14 @@ public class UsersController : ControllerBase
         return Ok(user);
     }
 
+    [HttpPut("{id}/password")]
+    [Authorize(Roles = "Superusuario")]
+    public async Task<IActionResult> ChangePassword(int id, [FromBody] ChangePasswordRequest request)
+    {
+        await _userService.ChangePasswordAsync(id, request);
+        return Ok(new { message = "Contraseña actualizada exitosamente" });
+    }
+
     [HttpPatch("{id}/toggle-status")]
     [Authorize(Roles = "Superusuario")]
     public async Task<ActionResult<UserDto>> ToggleStatus(int id)

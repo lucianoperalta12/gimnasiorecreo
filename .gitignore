@@ -13,3 +13,7 @@ publish-client.bat~
 *.user
 *.suo
 *.cache
+deploy-demo/
+.db_backup/
+.vs/
+.gemini/

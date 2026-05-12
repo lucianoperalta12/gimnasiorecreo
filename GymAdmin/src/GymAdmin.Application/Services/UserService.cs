@@ -58,6 +58,15 @@ public class UserService : IUserService
         return new UserDto(user.Id, user.Nombre, user.Email, user.Rol.ToString(), user.Activo, user.FechaCreacion);
     }
 
+    public async Task ChangePasswordAsync(int userId, ChangePasswordRequest request)
+    {
+        var user = await _context.Users.FindAsync(userId)
+            ?? throw new KeyNotFoundException("Usuario no encontrado.");
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
+        await _context.SaveChangesAsync();
+    }
+
     public async Task<UserDto> ToggleStatusAsync(int userId)
     {
         var user = await _context.Users.FindAsync(userId)

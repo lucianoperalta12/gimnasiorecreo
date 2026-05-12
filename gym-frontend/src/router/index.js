@@ -15,7 +15,7 @@ const routes = [
     children: [
       {
         path: '',
-        name: 'Panel',
+        name: 'Panel Principal',
         component: () => import('@/views/DashboardView.vue')
       },
       // Exercises
@@ -66,7 +66,7 @@ const routes = [
       // Admin
       {
         path: 'users',
-        name: 'Panel de Usuarios',
+        name: 'Usuarios',
         component: () => import('@/views/admin/UserManagementView.vue'),
         meta: { roles: ['Superusuario'] }
       }

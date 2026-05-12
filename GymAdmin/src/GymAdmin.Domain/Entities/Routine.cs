@@ -8,6 +8,8 @@ public class Routine
     public int ProfesorId { get; set; }
     public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
     public bool Activa { get; set; } = true;
+    public bool IsByDays { get; set; } = false;
+    public int DaysCount { get; set; } = 1;
 
     // Navigation properties
     public User Profesor { get; set; } = null!;

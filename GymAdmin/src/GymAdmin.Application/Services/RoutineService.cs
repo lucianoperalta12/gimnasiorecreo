@@ -81,6 +81,8 @@ public class RoutineService : IRoutineService
             Descripcion = request.Descripcion?.Trim(),
             ProfesorId = profesorId,
             Activa = true,
+            IsByDays = request.IsByDays,
+            DaysCount = request.IsByDays ? request.DaysCount : 1,
             FechaCreacion = DateTime.UtcNow,
             Ejercicios = request.Ejercicios.Select(e => new RoutineExercise
             {
@@ -91,7 +93,8 @@ public class RoutineService : IRoutineService
                 Peso = e.Peso,
                 DescansoSegundos = e.DescansoSegundos,
                 Orden = e.Orden,
-                Observaciones = e.Observaciones?.Trim()
+                Observaciones = e.Observaciones?.Trim(),
+                DayNumber = request.IsByDays ? e.DayNumber : 1
             }).ToList()
         };
 
@@ -115,6 +118,8 @@ public class RoutineService : IRoutineService
         routine.Nombre = request.Nombre.Trim();
         routine.Descripcion = request.Descripcion?.Trim();
         routine.Activa = request.Activa;
+        routine.IsByDays = request.IsByDays;
+        routine.DaysCount = request.IsByDays ? request.DaysCount : 1;
 
         // Replace exercises: remove old, add new
         _context.RoutineExercises.RemoveRange(routine.Ejercicios);
@@ -138,7 +143,8 @@ public class RoutineService : IRoutineService
                 Peso = e.Peso,
                 DescansoSegundos = e.DescansoSegundos,
                 Orden = e.Orden,
-                Observaciones = e.Observaciones?.Trim()
+                Observaciones = e.Observaciones?.Trim(),
+                DayNumber = request.IsByDays ? e.DayNumber : 1
             }).ToList();
         }
 
@@ -167,6 +173,8 @@ public class RoutineService : IRoutineService
             routine.FechaCreacion,
             fechaAsignacion,
             routine.Activa,
+            routine.IsByDays,
+            routine.DaysCount,
             routine.Ejercicios.Select(re => new RoutineExerciseDto(
                 re.Id,
                 re.EjercicioId,
@@ -179,7 +187,8 @@ public class RoutineService : IRoutineService
                 re.Peso,
                 re.DescansoSegundos,
                 re.Orden,
-                re.Observaciones
+                re.Observaciones,
+                re.DayNumber
             )).ToList()
         );
     }
@@ -187,7 +196,7 @@ public class RoutineService : IRoutineService
     private static void ValidateExerciseSections(IEnumerable<CreateRoutineExerciseRequest> ejercicios)
     {
         if (ejercicios.Any(e => !AllowedSections.Contains(NormalizeSection(e.Bloque))))
-            throw new ArgumentException("Cada ejercicio debe pertenecer a calentamiento inicial, parte media o fuerza.");
+            throw new ArgumentException("Cada ejercicio debe pertenecer a calentamiento inicial, bloque central o movilidad.");
     }
 
     private static string NormalizeSection(string? bloque)
