@@ -112,6 +112,8 @@
       </main>
     </div>
   </div>
+
+  <FloatingStopwatch />
 </template>
 
 <script setup>
@@ -119,6 +121,7 @@ import { ref, computed, h } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
 import { useNotification } from '@/composables/useNotification'
+import FloatingStopwatch from '@/components/ui/FloatingStopwatch.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
