@@ -30,9 +30,9 @@
                 <div class="sw-status-dot" :class="running ? 'active' : ''"></div>
                 <span class="sw-title">Cronómetro</span>
               </div>
-              <button class="sw-close-btn" @click="collapse" aria-label="Cerrar">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
-                  <path stroke-linecap="round" d="M6 18L18 6M6 6l12 12" />
+              <button class="sw-close-btn" @click="collapse" aria-label="Colapsar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="20" height="20">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
             </div>
@@ -45,18 +45,18 @@
 
             <!-- Controls -->
             <div class="sw-controls">
-              <button class="sw-btn-reset" @click="reset" aria-label="Reiniciar" title="Reiniciar">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+              <button class="sw-btn sw-btn-reset" @click="reset" aria-label="Reiniciar" title="Reiniciar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l3.5 2M12 2a10 10 0 100 20A10 10 0 0012 2z" />
                   <path stroke-linecap="round" stroke-linejoin="round" d="M3 3l3.5 3.5M3 3v4m0-4h4" />
                 </svg>
               </button>
 
-              <button class="sw-btn-play" @click="toggle" :aria-label="running ? 'Pausar' : 'Iniciar'">
-                <svg v-if="!running" viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
+              <button class="sw-btn sw-btn-play" @click="toggle" :aria-label="running ? 'Pausar' : 'Iniciar'">
+                <svg v-if="!running" viewBox="0 0 24 24" fill="currentColor" width="24" height="24" class="sw-icon-play">
                   <path d="M8 5v14l11-7L8 5z"/>
                 </svg>
-                <svg v-else viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
+                <svg v-else viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
                   <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
                 </svg>
               </button>
@@ -295,25 +295,38 @@ onUnmounted(() => clearInterval(intervalId))
 /* Controls */
 .sw-controls {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   align-items: center;
   justify-content: center;
 }
 
-.sw-btn-reset,
-.sw-btn-play {
-  width: 42px;
-  height: 42px;
-  flex: none;
+@media (max-width: 640px) {
+  .sw-controls {
+    gap: 16px;
+  }
+}
+
+.sw-btn {
+  height: 48px;
+  width: 60px;
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
+  border-radius: 14px;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, box-shadow 0.15s, transform 0.1s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.sw-btn-reset:active,
-.sw-btn-play:active { transform: scale(0.93); }
+
+@media (max-width: 640px) {
+  .sw-btn {
+    height: 56px;
+    flex: 1;
+    border-radius: 18px;
+  }
+}
+
+.sw-btn:active { transform: scale(0.95); }
 
 .sw-btn-reset {
   border: 1px solid rgba(255,255,255,0.08);
@@ -328,12 +341,16 @@ onUnmounted(() => clearInterval(intervalId))
 .sw-btn-play {
   border: none;
   background: #e85d04;
-  box-shadow: 0 6px 20px rgba(232, 93, 4, 0.35);
+  box-shadow: 0 6px 20px rgba(232, 93, 4, 0.3);
   color: #fff;
 }
 .sw-btn-play:hover {
   background: #c94c00;
-  box-shadow: 0 6px 22px rgba(201, 76, 0, 0.4);
+  box-shadow: 0 8px 24px rgba(201, 76, 0, 0.35);
+}
+
+.sw-icon-play {
+  margin-left: 2px; /* Pequeño ajuste visual para centrar el triángulo */
 }
 
 /* ===== Transitions ===== */

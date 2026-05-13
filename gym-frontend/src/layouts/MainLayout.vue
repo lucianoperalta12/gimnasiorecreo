@@ -2,7 +2,7 @@
   <div class="min-h-screen flex">
     <!-- Sidebar -->
     <aside
-      class="fixed inset-y-0 left-0 z-30 w-72 bg-[#080808] border-r border-dark-900 transform transition-transform duration-300 lg:translate-x-0 shadow-2xl"
+      class="fixed inset-y-0 left-0 z-50 w-72 bg-[#080808] border-r border-dark-900 transform transition-transform duration-300 lg:translate-x-0 shadow-2xl"
       :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
     >
       <!-- Logo Container (Oculto en móvil) -->
@@ -59,7 +59,7 @@
     <!-- Overlay -->
     <div
       v-if="sidebarOpen"
-      class="fixed inset-0 bg-black/50 z-20 lg:hidden"
+      class="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm"
       @click="sidebarOpen = false"
     />
 
@@ -153,7 +153,6 @@ const allNavItems = [
   { to: '/exercises', label: 'Ejercicios', icon: IconDumbbell, roles: ['Profesor', 'Superusuario'] },
   { to: '/routines', label: 'Rutinas', icon: IconClipboard, roles: ['Profesor', 'Superusuario'] },
   { to: '/assignments', label: 'Asignaciones', icon: IconLink, roles: ['Profesor', 'Superusuario'] },
-  // { to: '/my-routines', label: 'Mis Rutinas', icon: IconBook, roles: ['Alumno'] },
   { to: '/users', label: 'Usuarios', icon: IconUsers, roles: ['Superusuario'] },
 ]
 
