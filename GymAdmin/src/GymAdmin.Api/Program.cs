@@ -106,6 +106,7 @@ app.MapControllers();
 app.MapFallbackToFile("index.html");
 
 // ===== Seed Database =====
-await DbSeeder.SeedAsync(app.Services);
+// Se corre en segundo plano para que el servidor inicie inmediatamente
+_ = Task.Run(() => DbSeeder.SeedAsync(app.Services));
 
 app.Run();

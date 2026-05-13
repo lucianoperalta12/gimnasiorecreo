@@ -9,11 +9,11 @@
     <div class="relative w-full max-w-md">
       <!-- Logo -->
       <div class="text-center mb-8">
-        <div class="relative inline-flex items-center justify-center w-32 h-32 mb-4 group">
+        <div class="relative inline-flex items-center justify-center w-34 h-34 mb-4 group">
           <div class="absolute -inset-2 bg-primary-500 rounded-full blur opacity-10 group-hover:opacity-25 transition duration-500"></div>
           <img :src="logoUrl" alt="Recreo Logo" class="relative w-full h-full object-contain transform group-hover:scale-105 transition-all duration-500" />
         </div>
-        <p class="text-dark-400 mt-2 font-medium">Gestión de Gimnasios </p>
+        <p class="text-dark-400 mt-2 font-medium">Gestión de Rutinas </p>
       </div>
 
       <!-- Card -->
