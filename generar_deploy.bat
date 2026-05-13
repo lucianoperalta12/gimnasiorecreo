@@ -1,11 +1,12 @@
 @echo off
-setlocal
+setlocal EnableDelayedExpansion
 
 echo =========================
 echo DETENIENDO PROCESOS
 echo =========================
 taskkill /F /IM GymAdmin.Api.exe /T >nul 2>&1
-timeout /t 2 >nul
+taskkill /F /IM Lanzador.exe /T >nul 2>&1
+timeout /t 2 /nobreak >nul
 
 echo =========================
 echo BUILD FRONTEND
@@ -57,32 +58,83 @@ echo =========================
 
 set OUTPUT=%~dp0deploy-demo\backend
 set DBNAME=gymadmin.db
-set BACKUP_DIR=%~dp0.db_backup
+set BACKUP_DIR=%~dp0db_backup
 set BACKUP_FILE=%BACKUP_DIR%\%DBNAME%
+set SOURCE_DB=%~dp0GymAdmin\src\GymAdmin.Api\%DBNAME%
 
 if not exist "%BACKUP_DIR%" mkdir "%BACKUP_DIR%"
 
 :ask_db
-set /p KEEPDB="¿Desea MANTENER la base de datos actual? (Y=Mantener / N=Pizar-Reiniciar): "
+set KEEPDB=
+set /p KEEPDB="¿Desea MANTENER la base de datos actual? (Y=Mantener / N=Reiniciar limpia): "
 
 if /I "%KEEPDB%"=="Y" (
+
     if exist "%OUTPUT%\%DBNAME%" (
-        echo Guardando respaldo de DB actual en %BACKUP_DIR%...
-        copy "%OUTPUT%\%DBNAME%" "%BACKUP_FILE%" /Y >nul
+
+        echo Guardando respaldo de DB y archivos WAL/SHM...
+
+        copy "%OUTPUT%\%DBNAME%*" "%BACKUP_DIR%" /Y >nul
+
         if errorlevel 1 (
             echo ERROR: No se pudo respaldar la base de datos.
+            echo Posiblemente algun proceso la esta usando.
             pause
             exit /b 1
         )
+
+        echo Respaldo realizado correctamente:
+        dir /b "%BACKUP_DIR%\%DBNAME%*"
+
     ) else (
-        echo No existe base de datos previa en el output para mantener.
+
+        if exist "%SOURCE_DB%" (
+
+            echo No existe DB en deploy.
+            echo Se encontro una DB en el codigo fuente.
+
+            set USESOURCE=
+            set /p USESOURCE="¿Desea usar esa DB? (S/N): "
+
+            if /I "!USESOURCE!"=="S" (
+
+                copy "%SOURCE_DB%*" "%BACKUP_DIR%" /Y >nul
+
+                if errorlevel 1 (
+                    echo ERROR: No se pudo copiar la DB del codigo fuente.
+                    pause
+                    exit /b 1
+                )
+
+                echo DB del codigo fuente copiada al respaldo.
+            )
+
+        ) else (
+
+            echo ATENCION: No existe ninguna base de datos previa.
+
+        )
     )
-) else if /I "%KEEPDB%"=="N" (
-    echo Se procedera con una base de datos limpia.
-    if exist "%BACKUP_FILE%" del "%BACKUP_FILE%"
+
 ) else (
-    echo Opcion invalida. Por favor use Y o N.
-    goto ask_db
+
+    if /I "%KEEPDB%"=="N" (
+
+        echo Se utilizara una base de datos limpia.
+
+        if exist "%BACKUP_DIR%\%DBNAME%*" (
+            del "%BACKUP_DIR%\%DBNAME%*" /Q
+        )
+
+    ) else (
+
+        echo.
+        echo Opcion invalida.
+        echo Ingrese solamente Y o N.
+        echo.
+        goto ask_db
+
+    )
 )
 
 echo =========================
@@ -110,24 +162,34 @@ dotnet publish src\GymAdmin.Api\GymAdmin.Api.csproj ^
 -o "%OUTPUT%"
 
 if errorlevel 1 (
-    echo ERROR: El publish del backend fallo. Revise los errores arriba.
+    echo ERROR: El publish del backend fallo.
     pause
     exit /b 1
 )
 
 echo =========================
-echo RESTAURANDO DB (SI APLICA)
+echo RESTAURANDO DB
 echo =========================
 
 if /I "%KEEPDB%"=="Y" (
-    if exist "%BACKUP_FILE%" (
-        echo Restaurando base de datos desde el respaldo...
-        copy "%BACKUP_FILE%" "%OUTPUT%\%DBNAME%" /Y >nul
+
+    if exist "%BACKUP_DIR%\%DBNAME%" (
+
+        echo Restaurando archivos de base de datos...
+
+        copy "%BACKUP_DIR%\%DBNAME%*" "%OUTPUT%" /Y >nul
+
         if errorlevel 1 (
-            echo ERROR: No se pudo restaurar la base de datos.
+
+            echo ERROR CRITICO: No se pudieron restaurar los archivos.
             pause
+            exit /b 1
+
         ) else (
-            echo DB mantenida correctamente.
+
+            echo Base de datos restaurada correctamente:
+            dir /b "%OUTPUT%\%DBNAME%*"
+
         )
     )
 )
@@ -136,7 +198,9 @@ echo =========================
 echo DEPLOY COMPLETADO
 echo =========================
 
-echo Ubicacion del deploy:
+echo.
+echo Ubicacion final:
 echo %OUTPUT%
 echo.
+
 pause

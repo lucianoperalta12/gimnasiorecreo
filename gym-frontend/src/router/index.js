@@ -85,6 +85,12 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
+  
+  // Force logout if requested by URL
+  if (to.query.forceLogout === 'true') {
+    authStore.logout()
+    return next({ path: '/login', query: {}, replace: true })
+  }
 
   // Public routes
   if (to.meta.requiresAuth === false) {

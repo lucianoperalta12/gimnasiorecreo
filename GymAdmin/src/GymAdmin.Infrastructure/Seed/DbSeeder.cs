@@ -35,7 +35,7 @@ public static class DbSeeder
             {
                 Nombre = "admin",
                 Email = "admin",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("admin"),
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("admin123"),
                 Rol = UserRole.Superusuario,
                 Activo = true,
                 FechaCreacion = DateTime.UtcNow
