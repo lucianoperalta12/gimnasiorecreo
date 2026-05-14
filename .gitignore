@@ -1,19 +1,42 @@
+# Node
 gym-frontend/node_modules/
 gym-frontend/dist/
 gym-frontend/.env.local
-GymAdmin/src/**/bin/
-GymAdmin/src/**/obj/
-GymAdmin/build-check/
-GymAdmin/build-verify/
-GymAdmin/src/GymAdmin.Api/gymadmin.db
-GymAdmin/src/GymAdmin.Api/gymadmin.db-shm
-GymAdmin/src/GymAdmin.Api/gymadmin.db-wal
-client-package/
-publish-client.bat~
+node_modules/
+
+# .NET
+**/bin/
+**/obj/
 *.user
 *.suo
 *.cache
-deploy-demo/
-.db_backup/
+*.pdb
+*.swp
+
+# IDEs
 .vs/
+.vscode/
+.idea/
+*.sln.dotSettings.user
+
+# Project Specific
+GymAdmin/src/GymAdmin.Api/gymadmin.db
+GymAdmin/src/GymAdmin.Api/gymadmin.db-shm
+GymAdmin/src/GymAdmin.Api/gymadmin.db-wal
+GymAdmin/build-check/
+GymAdmin/build-verify/
+client-package/
+publish-client.bat~
+deploy-demo/
+db_backup/
+.db_backup/
 .gemini/
+
+# Archives
+*.rar
+*.zip
+*.7z
+
+# OS
+Thumbs.db
+.DS_Store
