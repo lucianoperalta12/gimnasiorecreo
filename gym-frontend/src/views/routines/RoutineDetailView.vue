@@ -66,7 +66,7 @@
           @click="activeTab = section.value"
           class="flex-1 min-w-[100px] py-3 text-xs font-black rounded-xl transition-all duration-300 flex flex-col items-center justify-center gap-1.5 relative group"
           :class="activeTab === section.value 
-            ? 'bg-primary-600 text-white shadow-glow-sm' 
+            ? 'bg-primary-600 text-white' 
             : 'text-dark-400 hover:text-dark-200 hover:bg-dark-900'"
         >
           <span class="text-lg transition-transform duration-300 group-active:scale-125">

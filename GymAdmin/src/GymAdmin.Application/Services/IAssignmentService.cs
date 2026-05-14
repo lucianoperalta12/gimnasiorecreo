@@ -5,9 +5,9 @@ namespace GymAdmin.Application.Services;
 
 public interface IAssignmentService
 {
-    Task<StudentRoutineDto> AssignAsync(AssignRoutineRequest request);
-    Task UnassignAsync(int assignmentId);
-    Task<List<StudentRoutineDto>> GetByStudentIdAsync(int studentId);
+    Task<StudentRoutineDto> AssignAsync(int requesterId, AssignRoutineRequest request);
+    Task UnassignAsync(int requesterId, int assignmentId);
+    Task<List<StudentRoutineDto>> GetByStudentIdAsync(int requesterId, int studentId);
     Task<List<RoutineDto>> GetMyRoutinesAsync(int studentId);
-    Task<AssignmentSummaryDto> GetSummaryAsync();
+    Task<AssignmentSummaryDto> GetSummaryAsync(int requesterId);
 }

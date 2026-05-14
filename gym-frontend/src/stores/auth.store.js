@@ -41,14 +41,9 @@ export const useAuthStore = defineStore('auth', () => {
     return data
   }
 
-  async function loginAdmin(credentials) {
-    const { data } = await authApi.loginAdmin(
-      credentials.username,
-      credentials.password
-    )
-
+  async function login(username, password) {
+    const { data } = await authApi.loginAdmin(username, password)
     saveAuthData(data)
-
     return data
   }
 
@@ -97,7 +92,7 @@ export const useAuthStore = defineStore('auth', () => {
     userRole,
     setUser,
     loginWithGoogle,
-    loginAdmin,
+    login,
     register,
     logout,
     hasRole

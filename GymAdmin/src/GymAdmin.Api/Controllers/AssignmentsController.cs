@@ -20,45 +20,32 @@ public class AssignmentsController : ControllerBase
     }
 
     private int GetUserId() => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-    private string GetUserRole() => User.FindFirstValue(ClaimTypes.Role)!;
 
     [HttpGet("my-routines")]
-    [Authorize(Roles = "Alumno")]
-    public async Task<ActionResult<List<RoutineDto>>> GetMyRoutines()
-    {
-        var routines = await _assignmentService.GetMyRoutinesAsync(GetUserId());
-        return Ok(routines);
-    }
+    [Authorize(Roles = "Alumno,Administrativo")]
+    public async Task<ActionResult<List<RoutineDto>>> GetMyRoutines() =>
+        Ok(await _assignmentService.GetMyRoutinesAsync(GetUserId()));
 
     [HttpGet("student/{studentId}")]
-    [Authorize(Roles = "Profesor,Superusuario")]
-    public async Task<ActionResult<List<StudentRoutineDto>>> GetByStudent(int studentId)
-    {
-        var assignments = await _assignmentService.GetByStudentIdAsync(studentId);
-        return Ok(assignments);
-    }
+    [Authorize(Roles = "Profesor,Superusuario,Administrativo")]
+    public async Task<ActionResult<List<StudentRoutineDto>>> GetByStudent(int studentId) =>
+        Ok(await _assignmentService.GetByStudentIdAsync(GetUserId(), studentId));
 
     [HttpGet("summary")]
-    [Authorize(Roles = "Profesor,Superusuario")]
-    public async Task<ActionResult<AssignmentSummaryDto>> GetSummary()
-    {
-        var summary = await _assignmentService.GetSummaryAsync();
-        return Ok(summary);
-    }
+    [Authorize(Roles = "Profesor,Superusuario,Administrativo")]
+    public async Task<ActionResult<AssignmentSummaryDto>> GetSummary() =>
+        Ok(await _assignmentService.GetSummaryAsync(GetUserId()));
 
     [HttpPost]
-    [Authorize(Roles = "Profesor,Superusuario")]
-    public async Task<ActionResult<StudentRoutineDto>> Assign([FromBody] AssignRoutineRequest request)
-    {
-        var assignment = await _assignmentService.AssignAsync(request);
-        return Ok(assignment);
-    }
+    [Authorize(Roles = "Profesor,Superusuario,Administrativo")]
+    public async Task<ActionResult<StudentRoutineDto>> Assign([FromBody] AssignRoutineRequest request) =>
+        Ok(await _assignmentService.AssignAsync(GetUserId(), request));
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Profesor,Superusuario")]
+    [Authorize(Roles = "Profesor,Superusuario,Administrativo")]
     public async Task<IActionResult> Unassign(int id)
     {
-        await _assignmentService.UnassignAsync(id);
+        await _assignmentService.UnassignAsync(GetUserId(), id);
         return NoContent();
     }
 }

@@ -6,7 +6,7 @@
     </div>
 
     <div
-      v-if="authStore.hasRole('Profesor', 'Superusuario')"
+      v-if="authStore.hasRole('Profesor', 'Superusuario', 'Administrativo')"
       class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8"
     >
       <router-link
@@ -15,12 +15,9 @@
         :to="stat.path || '/'"
         class="p-5 rounded-[2rem] bg-dark-900/40 border border-dark-800/50 backdrop-blur-md group hover:border-primary-500/30 hover:bg-dark-800/60 active:scale-[0.98] transition-all duration-300 relative overflow-hidden"
       >
-        <!-- Decorative gradient -->
-        <div class="absolute -right-4 -top-4 w-24 h-24 bg-primary-500/5 rounded-full blur-2xl group-hover:bg-primary-500/10 transition-colors"></div>
-        
         <div class="flex flex-col gap-4 relative z-10">
           <div
-            class="w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-glow-sm transition-transform duration-500 group-hover:scale-110"
+            class="w-12 h-12 rounded-2xl flex items-center justify-center text-xl transition-transform duration-500 group-hover:scale-110"
             :class="stat.bgColor"
           >
             {{ stat.icon }}
@@ -39,7 +36,7 @@
     </div>
 
     <!-- Quick Actions for Professor/Admin -->
-    <div v-if="authStore.hasRole('Profesor', 'Superusuario')" class="mb-8">
+    <div v-if="authStore.hasRole('Profesor', 'Superusuario', 'Administrativo')" class="mb-8">
       <h2 class="text-sm font-bold text-dark-500 uppercase tracking-[0.2em] mb-4 ml-1">Accesos Rápidos</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <router-link to="/assignments" class="group flex items-center p-4 rounded-2xl bg-dark-900/40 border border-dark-800/50 hover:bg-dark-800/60 hover:border-primary-500/30 transition-all duration-300">
@@ -116,6 +113,7 @@ const loadingRoutines = ref(false)
 const greetingMessage = computed(() => {
   const role = user.value?.rol
   if (role === 'Superusuario') return 'Panel de administracion del gimnasio'
+  if (role === 'Administrativo') return 'Gestion de gimnasio, profesores y alumnos'
   if (role === 'Profesor') return 'Gestion de rutinas y alumnos'
   return 'Revisa tus rutinas de entrenamiento'
 })
@@ -125,7 +123,7 @@ const stats = ref([
   { icon: '📋', label: 'Rutinas', value: '-', bgColor: 'bg-primary-600/10 text-primary-400', path: '/routines' }
 ])
 
-if (authStore.hasRole('Superusuario')) {
+if (authStore.hasRole('Superusuario', 'Administrativo')) {
   stats.value.push(
     { icon: '👥', label: 'Alumnos', value: '-', bgColor: 'bg-primary-700/10 text-primary-400', path: '/users' },
     { icon: '👨‍🏫', label: 'Profesores', value: '-', bgColor: 'bg-primary-800/10 text-primary-400', path: '/users' }
@@ -144,7 +142,7 @@ function updateDashboardStats() {
   stats.value[0].value = assignmentSummary.value.ejerciciosCount || routineStore.exercises.length
   stats.value[1].value = assignmentSummary.value.rutinasCount || routineStore.routines.length
 
-  if (authStore.hasRole('Superusuario') && stats.value.length > 2) {
+  if (authStore.hasRole('Superusuario', 'Administrativo') && stats.value.length > 2) {
     if (userStore.users.length > 0) {
       stats.value[2].value = getActiveStudentsCount()
       stats.value[3].value = getActiveProfessorsCount()
@@ -165,14 +163,14 @@ onMounted(async () => {
     }
   }
 
-  if (authStore.hasRole('Profesor', 'Superusuario')) {
+  if (authStore.hasRole('Profesor', 'Superusuario', 'Administrativo')) {
     const requests = [
       routineStore.fetchExercises(),
       routineStore.fetchRoutines(),
       routineStore.fetchAssignmentSummary()
     ]
 
-    if (authStore.hasRole('Superusuario')) {
+    if (authStore.hasRole('Superusuario', 'Administrativo')) {
       requests.push(userStore.fetchUsers())
     }
 

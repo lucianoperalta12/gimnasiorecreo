@@ -25,5 +25,10 @@ public class ExerciseConfiguration : IEntityTypeConfiguration<Exercise>
 
         builder.Property(e => e.VideoUrl)
             .HasMaxLength(500);
+
+        builder.HasOne(e => e.Gym)
+            .WithMany(g => g.Exercises)
+            .HasForeignKey(e => e.GymId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

@@ -44,12 +44,13 @@
             </span>
           </div>
           <p class="text-sm text-dark-400 mb-4 line-clamp-2">{{ routine.descripcion || 'Sin descripción' }}</p>
-          <div class="flex items-center justify-between text-xs text-dark-500">
-            <div class="flex items-center gap-3">
-              <span>{{ routine.cantidadEjercicios }} ejercicios</span>
-              <span>{{ routine.profesorNombre }}</span>
+            <div class="flex flex-col gap-1">
+              <div class="flex items-center gap-3">
+                <span>{{ routine.cantidadEjercicios }} ejercicios</span>
+                <span>{{ routine.profesorNombre }}</span>
+              </div>
+              <span v-if="authStore.hasRole('Superusuario')" class="text-[10px] text-primary-400 font-bold uppercase tracking-wider">{{ routine.gymNombre }}</span>
             </div>
-          </div>
           <div class="flex items-center gap-2 mt-4 pt-4 border-t border-dark-700/50">
             <router-link :to="`/routines/${routine.id}`" class="btn-ghost btn-sm flex-1 text-center">Ver</router-link>
             <router-link :to="`/routines/${routine.id}/edit`" class="btn-ghost btn-sm flex-1 text-center">Editar</router-link>
@@ -78,6 +79,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useRoutineStore } from '@/stores/routine.store'
+import { useAuthStore } from '@/stores/auth.store'
 import { useNotification } from '@/composables/useNotification'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppModal from '@/components/ui/AppModal.vue'
@@ -85,6 +87,7 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
 
 const router = useRouter()
 const store = useRoutineStore()
+const authStore = useAuthStore()
 const { success, error: showError } = useNotification()
 
 const showDeleteModal = ref(false)

@@ -3,6 +3,7 @@ namespace GymAdmin.Domain.Entities;
 public class Routine
 {
     public int Id { get; set; }
+    public int GymId { get; set; }
     public string Nombre { get; set; } = string.Empty;
     public string? Descripcion { get; set; }
     public int ProfesorId { get; set; }
@@ -12,6 +13,7 @@ public class Routine
     public int DaysCount { get; set; } = 1;
 
     // Navigation properties
+    public Gym Gym { get; set; } = null!;
     public User Profesor { get; set; } = null!;
     public ICollection<RoutineExercise> Ejercicios { get; set; } = new List<RoutineExercise>();
     public ICollection<StudentRoutine> AlumnosAsignados { get; set; } = new List<StudentRoutine>();

@@ -23,26 +23,26 @@ const routes = [
         path: 'exercises',
         name: 'Ejercicios',
         component: () => import('@/views/exercises/ExerciseListView.vue'),
-        meta: { roles: ['Profesor', 'Superusuario'] }
+        meta: { roles: ['Profesor', 'Superusuario', 'Administrativo'] }
       },
       // Routines
       {
         path: 'routines',
         name: 'Rutinas',
         component: () => import('@/views/routines/RoutineListView.vue'),
-        meta: { roles: ['Profesor', 'Superusuario'] }
+        meta: { roles: ['Profesor', 'Superusuario', 'Administrativo'] }
       },
       {
         path: 'routines/new',
         name: 'Crear una Rutina',
         component: () => import('@/views/routines/RoutineFormView.vue'),
-        meta: { roles: ['Profesor', 'Superusuario'] }
+        meta: { roles: ['Profesor', 'Superusuario', 'Administrativo'] }
       },
       {
         path: 'routines/:id/edit',
         name: 'Edición de Rutina',
         component: () => import('@/views/routines/RoutineFormView.vue'),
-        meta: { roles: ['Profesor', 'Superusuario'] }
+        meta: { roles: ['Profesor', 'Superusuario', 'Administrativo'] }
       },
       {
         path: 'routines/:id',
@@ -54,20 +54,26 @@ const routes = [
         path: 'assignments',
         name: 'Asignaciones',
         component: () => import('@/views/assignments/AssignmentView.vue'),
-        meta: { roles: ['Profesor', 'Superusuario'] }
+        meta: { roles: ['Profesor', 'Superusuario', 'Administrativo'] }
       },
       // Student
       {
         path: 'my-routines',
         name: 'Mis Rutinas',
         component: () => import('@/views/students/MyRoutinesView.vue'),
-        meta: { roles: ['Alumno'] }
+        meta: { roles: ['Alumno', 'Administrativo'] }
       },
       // Admin
       {
         path: 'users',
         name: 'Usuarios',
         component: () => import('@/views/admin/UserManagementView.vue'),
+        meta: { roles: ['Superusuario', 'Administrativo'] }
+      },
+      {
+        path: 'gyms',
+        name: 'Gimnasios',
+        component: () => import('@/views/admin/GymsView.vue'),
         meta: { roles: ['Superusuario'] }
       }
     ]

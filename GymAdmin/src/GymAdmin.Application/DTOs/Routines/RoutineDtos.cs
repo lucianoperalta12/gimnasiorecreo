@@ -21,7 +21,9 @@ public record RoutineListDto(
     string ProfesorNombre,
     DateTime FechaCreacion,
     bool Activa,
-    int CantidadEjercicios
+    int CantidadEjercicios,
+    int GymId = 0,
+    string? GymNombre = null
 );
 
 public record RoutineExerciseDto(

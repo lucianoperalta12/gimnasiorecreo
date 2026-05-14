@@ -40,7 +40,7 @@
           :loading="assigning" 
           @click="handleAssign" 
           :disabled="!selectedStudent || !selectedRoutine"
-          class="w-full py-4 text-base shadow-glow-sm"
+          class="w-full py-4 text-base "
         >
           Asignar Rutina
         </AppButton>

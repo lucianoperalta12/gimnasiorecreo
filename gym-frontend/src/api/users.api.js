@@ -10,11 +10,17 @@ export const usersApi = {
   getStudents() {
     return api.get('/users/students')
   },
+  create(payload) {
+    return api.post('/users', payload)
+  },
   changeRole(id, rol) {
     return api.put(`/users/${id}/role`, { rol })
   },
   changePassword(id, password) {
     return api.put(`/users/${id}/password`, { password })
+  },
+  changeInitialPassword(password) {
+    return api.put('/users/me/change-initial-password', { password })
   },
   toggleStatus(id) {
     return api.patch(`/users/${id}/toggle-status`)

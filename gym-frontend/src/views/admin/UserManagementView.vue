@@ -1,276 +1,345 @@
 <template>
   <div class="animate-fade-in">
+    <!-- Header -->
     <div class="flex items-center justify-between mb-6">
       <div>
         <h1 class="page-title">Usuarios</h1>
-        <p class="page-subtitle">Administración de usuarios y roles</p>
+        <p class="page-subtitle hidden sm:block">Administración de usuarios y roles</p>
       </div>
-      <AppButton 
-        variant="secondary" 
-        @click="router.push('/dashboard')"
-        class="md:px-4 px-2.5 !rounded-xl md:!rounded-lg"
-      >
-        <svg class="w-5 h-5 md:w-3 md:h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+      <button @click="openCreateModal" class="btn-primary flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
         </svg>
-        <span class="hidden md:inline ml-1 text-[10px] font-black uppercase tracking-[0.2em]">Volver</span>
-      </AppButton>
+        <span class="hidden sm:inline text-sm">Crear usuario</span>
+      </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="flex flex-col sm:flex-row gap-3 mb-4">
+      <input v-model="search" type="text" placeholder="Buscar por nombre, email o DNI..." class="input flex-1 sm:max-w-sm" />
+      <select v-model="roleFilter" class="input w-full sm:w-auto sm:min-w-[180px]">
+        <option value="">Todos los roles</option>
+        <option value="Administrativo">Administrativo</option>
+        <option value="Profesor">Profesor</option>
+        <option value="Alumno">Alumno</option>
+        <option v-if="authStore.hasRole('Superusuario')" value="Superusuario">Superusuario</option>
+      </select>
     </div>
 
     <LoadingSpinner v-if="userStore.loading" />
 
+    <!-- Mobile: Card Layout -->
+    <div v-else-if="filteredUsers.length === 0" class="card text-center py-8">
+      <p class="text-dark-400">No hay usuarios para mostrar.</p>
+    </div>
+
     <template v-else>
-      <div class="mb-4">
-        <input v-model="search" type="text" placeholder="Buscar por nombre o email..." class="input max-w-sm" />
-      </div>
-
-      <!-- Responsive List -->
-      <div v-if="filteredUsers.length">
-        <!-- Desktop Table -->
-        <div class="hidden lg:block table-container">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Email</th>
-                <th>Rol</th>
-                <th>Estado</th>
-                <th>Fecha Registro</th>
-                <th class="text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="u in filteredUsers" :key="u.id" :class="{ 'opacity-50': !u.activo }">
-                <td class="font-medium text-white">{{ u.nombre }}</td>
-                <td class="text-dark-400">{{ u.email }}</td>
-                <td>
-                  <span :class="roleBadge(u.rol)">{{ u.rol }}</span>
-                </td>
-                <td>
-                  <span :class="u.activo ? 'badge-success' : 'badge-danger'">
-                    {{ u.activo ? 'Activo' : 'Inactivo' }}
-                  </span>
-                </td>
-                <td class="text-dark-400 text-sm">{{ formatDate(u.fechaCreacion) }}</td>
-                <td class="text-right">
-                  <div class="flex items-center justify-end gap-4">
-                    <select
-                      :value="u.rol"
-                      @change="handleRoleChange(u.id, ($event.target).value)"
-                      class="input py-1 px-2 text-xs w-auto inline-block disabled:opacity-50 disabled:cursor-not-allowed"
-                      :disabled="isAdmin(u)"
-                    >
-                      <option value="Alumno">Alumno</option>
-                      <option value="Profesor">Profesor</option>
-                      <option value="Superusuario">Superusuario</option>
-                    </select>
-                    
-                    <button
-                      v-if="!isAdmin(u)"
-                      @click.stop="handleToggleStatus(u.id, u.activo)"
-                      class="relative inline-flex h-5 w-10 items-center rounded-full transition-colors focus:outline-none"
-                      :class="u.activo ? 'bg-emerald-600' : 'bg-dark-700'"
-                    >
-                      <span
-                        class="inline-block h-3 w-3 transform rounded-full bg-white transition-transform"
-                        :class="u.activo ? 'translate-x-6' : 'translate-x-1'"
-                      />
-                    </button>
-                    <div v-else class="w-10 h-5" />
-
-                    <button
-                      v-if="authStore.hasRole('Superusuario') && !isAdmin(u)"
-                      @click.stop="openPasswordModal(u)"
-                      class="text-primary-500 hover:text-primary-400 transition-colors p-1"
-                      title="Cambiar contraseña"
-                    >
-                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-                      </svg>
-                    </button>
-
-                    <button
-                      v-if="!isAdmin(u)"
-                      @click.stop="openDeleteModal(u)"
-                      class="text-red-500 hover:text-red-400 transition-colors p-1"
-                      title="Eliminar usuario definitivamente"
-                    >
-                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-              </svg>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Mobile Cards -->
-        <div class="lg:hidden space-y-4">
-          <div v-for="u in filteredUsers" :key="u.id" class="card p-4 space-y-4" :class="{ 'opacity-50': !u.activo }">
-            <div class="flex items-start justify-between">
-              <div>
-                <h3 class="font-bold text-white">{{ u.nombre }}</h3>
-                <p class="text-xs text-dark-500">{{ u.email }}</p>
-              </div>
-              <span :class="u.activo ? 'badge-success' : 'badge-danger'">
-                {{ u.activo ? 'Activo' : 'Inactivo' }}
-              </span>
+      <!-- Mobile Cards (visible < md) -->
+      <div class="md:hidden space-y-3">
+        <div v-for="u in filteredUsers" :key="u.id" class="p-4 rounded-2xl bg-dark-900/40 border border-dark-800/50" :class="{ 'opacity-50': !u.activo }">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <p class="font-semibold text-white text-sm">{{ fullName(u) }}</p>
+              <p class="text-[11px] text-dark-500 mt-0.5">{{ u.email }}</p>
             </div>
-            
-            <div class="flex items-center justify-between pt-2 border-t border-dark-700/50">
-              <div class="flex flex-col gap-1">
-                <span class="text-[10px] uppercase font-bold text-dark-500">Rol</span>
-                <span :class="roleBadge(u.rol)">{{ u.rol }}</span>
-              </div>
-              <div class="flex flex-col gap-1 items-end">
-                <span class="text-[10px] uppercase font-bold text-dark-500">Acciones</span>
-                <div class="flex items-center gap-3">
-                  <select
-                    :value="u.rol"
-                    @change="handleRoleChange(u.id, ($event.target).value)"
-                    class="input py-1 px-2 text-xs w-auto disabled:opacity-50"
-                    :disabled="isAdmin(u)"
-                  >
-                    <option value="Alumno">Alumno</option>
-                    <option value="Profesor">Profesor</option>
-                    <option value="Superusuario">Superusuario</option>
-                  </select>
-                  <button
-                    v-if="!isAdmin(u)"
-                    @click.stop="handleToggleStatus(u.id, u.activo)"
-                    class="relative inline-flex h-5 w-10 items-center rounded-full transition-colors"
-                    :class="u.activo ? 'bg-emerald-600' : 'bg-dark-700'"
-                  >
-                    <span
-                      class="inline-block h-3 w-3 transform rounded-full bg-white transition-transform"
-                      :class="u.activo ? 'translate-x-6' : 'translate-x-1'"
-                    />
-                  </button>
-                  <button
-                    v-if="authStore.hasRole('Superusuario') && !isAdmin(u)"
-                    @click.stop="openPasswordModal(u)"
-                    class="text-primary-500 hover:text-primary-400 transition-colors p-1"
-                  >
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-                    </svg>
-                  </button>
-                  <button
-                    v-if="!isAdmin(u)"
-                    @click.stop="openDeleteModal(u)"
-                    class="text-red-500 hover:text-red-400 transition-colors p-1"
-                  >
-                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-              </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
+            <select
+              v-if="canChangeRole(u)"
+              :value="u.rol"
+              class="bg-dark-800 border border-dark-700 text-[10px] rounded-full px-2 py-0.5 text-dark-200 focus:outline-none focus:ring-1 focus:ring-primary-500/50"
+              @change="handleRoleChange(u.id, $event.target.value)"
+            >
+              <option v-for="role in getAvailableRoles(u)" :key="role" :value="role">{{ role }}</option>
+            </select>
+            <span v-else :class="roleBadge(u.rol)" class="text-[10px]">{{ u.rol }}</span>
+          </div>
+          <div class="flex items-center justify-between text-xs text-dark-400">
+            <span>DNI: {{ u.dni || '-' }}</span>
+            <span :class="u.activo ? 'text-emerald-500' : 'text-red-400'">{{ u.activo ? 'Activo' : 'Inactivo' }}</span>
+          </div>
+          <div class="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-dark-800/50">
+            <button
+              v-if="!isSystemAdmin(u)"
+              class="relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors"
+              :class="u.activo ? 'bg-emerald-600' : 'bg-dark-700'"
+              @click="handleToggleStatus(u)"
+              title="Activar o desactivar"
+            >
+              <span class="inline-block h-3 w-3 rounded-full bg-white transition-transform" :class="u.activo ? 'translate-x-5' : 'translate-x-1'" />
+            </button>
+            <button
+              v-if="authStore.hasRole('Superusuario', 'Administrativo') && !isSystemAdmin(u)"
+              class="text-primary-500 hover:text-primary-400 transition-colors p-1"
+              @click="openPasswordModal(u)"
+            >
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
+            </button>
+            <button
+              v-if="authStore.hasRole('Superusuario', 'Administrativo') && !isSystemAdmin(u)"
+              class="text-red-500 hover:text-red-400 transition-colors p-1"
+              @click="handleDeleteClick(u)"
+            >
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+            </button>
           </div>
         </div>
+      </div>
+
+      <!-- Desktop Table (visible md+) -->
+      <div class="hidden md:block overflow-x-auto rounded-xl border border-dark-700/50">
+        <table class="w-full text-sm text-left">
+          <thead class="bg-dark-800/80 border-b border-dark-700">
+            <tr>
+              <th class="px-3 py-3 text-xs font-semibold text-dark-400 uppercase tracking-wider">Nombre</th>
+              <th class="px-3 py-3 text-xs font-semibold text-dark-400 uppercase tracking-wider hidden lg:table-cell">Email</th>
+              <th class="px-3 py-3 text-xs font-semibold text-dark-400 uppercase tracking-wider hidden xl:table-cell">DNI</th>
+              <th class="px-3 py-3 text-xs font-semibold text-dark-400 uppercase tracking-wider">Rol</th>
+              <th v-if="authStore.hasRole('Superusuario')" class="px-3 py-3 text-xs font-semibold text-dark-400 uppercase tracking-wider hidden xl:table-cell">Gimnasio</th>
+              <th class="px-3 py-3 text-xs font-semibold text-dark-400 uppercase tracking-wider">Estado</th>
+              <th class="px-3 py-3 text-xs font-semibold text-dark-400 uppercase tracking-wider text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="u in filteredUsers" :key="u.id" class="border-b border-dark-800 hover:bg-dark-800/40 transition-colors" :class="{ 'opacity-50': !u.activo }">
+              <td class="px-3 py-3 font-medium text-white">
+                <div class="max-w-[160px] truncate">{{ fullName(u) }}</div>
+                <div class="lg:hidden text-[10px] text-dark-500 mt-0.5 max-w-[160px] truncate">{{ u.email }}</div>
+              </td>
+              <td class="px-3 py-3 text-dark-400 hidden lg:table-cell"><div class="max-w-[200px] truncate">{{ u.email }}</div></td>
+              <td class="px-3 py-3 text-dark-400 hidden xl:table-cell">{{ u.dni }}</td>
+              <td class="px-3 py-3">
+                <select
+                  v-if="canChangeRole(u)"
+                  :value="u.rol"
+                  class="bg-dark-800 border border-dark-700 text-xs rounded-full px-2.5 py-0.5 text-dark-200 focus:outline-none focus:ring-1 focus:ring-primary-500/50 cursor-pointer"
+                  @change="handleRoleChange(u.id, $event.target.value)"
+                >
+                  <option v-for="role in getAvailableRoles(u)" :key="role" :value="role">{{ role }}</option>
+                </select>
+                <span v-else :class="roleBadge(u.rol)">{{ u.rol }}</span>
+              </td>
+              <td v-if="authStore.hasRole('Superusuario')" class="px-3 py-3 text-dark-400 hidden xl:table-cell">{{ u.gymNombre || '-' }}</td>
+              <td class="px-3 py-3">
+                <span :class="u.activo ? 'badge-success' : 'badge-danger'">{{ u.activo ? 'Activo' : 'Inactivo' }}</span>
+              </td>
+              <td class="px-3 py-3">
+                <div class="flex items-center justify-end gap-1.5 flex-nowrap">
+                  <button
+                    v-if="!isSystemAdmin(u)"
+                    class="relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors"
+                    :class="u.activo ? 'bg-emerald-600' : 'bg-dark-700'"
+                    @click="handleToggleStatus(u)"
+                    title="Activar o desactivar"
+                  >
+                    <span class="inline-block h-3 w-3 rounded-full bg-white transition-transform" :class="u.activo ? 'translate-x-5' : 'translate-x-1'" />
+                  </button>
+                  <button
+                    v-if="authStore.hasRole('Superusuario', 'Administrativo') && !isSystemAdmin(u)"
+                    class="text-primary-500 hover:text-primary-400 transition-colors p-1 shrink-0"
+                    title="Cambiar contraseña"
+                    @click="openPasswordModal(u)"
+                  >
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
+                  </button>
+                  <button
+                    v-if="authStore.hasRole('Superusuario', 'Administrativo') && !isSystemAdmin(u)"
+                    class="text-red-500 hover:text-red-400 transition-colors p-1 shrink-0"
+                    title="Eliminar usuario"
+                    @click="handleDeleteClick(u)"
+                  >
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </template>
 
-    <!-- Delete Confirmation Modal -->
-    <div v-if="showDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div class="bg-dark-900 border border-dark-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl">
-        <h3 class="text-xl font-bold text-white mb-2">Eliminar Usuario</h3>
-        <p class="text-dark-400 text-sm mb-6">
-          ¿Estás seguro que deseas eliminar definitivamente a <strong class="text-white">{{ userToDelete?.nombre }}</strong>? Esta acción no se puede deshacer.
-        </p>
-        <div class="flex justify-end gap-3">
-          <button @click="showDeleteModal = false" class="btn bg-dark-700 hover:bg-dark-600 text-white border-none">
-            Cancelar
-          </button>
-          <button @click="confirmDelete" class="btn bg-red-600 hover:bg-red-700 text-white border-none" :disabled="isDeleting">
-            {{ isDeleting ? 'Eliminando...' : 'Eliminar' }}
-          </button>
+    <!-- Create User Modal -->
+    <AppModal v-model="showCreateModal" title="Crear usuario" size="lg">
+      <form class="grid grid-cols-1 sm:grid-cols-2 gap-4" @submit.prevent="createUser">
+        <AppInput v-model="createForm.nombre" label="Nombre" required />
+        <AppInput v-model="createForm.apellido" label="Apellido" required />
+        <AppInput v-model="createForm.email" label="Correo electrónico" type="email" required />
+        <AppInput v-model="createForm.dni" label="DNI" maxlength="8" required />
+        <div>
+          <label class="label">Rol</label>
+          <select v-model="createForm.rol" class="input">
+            <option v-for="rol in allowedCreateRoles" :key="rol" :value="rol">{{ rol }}</option>
+          </select>
         </div>
-      </div>
-    </div>
+        <div v-if="authStore.hasRole('Superusuario')">
+          <label class="label">Gimnasio</label>
+          <select v-model.number="createForm.gymId" class="input" required>
+            <option disabled :value="null">Seleccionar gimnasio</option>
+            <option v-for="gym in gyms" :key="gym.id" :value="gym.id">{{ gym.nombre }}</option>
+          </select>
+        </div>
+        <p v-if="formError" class="sm:col-span-2 text-sm text-red-400">{{ formError }}</p>
+        <div class="sm:col-span-2 flex justify-end gap-3">
+          <button type="button" class="btn-secondary" @click="showCreateModal = false">Cancelar</button>
+          <AppButton type="submit" :loading="creating">Crear</AppButton>
+        </div>
+      </form>
+    </AppModal>
 
-    <!-- Password Change Modal -->
-    <div v-if="showPasswordModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div class="bg-dark-900 border border-dark-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-scale-in">
-        <h3 class="text-xl font-bold text-white mb-2">Cambiar Contraseña</h3>
-        <p class="text-dark-400 text-sm mb-4">
-          Nueva contraseña para <strong class="text-white">{{ userToEdit?.nombre }}</strong>
-        </p>
-        
-        <div class="space-y-4 mb-6">
+    <!-- Change Password Modal -->
+    <AppModal v-model="showPasswordModal" title="Cambiar contraseña" size="sm">
+      <form class="space-y-4" @submit.prevent="confirmPasswordChange">
+        <AppInput v-model="newPassword" label="Nueva contraseña" type="password" required />
+        <div class="flex justify-end gap-3">
+          <button type="button" class="btn-secondary" @click="showPasswordModal = false">Cancelar</button>
+          <AppButton type="submit" :loading="isUpdatingPassword" :disabled="!newPassword">Guardar</AppButton>
+        </div>
+      </form>
+    </AppModal>
+
+    <!-- Delete Confirmation Modal -->
+    <AppModal v-model="showDeleteModal" title="Confirmar eliminación" size="sm">
+      <div class="space-y-4">
+        <div class="p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex gap-3 items-start">
+          <svg class="w-5 h-5 text-red-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
           <div>
-            <label class="text-[10px] uppercase font-black text-dark-500 mb-1.5 block tracking-widest">Nueva Contraseña</label>
-            <input 
-              v-model="newPassword" 
-              type="password" 
-              placeholder="••••••••" 
-              class="input w-full"
-              @keyup.enter="confirmPasswordChange"
-            />
+            <p class="text-sm font-bold text-white">¿Estás seguro?</p>
+            <p class="text-xs text-dark-400 mt-1">
+              Esta acción eliminará permanentemente al usuario
+              <span class="font-bold text-dark-200">{{ fullName(userToDelete) }}</span>.
+            </p>
           </div>
         </div>
-
-        <div class="flex justify-end gap-3">
-          <button @click="showPasswordModal = false" class="btn bg-dark-700 hover:bg-dark-600 text-white border-none">
-            Cancelar
-          </button>
-          <button 
-            @click="confirmPasswordChange" 
-            class="btn bg-primary-600 hover:bg-primary-700 text-white border-none" 
-            :disabled="isUpdatingPassword || !newPassword"
-          >
-            {{ isUpdatingPassword ? 'Actualizando...' : 'Aceptar' }}
-          </button>
+        <div class="flex justify-end gap-3 pt-2">
+          <button type="button" class="btn-secondary" @click="showDeleteModal = false">Cancelar</button>
+          <AppButton class="!bg-red-600 hover:!bg-red-500" :loading="deleting" @click="confirmDelete">Eliminar</AppButton>
         </div>
       </div>
-    </div>
-
+    </AppModal>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useUserStore } from '@/stores/user.store'
 import { useAuthStore } from '@/stores/auth.store'
 import { useNotification } from '@/composables/useNotification'
+import { gymsApi } from '@/api/gyms.api'
 import AppButton from '@/components/ui/AppButton.vue'
+import AppInput from '@/components/ui/AppInput.vue'
+import AppModal from '@/components/ui/AppModal.vue'
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
 
-const router = useRouter()
 const userStore = useUserStore()
 const authStore = useAuthStore()
 const { success, error: showError } = useNotification()
 const search = ref('')
-const showDeleteModal = ref(false)
+const roleFilter = ref('')
+const gyms = ref([])
+const showCreateModal = ref(false)
 const showPasswordModal = ref(false)
-const userToDelete = ref(null)
-const userToEdit = ref(null)
-const newPassword = ref('')
-const isDeleting = ref(false)
+const creating = ref(false)
+const deleting = ref(false)
 const isUpdatingPassword = ref(false)
+const userToEdit = ref(null)
+const userToDelete = ref(null)
+const showDeleteModal = ref(false)
+const newPassword = ref('')
+const formError = ref('')
+const createForm = reactive({ nombre: '', apellido: '', email: '', dni: '', rol: 'Alumno', gymId: null })
+
+watch(() => createForm.dni, (val) => {
+  if (val) {
+    createForm.dni = val.replace(/\D/g, '').slice(0, 8)
+  }
+})
+
+const allowedCreateRoles = computed(() =>
+  authStore.hasRole('Superusuario') ? ['Administrativo', 'Profesor', 'Alumno'] : ['Profesor', 'Alumno']
+)
 
 const filteredUsers = computed(() => {
   const q = search.value.toLowerCase()
-  return userStore.users.filter(u =>
-    u.nombre.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)
-  )
+  const r = roleFilter.value
+  
+  return userStore.users.filter(u => {
+    const matchesSearch = fullName(u).toLowerCase().includes(q) ||
+      u.email.toLowerCase().includes(q) ||
+      String(u.dni || '').toLowerCase().includes(q)
+    
+    const matchesRole = !r || u.rol === r
+    
+    return matchesSearch && matchesRole
+  })
 })
 
+function fullName(user) {
+  return `${user.nombre || ''} ${user.apellido || ''}`.trim()
+}
+
 function roleBadge(rol) {
-  const map = { Alumno: 'badge-primary', Profesor: 'badge-warning', Superusuario: 'badge-danger' }
+  const map = { Alumno: 'badge-primary', Profesor: 'badge-warning', Administrativo: 'badge-success', Superusuario: 'badge-danger' }
   return map[rol] || 'badge-primary'
 }
 
-function formatDate(d) {
-  return new Date(d).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' })
+function isSystemAdmin(user) {
+  return user.email === 'admin' || user.nombre?.toLowerCase() === 'admin'
 }
 
-function isAdmin(user) {
-  return user.email === 'admin' || user.nombre.toLowerCase() === 'admin'
+function canChangeRole(user) {
+  if (isSystemAdmin(user)) return false
+  if (authStore.hasRole('Superusuario')) return true
+  if (authStore.hasRole('Administrativo')) {
+    return user.rol === 'Profesor' || user.rol === 'Alumno'
+  }
+  return false
+}
+
+function getAvailableRoles(user) {
+  if (authStore.hasRole('Superusuario')) {
+    return ['Administrativo', 'Profesor', 'Alumno']
+  }
+  if (authStore.hasRole('Administrativo')) {
+    return ['Profesor', 'Alumno']
+  }
+  return []
+}
+
+function resetCreateForm() {
+  createForm.nombre = ''
+  createForm.apellido = ''
+  createForm.email = ''
+  createForm.dni = ''
+  createForm.rol = allowedCreateRoles.value[allowedCreateRoles.value.length - 1]
+  createForm.gymId = null
+  formError.value = ''
+}
+
+async function openCreateModal() {
+  resetCreateForm()
+  if (authStore.hasRole('Superusuario') && (!gyms.value || gyms.value.length === 0)) {
+    try {
+      const response = await gymsApi.getAll()
+      gyms.value = (response.data || []).filter(g => g.activo)
+    } catch (err) {
+      showError('No se pudieron cargar los gimnasios')
+    }
+  }
+  showCreateModal.value = true
+}
+
+async function createUser() {
+  formError.value = ''
+  creating.value = true
+  try {
+    await userStore.createUser({ ...createForm })
+    success('Usuario creado. La contraseña inicial es el DNI.')
+    showCreateModal.value = false
+  } catch (err) {
+    formError.value = err.response?.data?.error || 'No se pudo crear el usuario'
+  } finally {
+    creating.value = false
+  }
 }
 
 async function handleRoleChange(userId, newRole) {
@@ -282,32 +351,12 @@ async function handleRoleChange(userId, newRole) {
   }
 }
 
-async function handleToggleStatus(userId, currentStatus) {
+async function handleToggleStatus(user) {
   try {
-    await userStore.toggleUserStatus(userId)
-    success(currentStatus ? 'Usuario desactivado' : 'Usuario activado')
+    await userStore.toggleUserStatus(user.id)
+    success(user.activo ? 'Usuario desactivado' : 'Usuario activado')
   } catch (err) {
     showError(err.response?.data?.error || 'Error al cambiar estado')
-  }
-}
-
-function openDeleteModal(user) {
-  userToDelete.value = user
-  showDeleteModal.value = true
-}
-
-async function confirmDelete() {
-  if (!userToDelete.value) return
-  isDeleting.value = true
-  try {
-    await userStore.deleteUser(userToDelete.value.id)
-    success('Usuario eliminado exitosamente')
-    showDeleteModal.value = false
-  } catch (err) {
-    showError(err.response?.data?.error || 'Error al eliminar usuario')
-  } finally {
-    isDeleting.value = false
-    userToDelete.value = null
   }
 }
 
@@ -317,21 +366,46 @@ function openPasswordModal(user) {
   showPasswordModal.value = true
 }
 
+function handleDeleteClick(user) {
+  userToDelete.value = user
+  showDeleteModal.value = true
+}
+
+async function confirmDelete() {
+  if (!userToDelete.value) return
+  
+  deleting.value = true
+  try {
+    await userStore.deleteUser(userToDelete.value.id)
+    success('Usuario eliminado correctamente')
+    showDeleteModal.value = false
+  } catch (err) {
+    showError(err.response?.data?.error || 'No se pudo eliminar el usuario')
+  } finally {
+    deleting.value = false
+    userToDelete.value = null
+  }
+}
+
 async function confirmPasswordChange() {
   if (!userToEdit.value || !newPassword.value) return
   isUpdatingPassword.value = true
   try {
     await userStore.changePassword(userToEdit.value.id, newPassword.value)
-    success('Contraseña actualizada exitosamente')
+    success('Contraseña actualizada')
     showPasswordModal.value = false
   } catch (err) {
     showError(err.response?.data?.error || 'Error al actualizar contraseña')
   } finally {
     isUpdatingPassword.value = false
-    userToEdit.value = null
-    newPassword.value = ''
   }
 }
 
-onMounted(() => userStore.fetchUsers())
+onMounted(async () => {
+  try {
+    await userStore.fetchUsers()
+  } catch (err) {
+    showError('No se pudieron cargar los usuarios')
+  }
+})
 </script>

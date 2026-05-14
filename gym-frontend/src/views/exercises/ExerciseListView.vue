@@ -42,6 +42,7 @@
               <tr>
                 <th>Nombre</th>
                 <th>Grupo Muscular</th>
+                <th v-if="authStore.hasRole('Superusuario')">Gimnasio</th>
                 <th>Descripción</th>
                 <th class="text-right">Acciones</th>
               </tr>
@@ -50,6 +51,7 @@
               <tr v-for="exercise in filteredExercises" :key="exercise.id" class="animate-fade-in">
                 <td class="font-medium text-white">{{ exercise.nombre }}</td>
                 <td><span class="badge-primary">{{ exercise.grupoMuscular }}</span></td>
+                <td v-if="authStore.hasRole('Superusuario')" class="text-dark-400">{{ exercise.gymNombre || '—' }}</td>
                 <td class="text-dark-400 max-w-xs truncate">{{ exercise.descripcion || '—' }}</td>
                 <td class="text-right">
                   <div class="flex items-center justify-end gap-2">
@@ -126,6 +128,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useRoutineStore } from '@/stores/routine.store'
+import { useAuthStore } from '@/stores/auth.store'
 import { useNotification } from '@/composables/useNotification'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppInput from '@/components/ui/AppInput.vue'
@@ -134,6 +137,7 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
 
 const router = useRouter()
 const store = useRoutineStore()
+const authStore = useAuthStore()
 const { success, error: showError } = useNotification()
 
 const search = ref('')

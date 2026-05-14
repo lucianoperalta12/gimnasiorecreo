@@ -34,7 +34,7 @@
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="relative">
-              <div class="w-12 h-12 rounded-full border-2 border-primary-600/30 p-0.5">
+              <div class="w-12 h-12 rounded-full border-2 border-primary-500/30 p-0.5">
                 <div class="w-full h-full rounded-full bg-dark-800 flex items-center justify-center text-lg font-black text-white">
                   {{ user?.nombre?.charAt(0)?.toUpperCase() || 'A' }}
                 </div>
@@ -114,20 +114,49 @@
   </div>
 
   <FloatingStopwatch />
+
+  <AppModal v-model="showInitialPasswordModal" title="Cambiar contraseña inicial" size="sm">
+    <form class="space-y-4" @submit.prevent="changeInitialPassword">
+      <AppInput
+        v-model="initialPassword"
+        id="initial-password"
+        label="Nueva contraseña"
+        type="password"
+        placeholder="Nueva contraseña"
+        required
+      />
+      <p v-if="initialPasswordError" class="text-sm text-red-400">{{ initialPasswordError }}</p>
+      <div class="flex justify-end">
+        <button class="btn-primary" type="submit" :disabled="changingInitialPassword || !initialPassword">
+          {{ changingInitialPassword ? 'Guardando...' : 'Guardar' }}
+        </button>
+      </div>
+    </form>
+  </AppModal>
 </template>
 
 <script setup>
-import { ref, computed, h } from 'vue'
+import { ref, computed, h, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
 import { useNotification } from '@/composables/useNotification'
 import FloatingStopwatch from '@/components/ui/FloatingStopwatch.vue'
+import AppModal from '@/components/ui/AppModal.vue'
+import AppInput from '@/components/ui/AppInput.vue'
+import { usersApi } from '@/api/users.api'
 
 const router = useRouter()
 const authStore = useAuthStore()
 const { notifications } = useNotification()
 const sidebarOpen = ref(false)
-const logoUrl = ref('/logo.png')
+const logoUrl = computed(() => {
+  if (authStore.hasRole('Superusuario')) return '/logo.png'
+  return authStore.user?.gymLogoUrl || '/logo.png'
+})
+const showInitialPasswordModal = ref(false)
+const initialPassword = ref('')
+const initialPasswordError = ref('')
+const changingInitialPassword = ref(false)
 
 const user = computed(() => authStore.user)
 
@@ -147,18 +176,41 @@ const IconLink = (_, { attrs }) => h('svg', { ...attrs, fill: 'none', viewBox: '
 const IconUsers = (_, { attrs }) => h('svg', { ...attrs, fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', 'stroke-width': '2' }, [
   h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z' })
 ])
+const IconGym = IconDumbbell
 
 const allNavItems = [
   { to: '/', label: 'Panel Principal', icon: IconDashboard, roles: null },
-  { to: '/exercises', label: 'Ejercicios', icon: IconDumbbell, roles: ['Profesor', 'Superusuario'] },
-  { to: '/routines', label: 'Rutinas', icon: IconClipboard, roles: ['Profesor', 'Superusuario'] },
-  { to: '/assignments', label: 'Asignaciones', icon: IconLink, roles: ['Profesor', 'Superusuario'] },
-  { to: '/users', label: 'Usuarios', icon: IconUsers, roles: ['Superusuario'] },
+  { to: '/exercises', label: 'Ejercicios', icon: IconDumbbell, roles: ['Profesor', 'Superusuario', 'Administrativo'] },
+  { to: '/routines', label: 'Rutinas', icon: IconClipboard, roles: ['Profesor', 'Superusuario', 'Administrativo'] },
+  { to: '/assignments', label: 'Asignaciones', icon: IconLink, roles: ['Profesor', 'Superusuario', 'Administrativo'] },
+  { to: '/users', label: 'Usuarios', icon: IconUsers, roles: ['Superusuario', 'Administrativo'] },
+  { to: '/gyms', label: 'Gimnasios', icon: IconGym, roles: ['Superusuario'] },
 ]
 
 const navItems = computed(() =>
   allNavItems.filter(item => !item.roles || authStore.hasRole(...item.roles))
 )
+
+watch(
+  () => authStore.user?.debeCambiarPassword,
+  value => { showInitialPasswordModal.value = !!value },
+  { immediate: true }
+)
+
+async function changeInitialPassword() {
+  initialPasswordError.value = ''
+  changingInitialPassword.value = true
+  try {
+    await usersApi.changeInitialPassword(initialPassword.value)
+    authStore.setUser({ ...authStore.user, debeCambiarPassword: false })
+    showInitialPasswordModal.value = false
+    initialPassword.value = ''
+  } catch (err) {
+    initialPasswordError.value = err.response?.data?.error || 'No se pudo actualizar la contraseña'
+  } finally {
+    changingInitialPassword.value = false
+  }
+}
 
 async function handleLogout() {
   await authStore.logout()

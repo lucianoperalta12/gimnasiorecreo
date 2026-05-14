@@ -34,6 +34,12 @@ export const useUserStore = defineStore('user', () => {
     return data
   }
 
+  async function createUser(payload) {
+    const { data } = await usersApi.create(payload)
+    users.value.unshift(data)
+    return data
+  }
+
   async function changePassword(userId, password) {
     await usersApi.changePassword(userId, password)
   }
@@ -56,6 +62,7 @@ export const useUserStore = defineStore('user', () => {
     loading,
     fetchUsers,
     fetchStudents,
+    createUser,
     changeRole,
     changePassword,
     toggleUserStatus,

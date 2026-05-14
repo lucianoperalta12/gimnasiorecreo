@@ -1,172 +1,136 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center p-4 bg-dark-950">
-    <!-- Background effects -->
-    <div class="absolute inset-0 overflow-hidden">
-      <div class="absolute -top-40 -right-40 w-80 h-80 bg-primary-900/20 rounded-full blur-3xl" />
-      <div class="absolute -bottom-40 -left-40 w-80 h-80 bg-primary-600/10 rounded-full blur-3xl" />
-    </div>
+  <div class="min-h-screen flex items-center justify-center p-4 bg-dark-950 relative overflow-hidden">
+    <!-- Background Accents -->
+    <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary-600/10 rounded-full blur-[120px] animate-pulse"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary-900/10 rounded-full blur-[120px] animate-pulse" style="animation-delay: 2s"></div>
 
-    <div class="relative w-full max-w-md">
-      <!-- Logo -->
-      <div class="text-center mb-8">
-        <div class="relative inline-flex items-center justify-center w-34 h-34 mb-4 group">
-          <div class="absolute -inset-2 bg-primary-500 rounded-full blur opacity-10 group-hover:opacity-25 transition duration-500"></div>
-          <img :src="logoUrl" alt="Recreo Logo" class="relative w-full h-full object-contain transform group-hover:scale-105 transition-all duration-500" />
+    <div class="relative w-full max-w-md animate-fade-in">
+      <!-- Logo Container -->
+      <div class="text-center mb-10 flex flex-col items-center">
+        <div class="relative group">
+          <div class="absolute -inset-1 bg-gradient-to-r from-primary-600 to-primary-400 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
+          <img 
+            src="/logo.png" 
+            alt="Logo" 
+            class="relative h-30 w-auto object-contain transition-transform duration-500 group-hover:scale-105" 
+          />
         </div>
-        <p class="text-dark-400 mt-2 font-medium">Gestión de Rutinas </p>
       </div>
 
-      <!-- Card -->
-      <div class="card p-6 sm:p-8 border border-dark-800 shadow-2xl backdrop-blur-md bg-dark-900/80">
-        <!-- Google Login -->
-        <!--
-        <div class="mb-8">
-          <div id="googleButton" class="flex justify-center"></div>
-          <div class="relative mt-8">
-            <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-dark-700"></div></div>
-            <div class="relative flex justify-center text-xs uppercase"><span class="bg-dark-900 px-2 text-dark-500">O acceso administrador</span></div>
+      <!-- Login Card -->
+      <div class="card p-8 sm:p-10 border border-dark-800 shadow-2xl bg-dark-900/60 backdrop-blur-xl rounded-[2.5rem] relative overflow-hidden group">
+        <!-- Subtle inner glow -->
+        <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary-500/20 to-transparent"></div>
+        
+        <form @submit.prevent="handleLogin" class="space-y-6 relative z-10">
+          <div class="space-y-1">
+            <AppInput
+              id="login-user"
+              v-model="form.username"
+              label="Acceso al sistema"
+              placeholder="Email, DNI o Nombre"
+              :error="errors.username"
+              class="!bg-dark-950/50 !border-dark-800 focus:!border-primary-500/50 transition-all"
+            />
           </div>
-        </div>
-        -->
+          
+          <div class="space-y-1">
+            <AppInput
+              id="login-password"
+              v-model="form.password"
+              label="Contraseña"
+              type="password"
+              placeholder="••••••••"
+              :error="errors.password"
+              class="!bg-dark-950/50 !border-dark-800 focus:!border-primary-500/50 transition-all"
+            />
+          </div>
 
-        <!-- Main Login Form -->
-        <form @submit.prevent="handleAdminLogin" class="space-y-4">
-          <AppInput
-            id="admin-user"
-            v-model="adminForm.username"
-            label="Usuario o Email"
-            placeholder="tu@email.com"
-            :error="errors.username"
-          />
-          <AppInput
-            id="admin-pass"
-            v-model="adminForm.password"
-            label="Contraseña"
-            type="password"
-            placeholder="••••••••"
-            :error="errors.password"
-          />
-          <AppButton type="submit" :loading="loading" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-bold py-3">
-            Entrar
-          </AppButton>
+          <div v-if="error" class="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-medium animate-shake text-center">
+            {{ error }}
+          </div>
+
+          <button
+            type="submit"
+            :disabled="loading"
+            class="w-full py-4 px-6 bg-gradient-to-r from-primary-600 to-primary-500 hover:from-primary-500 hover:to-primary-400 text-white font-black uppercase tracking-widest rounded-2xl shadow-lg shadow-primary-600/20 active:scale-[0.98] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group"
+          >
+            <div class="flex items-center justify-center gap-3">
+              <span v-if="loading" class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+              <span v-else>Entrar</span>
+              <svg v-if="!loading" class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
+            </div>
+          </button>
         </form>
-
-        <div class="mt-6 text-center">
-          <p class="text-sm text-dark-400">
-            ¿No tenés cuenta?
-            <button @click.prevent="showRegisterModal = true" class="text-primary-400 hover:text-primary-300 font-medium transition-colors">Crear cuenta</button>
-          </p>
-        </div>
-
-        <!-- Error message -->
-        <div v-if="errorMessage" class="mt-4 p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center animate-fade-in">
-          {{ errorMessage }}
-        </div>
       </div>
+      
+      <!-- Footer Info -->
+      <p class="text-center mt-8 text-dark-600 text-xs font-bold uppercase tracking-[0.3em]">
+        &copy; {{ new Date().getFullYear() }} Fit Center System
+      </p>
     </div>
-
-    <!-- Modal Registro -->
-    <AppModal v-model="showRegisterModal" title="Crear Cuenta" size="sm">
-      <form @submit.prevent="handleRegister" class="space-y-4">
-        <AppInput id="reg-name" v-model="registerForm.nombre" label="Nombre completo o Usuario" placeholder="Ej: Juan Pérez" required />
-        <AppInput id="reg-email" v-model="registerForm.email" label="Correo electrónico" type="email" placeholder="tu@email.com" required />
-        <AppInput id="reg-password" v-model="registerForm.password" label="Contraseña" type="password" placeholder="••••••••" required />
-        <div v-if="registerError" class="p-2 rounded bg-red-500/10 border border-red-500/20 text-red-400 text-xs text-center">{{ registerError }}</div>
-        <AppButton type="submit" :loading="registerLoading" class="w-full">Registrarme</AppButton>
-      </form>
-    </AppModal>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
 import AppInput from '@/components/ui/AppInput.vue'
-import AppButton from '@/components/ui/AppButton.vue'
-import AppModal from '@/components/ui/AppModal.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
 
-const logoUrl = ref('/logo.png')
 const loading = ref(false)
-const errorMessage = ref('')
-const errors = reactive({})
-const adminForm = reactive({ username: '', password: '' })
-
-const showRegisterModal = ref(false)
-const registerForm = reactive({ nombre: '', email: '', password: '' })
-const registerLoading = ref(false)
-const registerError = ref('')
-
-// Google Identity Services Setup
-onMounted(() => {
-  const script = document.createElement('script')
-  script.src = 'https://accounts.google.com/gsi/client'
-  script.async = true
-  script.defer = true
-  script.onload = () => {
-    /* global google */
-    google.accounts.id.initialize({
-      client_id: '839586478940-dd8mcgbta9jnte01be3lavr2qrsmsmol.apps.googleusercontent.com',
-      callback: handleGoogleResponse
-    })
-    google.accounts.id.renderButton(
-      document.getElementById('googleButton'),
-      { theme: 'outline', size: 'large', width: '100%', text: 'continue_with', shape: 'pill' }
-    )
-  }
-  document.head.appendChild(script)
+const error = ref('')
+const form = reactive({
+  username: '',
+  password: ''
 })
 
-async function handleGoogleResponse(response) {
-  loading.value = true
-  errorMessage.value = ''
-  try {
-    await authStore.loginWithGoogle(response.credential)
-    router.push('/')
-  } catch (err) {
-    errorMessage.value = err.response?.data?.error || 'Error en autenticación con Google'
-  } finally {
-    loading.value = false
-  }
-}
+const errors = reactive({
+  username: '',
+  password: ''
+})
 
-async function handleAdminLogin() {
-  errorMessage.value = ''
-  if (!adminForm.username || !adminForm.password) {
-    errorMessage.value = 'Complete todos los campos'
+async function handleLogin() {
+  error.value = ''
+  errors.username = ''
+  errors.password = ''
+
+  if (!form.username) {
+    errors.username = 'El usuario es requerido'
+    return
+  }
+  if (!form.password) {
+    errors.password = 'La contraseña es requerida'
     return
   }
 
   loading.value = true
   try {
-    await authStore.loginAdmin(adminForm)
+    await authStore.login(form.username, form.password)
     router.push('/')
   } catch (err) {
-    errorMessage.value = err.response?.data?.error || 'Credenciales inválidas'
+    console.error('Login error:', err)
+    error.value = err.response?.data?.error || 'Credenciales inválidas o error de conexión'
   } finally {
     loading.value = false
-  }
-}
-
-async function handleRegister() {
-  registerError.value = ''
-  if (!registerForm.nombre || !registerForm.email || !registerForm.password) {
-    registerError.value = 'Complete todos los campos'
-    return
-  }
-  
-  registerLoading.value = true
-  try {
-    await authStore.register(registerForm)
-    showRegisterModal.value = false
-    router.push('/')
-  } catch (err) {
-    registerError.value = err.response?.data?.error || 'Error al crear la cuenta'
-  } finally {
-    registerLoading.value = false
   }
 }
 </script>
+
+<style scoped>
+.animate-shake {
+  animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+</style>

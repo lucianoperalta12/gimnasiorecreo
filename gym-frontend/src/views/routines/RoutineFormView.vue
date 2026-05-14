@@ -44,20 +44,7 @@
               <textarea v-model="form.descripcion" rows="4" class="input text-sm" placeholder="Objetivos de la rutina..." />
             </div>
             
-            <div class="flex items-center justify-between p-3 rounded-xl bg-dark-900/50 border border-dark-800">
-              <span class="text-xs font-bold text-dark-300">Estado de la rutina</span>
-              <button
-                type="button"
-                class="relative w-10 h-5 rounded-full transition-colors duration-200"
-                :class="form.activa ? 'bg-primary-600' : 'bg-dark-700'"
-                @click="form.activa = !form.activa"
-              >
-                <span
-                  class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200"
-                  :class="form.activa ? 'translate-x-5' : ''"
-                />
-              </button>
-            </div>
+            
 
             <div class="flex items-center justify-between p-3 rounded-xl bg-dark-900/50 border border-dark-800">
               <span class="text-xs font-bold text-dark-300">Rutina por días</span>
@@ -70,6 +57,20 @@
                 <span
                   class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200"
                   :class="form.isByDays ? 'translate-x-5' : ''"
+                />
+              </button>
+            </div>
+            <div class="flex items-center justify-between p-3 rounded-xl bg-dark-900/50 border border-dark-800">
+              <span class="text-xs font-bold text-dark-300">Rutina Activa</span>
+              <button
+                type="button"
+                class="relative w-10 h-5 rounded-full transition-colors duration-200"
+                :class="form.activa ? 'bg-primary-600' : 'bg-dark-700'"
+                @click="form.activa = !form.activa"
+              >
+                <span
+                  class="absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-200"
+                  :class="form.activa ? 'translate-x-5' : ''"
                 />
               </button>
             </div>

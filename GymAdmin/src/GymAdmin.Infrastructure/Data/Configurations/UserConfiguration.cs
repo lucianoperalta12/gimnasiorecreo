@@ -17,11 +17,21 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .IsRequired()
             .HasMaxLength(100);
 
+        builder.Property(u => u.Apellido)
+            .IsRequired()
+            .HasMaxLength(100);
+
         builder.Property(u => u.Email)
             .IsRequired()
             .HasMaxLength(200);
 
+        builder.Property(u => u.Dni)
+            .IsRequired()
+            .HasMaxLength(20);
+
         builder.HasIndex(u => u.Email)
+            .IsUnique();
+        builder.HasIndex(u => u.Dni)
             .IsUnique();
 
         builder.Property(u => u.PasswordHash)
@@ -40,5 +50,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.Property(u => u.RefreshToken)
             .HasMaxLength(500);
+
+        builder.HasOne(u => u.Gym)
+            .WithMany(g => g.Users)
+            .HasForeignKey(u => u.GymId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }
