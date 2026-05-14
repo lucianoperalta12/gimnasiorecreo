@@ -17,3 +17,10 @@ deploy-demo/
 .db_backup/
 .vs/
 .gemini/
+.vs/
+db_backup/
+deploy-demo/
+*.rar
+bin/
+obj/
+node_modules/
