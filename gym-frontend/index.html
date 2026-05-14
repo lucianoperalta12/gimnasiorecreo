@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
     <meta name="description" content="GymAdmin - Sistema de administración de gimnasio" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,7 +11,25 @@
     <title>Gym Manager</title>
   </head>
   <body class="bg-dark-950 text-dark-100 font-sans antialiased">
-    <div id="app"></div>
+    <div id="app">
+      <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background-color: #080808; font-family: 'Inter', sans-serif; position: fixed; inset: 0; z-index: 9999;">
+        <div class="loading-spinner"></div>
+        <p style="color: #a3a3a3; margin-top: 24px; font-weight: 500; letter-spacing: 0.1em; font-size: 14px; text-transform: uppercase;">Iniciando sistema</p>
+      </div>
+      <style>
+        .loading-spinner {
+          width: 50px;
+          height: 50px;
+          border: 3px solid rgba(255, 108, 19, 0.1);
+          border-radius: 50%;
+          border-top-color: #FF6C13;
+          animation: spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      </style>
+    </div>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>

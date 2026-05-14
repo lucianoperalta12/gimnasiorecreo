@@ -32,6 +32,9 @@ namespace GymAdmin.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("GymId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(150)
@@ -43,7 +46,49 @@ namespace GymAdmin.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("GymId");
+
                     b.ToTable("Exercises", (string)null);
+                });
+
+            modelBuilder.Entity("GymAdmin.Domain.Entities.Gym", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("ColorPrincipalHex")
+                        .IsRequired()
+                        .HasMaxLength(7)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DuenoNombreApellido")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<string>("LogoUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Gyms", (string)null);
                 });
 
             modelBuilder.Entity("GymAdmin.Domain.Entities.Routine", b =>
@@ -57,6 +102,9 @@ namespace GymAdmin.Infrastructure.Migrations
                         .HasColumnType("INTEGER")
                         .HasDefaultValue(true);
 
+                    b.Property<int>("DaysCount")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Descripcion")
                         .HasMaxLength(1000)
                         .HasColumnType("TEXT");
@@ -65,6 +113,12 @@ namespace GymAdmin.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<int>("GymId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsByDays")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -75,6 +129,8 @@ namespace GymAdmin.Infrastructure.Migrations
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("GymId");
 
                     b.HasIndex("ProfesorId");
 
@@ -91,6 +147,9 @@ namespace GymAdmin.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("DayNumber")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int?>("DescansoSegundos")
                         .HasColumnType("INTEGER");
@@ -147,10 +206,15 @@ namespace GymAdmin.Infrastructure.Migrations
                         .HasColumnType("TEXT")
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
+                    b.Property<int>("GymId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("RutinaId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("GymId");
 
                     b.HasIndex("RutinaId");
 
@@ -169,6 +233,19 @@ namespace GymAdmin.Infrastructure.Migrations
                     b.Property<bool>("Activo")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("Apellido")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("DebeCambiarPassword")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Dni")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -182,6 +259,9 @@ namespace GymAdmin.Infrastructure.Migrations
                     b.Property<string>("GoogleId")
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("GymId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -207,19 +287,43 @@ namespace GymAdmin.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Dni")
+                        .IsUnique();
+
                     b.HasIndex("Email")
                         .IsUnique();
+
+                    b.HasIndex("GymId");
 
                     b.ToTable("Users", (string)null);
                 });
 
+            modelBuilder.Entity("GymAdmin.Domain.Entities.Exercise", b =>
+                {
+                    b.HasOne("GymAdmin.Domain.Entities.Gym", "Gym")
+                        .WithMany("Exercises")
+                        .HasForeignKey("GymId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Gym");
+                });
+
             modelBuilder.Entity("GymAdmin.Domain.Entities.Routine", b =>
                 {
+                    b.HasOne("GymAdmin.Domain.Entities.Gym", "Gym")
+                        .WithMany("Routines")
+                        .HasForeignKey("GymId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("GymAdmin.Domain.Entities.User", "Profesor")
                         .WithMany("RutinasCreadas")
                         .HasForeignKey("ProfesorId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("Gym");
 
                     b.Navigation("Profesor");
                 });
@@ -251,6 +355,12 @@ namespace GymAdmin.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("GymAdmin.Domain.Entities.Gym", "Gym")
+                        .WithMany("StudentRoutines")
+                        .HasForeignKey("GymId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("GymAdmin.Domain.Entities.Routine", "Rutina")
                         .WithMany("AlumnosAsignados")
                         .HasForeignKey("RutinaId")
@@ -259,12 +369,36 @@ namespace GymAdmin.Infrastructure.Migrations
 
                     b.Navigation("Alumno");
 
+                    b.Navigation("Gym");
+
                     b.Navigation("Rutina");
+                });
+
+            modelBuilder.Entity("GymAdmin.Domain.Entities.User", b =>
+                {
+                    b.HasOne("GymAdmin.Domain.Entities.Gym", "Gym")
+                        .WithMany("Users")
+                        .HasForeignKey("GymId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Gym");
                 });
 
             modelBuilder.Entity("GymAdmin.Domain.Entities.Exercise", b =>
                 {
                     b.Navigation("RutinaEjercicios");
+                });
+
+            modelBuilder.Entity("GymAdmin.Domain.Entities.Gym", b =>
+                {
+                    b.Navigation("Exercises");
+
+                    b.Navigation("Routines");
+
+                    b.Navigation("StudentRoutines");
+
+                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("GymAdmin.Domain.Entities.Routine", b =>

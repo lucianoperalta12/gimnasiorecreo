@@ -5,10 +5,24 @@
     <template v-else-if="routine">
       <div class="space-y-4 mb-6">
         <div class="flex items-start justify-between gap-4">
-          <h1 class="text-2xl font-black text-white leading-tight">{{ routine.nombre }}</h1>
-          <span :class="routine.activa ? 'badge-success' : 'badge-danger'" class="shrink-0">
-            {{ routine.activa ? 'Activa' : 'Inactiva' }}
-          </span>
+          <div class="flex-1">
+            <h1 class="text-2xl font-black text-white leading-tight">{{ routine.nombre }}</h1>
+            <div class="flex items-center gap-3 mt-1">
+              <span :class="routine.activa ? 'badge-success' : 'badge-danger'" class="shrink-0">
+                {{ routine.activa ? 'Activa' : 'Inactiva' }}
+              </span>
+            </div>
+          </div>
+          <AppButton 
+            variant="secondary" 
+            @click="goBack"
+            class="md:px-4 px-2.5 !rounded-xl md:!rounded-lg"
+          >
+            <svg class="w-5 h-5 md:w-3 md:h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+            </svg>
+            <span class="hidden md:inline ml-1 text-[10px] font-black uppercase tracking-[0.2em]">Volver</span>
+          </AppButton>
         </div>
         <p class="text-dark-400 text-sm leading-relaxed">{{ routine.descripcion || 'Sin descripción' }}</p>
       </div>
@@ -29,6 +43,21 @@
         </div>
       </div>
 
+      <!-- Day Selector Navigation -->
+      <div v-if="routine.isByDays" class="flex p-1.5 gap-1.5 bg-dark-950/80 backdrop-blur-md border border-dark-800 rounded-2xl mb-4 overflow-x-auto no-scrollbar">
+        <button
+          v-for="day in routine.daysCount"
+          :key="day"
+          @click="currentDay = day"
+          class="flex-1 min-w-[80px] py-2 text-xs font-black rounded-xl transition-all duration-300"
+          :class="currentDay === day 
+            ? 'bg-primary-600/20 text-primary-400 border border-primary-500/30' 
+            : 'text-dark-400 hover:text-dark-200 hover:bg-dark-900'"
+        >
+          Día {{ day }}
+        </button>
+      </div>
+
       <!-- Tabs Navigation (Optimized for Mobile) -->
       <div class="flex p-1.5 gap-1.5 bg-dark-950/80 backdrop-blur-md border border-dark-800 rounded-2xl mb-8 sticky top-[72px] z-20 shadow-xl overflow-x-auto no-scrollbar">
         <button
@@ -37,15 +66,15 @@
           @click="activeTab = section.value"
           class="flex-1 min-w-[100px] py-3 text-xs font-black rounded-xl transition-all duration-300 flex flex-col items-center justify-center gap-1.5 relative group"
           :class="activeTab === section.value 
-            ? 'bg-primary-600 text-white shadow-glow-sm' 
+            ? 'bg-primary-600 text-white' 
             : 'text-dark-400 hover:text-dark-200 hover:bg-dark-900'"
         >
           <span class="text-lg transition-transform duration-300 group-active:scale-125">
             <span v-if="section.value === 'calentamientoInicial'">🔥</span>
             <span v-else-if="section.value === 'parteMedia'">⚙️</span>
-            <span v-else-if="section.value === 'fuerza'">💪</span>
+            <span v-else-if="section.value === 'fuerza'">🤸</span>
           </span>
-          <span class="uppercase tracking-tighter">{{ section.label.split(' ')[0] }}</span>
+          <span class="uppercase tracking-tighter">{{ section.label }}</span>
           <span 
             v-if="section.ejercicios.length > 0"
             class="absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black border-2 border-dark-950"
@@ -76,7 +105,6 @@
               <table class="table">
                 <thead>
                   <tr>
-                    <th class="w-12">#</th>
                     <th>Ejercicio</th>
                     <th>Grupo</th>
                     <th>Series</th>
@@ -88,7 +116,6 @@
                 </thead>
                 <tbody>
                   <tr v-for="ej in currentSection.ejercicios" :key="ej.id" class="group">
-                    <td class="text-dark-500 font-mono text-xs">{{ ej.orden }}</td>
                     <td class="font-medium text-white">
                       <div class="flex items-center gap-2">
                         {{ ej.ejercicioNombre }}
@@ -96,7 +123,7 @@
                           v-if="ej.videoUrl"
                           :href="ej.videoUrl"
                           target="_blank"
-                          class="p-1 rounded-md bg-primary-600/10 text-primary-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                          class="p-1 rounded-md bg-primary-600/10 text-primary-400 hover:bg-primary-600/20 transition-all"
                           title="Ver video"
                         >
                           <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -130,7 +157,6 @@
                 
                 <div class="flex items-start justify-between relative z-10">
                   <div class="flex items-center gap-4">
-                    <span class="w-10 h-10 rounded-2xl bg-dark-800 text-dark-100 flex items-center justify-center text-sm font-black border border-dark-700 shadow-inner">{{ ej.orden }}</span>
                     <div>
                       <h3 class="font-black text-base text-white leading-none">{{ ej.ejercicioNombre }}</h3>
                       <div class="flex items-center gap-2 mt-2">
@@ -198,18 +224,37 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useRoutineStore } from '@/stores/routine.store'
+import { useAuthStore } from '@/stores/auth.store'
+import AppButton from '@/components/ui/AppButton.vue'
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
 import { groupRoutineExercises } from '@/constants/routineSections'
 
 const route = useRoute()
+const router = useRouter()
 const store = useRoutineStore()
+const authStore = useAuthStore()
 const loading = ref(true)
 const routine = ref(null)
 const activeTab = ref('calentamientoInicial')
+const currentDay = ref(1)
 
-const groupedSections = computed(() => groupRoutineExercises(routine.value?.ejercicios || []))
+function goBack() {
+  if (authStore.hasRole('Alumno')) {
+    router.push('/dashboard')
+  } else {
+    router.push('/routines')
+  }
+}
+
+const filteredExercises = computed(() => {
+  if (!routine.value) return []
+  if (!routine.value.isByDays) return routine.value.ejercicios
+  return routine.value.ejercicios.filter(ej => ej.dayNumber === currentDay.value)
+})
+
+const groupedSections = computed(() => groupRoutineExercises(filteredExercises.value))
 const currentSection = computed(() => groupedSections.value.find(s => s.value === activeTab.value))
 
 function formatDate(dateStr) {

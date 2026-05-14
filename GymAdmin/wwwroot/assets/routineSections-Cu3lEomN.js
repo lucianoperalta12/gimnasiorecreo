@@ -1,0 +1,1 @@
+const i=[{value:"calentamientoInicial",label:"Calentamiento"},{value:"parteMedia",label:"Parte Media"},{value:"fuerza",label:"Fuerza"}];function r(a=[]){return i.map(e=>({...e,ejercicios:a.filter(l=>l.bloque===e.value)}))}export{i as R,r as g};

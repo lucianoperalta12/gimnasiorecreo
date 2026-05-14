@@ -28,92 +28,57 @@ public class AuthService : IAuthService
     public async Task<AuthResponse> LoginWithGoogleAsync(string credential)
     {
         GoogleJsonWebSignature.Payload payload;
-        try
-        {
-            var settings = new GoogleJsonWebSignature.ValidationSettings
-            {
-                Audience = new[] { _configuration["Google:ClientId"] }
-            };
-            payload = await GoogleJsonWebSignature.ValidateAsync(credential, settings);
-        }
-        catch (InvalidJwtException ex)
-        {
-            throw new UnauthorizedAccessException("Token de Google inválido.", ex);
-        }
+        var settings = new GoogleJsonWebSignature.ValidationSettings { Audience = [_configuration["Google:ClientId"]] };
+        payload = await GoogleJsonWebSignature.ValidateAsync(credential, settings);
 
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == payload.Email);
+        var user = await _context.Users.Include(u => u.Gym).FirstOrDefaultAsync(u => u.Email == payload.Email)
+            ?? throw new UnauthorizedAccessException("Usuario no habilitado. Contacte al administrador.");
 
-        if (user == null)
-        {
-            user = new User
-            {
-                Nombre = payload.Name,
-                Email = payload.Email,
-                GoogleId = payload.Subject,
-                Rol = UserRole.Alumno,
-                FechaCreacion = DateTime.UtcNow
-            };
-            _context.Users.Add(user);
-        }
-        else if (string.IsNullOrEmpty(user.GoogleId))
-        {
-            user.GoogleId = payload.Subject;
-        }
-
+        if (!user.Activo) throw new UnauthorizedAccessException("Tu cuenta ha sido desactivada.");
+        if (string.IsNullOrEmpty(user.GoogleId)) user.GoogleId = payload.Subject;
         await _context.SaveChangesAsync();
-        
-        if (!user.Activo)
-            throw new UnauthorizedAccessException("Tu cuenta ha sido desactivada.");
-
         return GenerateAuthResponse(user);
     }
 
     public async Task<AuthResponse> LoginAdminAsync(string username, string password)
     {
-        // Requerimiento específico: usuario "admin" contraseña "admin"
-        // Buscamos un usuario que tenga ese nombre o email y sea Superusuario
-        var user = await _context.Users
-            .FirstOrDefaultAsync(u => (u.Nombre == username || u.Email == username));
+        var lowerUsername = username.Trim().ToLowerInvariant();
+        var user = await _context.Users.Include(u => u.Gym).FirstOrDefaultAsync(u =>
+            u.Email.ToLower() == lowerUsername ||
+            u.Dni.ToLower() == lowerUsername ||
+            (u.Nombre.ToLower() + " " + u.Apellido.ToLower()) == lowerUsername);
 
         if (user == null || user.PasswordHash == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
             throw new UnauthorizedAccessException("Credenciales inválidas.");
-
-        if (!user.Activo)
-            throw new UnauthorizedAccessException("Tu cuenta ha sido desactivada.");
-
+        if (!user.Activo) throw new UnauthorizedAccessException("Tu cuenta ha sido desactivada.");
         return GenerateAuthResponse(user);
     }
 
+    public Task<AuthResponse> RegisterAsync(string nombre, string email, string password)
+        => throw new InvalidOperationException("El registro público está deshabilitado. Los usuarios se crean desde el panel.");
+
     public async Task<AuthResponse> RefreshTokenAsync(string refreshToken)
     {
-        var user = await _context.Users
-            .FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
-
+        var user = await _context.Users.Include(u => u.Gym).FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
         if (user == null || user.RefreshTokenExpiracion < DateTime.UtcNow)
             throw new UnauthorizedAccessException("Refresh token inválido o expirado.");
-
-        if (!user.Activo)
-            throw new UnauthorizedAccessException("Tu cuenta ha sido desactivada.");
-
+        if (!user.Activo) throw new UnauthorizedAccessException("Tu cuenta ha sido desactivada.");
         return GenerateAuthResponse(user);
     }
 
     public async Task LogoutAsync(int userId)
     {
         var user = await _context.Users.FindAsync(userId);
-        if (user != null)
-        {
-            user.RefreshToken = null;
-            user.RefreshTokenExpiracion = null;
-            await _context.SaveChangesAsync();
-        }
+        if (user == null) return;
+        user.RefreshToken = null;
+        user.RefreshTokenExpiracion = null;
+        await _context.SaveChangesAsync();
     }
 
     private AuthResponse GenerateAuthResponse(User user)
     {
         var accessToken = GenerateAccessToken(user);
         var refreshToken = GenerateRefreshToken();
-
         user.RefreshToken = refreshToken;
         user.RefreshTokenExpiracion = DateTime.UtcNow.AddDays(7);
         _context.SaveChanges();
@@ -121,7 +86,7 @@ public class AuthService : IAuthService
         return new AuthResponse(
             accessToken,
             refreshToken,
-            new UserDto(user.Id, user.Nombre, user.Email, user.Rol.ToString(), user.Activo, user.FechaCreacion)
+            new UserDto(user.Id, user.Nombre, user.Apellido, user.Email, user.Dni, user.Rol.ToString(), user.Activo, user.DebeCambiarPassword, user.GymId, user.Gym?.Nombre, user.Gym?.ColorPrincipalHex, user.Gym?.LogoUrl, user.FechaCreacion)
         );
     }
 
@@ -132,8 +97,9 @@ public class AuthService : IAuthService
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Name, user.Nombre),
-            new Claim(ClaimTypes.Role, user.Rol.ToString())
+            new Claim(ClaimTypes.Name, $"{user.Nombre} {user.Apellido}".Trim()),
+            new Claim(ClaimTypes.Role, user.Rol.ToString()),
+            new Claim("gymId", user.GymId.ToString())
         };
 
         var token = new JwtSecurityToken(

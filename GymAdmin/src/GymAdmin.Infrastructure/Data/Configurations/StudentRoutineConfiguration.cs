@@ -28,6 +28,11 @@ public class StudentRoutineConfiguration : IEntityTypeConfiguration<StudentRouti
             .HasForeignKey(sr => sr.RutinaId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        builder.HasOne(sr => sr.Gym)
+            .WithMany(g => g.StudentRoutines)
+            .HasForeignKey(sr => sr.GymId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         // Prevent duplicate assignment of same routine to same student
         builder.HasIndex(sr => new { sr.AlumnoId, sr.RutinaId })
             .IsUnique();

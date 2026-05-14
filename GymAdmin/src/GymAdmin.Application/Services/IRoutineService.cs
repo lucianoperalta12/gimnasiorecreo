@@ -4,9 +4,9 @@ namespace GymAdmin.Application.Services;
 
 public interface IRoutineService
 {
-    Task<List<RoutineListDto>> GetAllAsync(int? profesorId = null);
-    Task<RoutineDto?> GetByIdAsync(int id, int? studentId = null);
-    Task<RoutineDto> CreateAsync(int profesorId, CreateRoutineRequest request);
-    Task<RoutineDto> UpdateAsync(int id, int profesorId, UpdateRoutineRequest request);
-    Task DeleteAsync(int id, int profesorId);
+    Task<List<RoutineListDto>> GetAllAsync(int requesterId);
+    Task<RoutineDto?> GetByIdAsync(int requesterId, int id);
+    Task<RoutineDto> CreateAsync(int requesterId, CreateRoutineRequest request);
+    Task<RoutineDto> UpdateAsync(int requesterId, int id, UpdateRoutineRequest request);
+    Task DeleteAsync(int requesterId, int id);
 }

@@ -15,7 +15,7 @@ const routes = [
     children: [
       {
         path: '',
-        name: 'Panel',
+        name: 'Panel Principal',
         component: () => import('@/views/DashboardView.vue')
       },
       // Exercises
@@ -23,26 +23,26 @@ const routes = [
         path: 'exercises',
         name: 'Ejercicios',
         component: () => import('@/views/exercises/ExerciseListView.vue'),
-        meta: { roles: ['Profesor', 'Superusuario'] }
+        meta: { roles: ['Profesor', 'Superusuario', 'Administrativo'] }
       },
       // Routines
       {
         path: 'routines',
         name: 'Rutinas',
         component: () => import('@/views/routines/RoutineListView.vue'),
-        meta: { roles: ['Profesor', 'Superusuario'] }
+        meta: { roles: ['Profesor', 'Superusuario', 'Administrativo'] }
       },
       {
         path: 'routines/new',
         name: 'Crear una Rutina',
         component: () => import('@/views/routines/RoutineFormView.vue'),
-        meta: { roles: ['Profesor', 'Superusuario'] }
+        meta: { roles: ['Profesor', 'Superusuario', 'Administrativo'] }
       },
       {
         path: 'routines/:id/edit',
         name: 'Edición de Rutina',
         component: () => import('@/views/routines/RoutineFormView.vue'),
-        meta: { roles: ['Profesor', 'Superusuario'] }
+        meta: { roles: ['Profesor', 'Superusuario', 'Administrativo'] }
       },
       {
         path: 'routines/:id',
@@ -54,20 +54,26 @@ const routes = [
         path: 'assignments',
         name: 'Asignaciones',
         component: () => import('@/views/assignments/AssignmentView.vue'),
-        meta: { roles: ['Profesor', 'Superusuario'] }
+        meta: { roles: ['Profesor', 'Superusuario', 'Administrativo'] }
       },
       // Student
       {
         path: 'my-routines',
         name: 'Mis Rutinas',
         component: () => import('@/views/students/MyRoutinesView.vue'),
-        meta: { roles: ['Alumno'] }
+        meta: { roles: ['Alumno', 'Administrativo'] }
       },
       // Admin
       {
         path: 'users',
-        name: 'Panel de Usuarios',
+        name: 'Usuarios',
         component: () => import('@/views/admin/UserManagementView.vue'),
+        meta: { roles: ['Superusuario', 'Administrativo'] }
+      },
+      {
+        path: 'gyms',
+        name: 'Gimnasios',
+        component: () => import('@/views/admin/GymsView.vue'),
         meta: { roles: ['Superusuario'] }
       }
     ]
@@ -85,6 +91,12 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
+  
+  // Force logout if requested by URL
+  if (to.query.forceLogout === 'true') {
+    authStore.logout()
+    return next({ path: '/login', query: {}, replace: true })
+  }
 
   // Public routes
   if (to.meta.requiresAuth === false) {

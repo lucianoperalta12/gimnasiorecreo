@@ -19,30 +19,21 @@ public class RoutinesController : ControllerBase
     }
 
     private int GetUserId() => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-    private string GetUserRole() => User.FindFirstValue(ClaimTypes.Role)!;
 
     [HttpGet]
-    [Authorize(Roles = "Profesor,Superusuario")]
-    public async Task<ActionResult<List<RoutineListDto>>> GetAll()
-    {
-        var role = GetUserRole();
-        int? profesorId = role == "Superusuario" ? null : GetUserId();
-        var routines = await _routineService.GetAllAsync(profesorId);
-        return Ok(routines);
-    }
+    [Authorize(Roles = "Profesor,Superusuario,Administrativo")]
+    public async Task<ActionResult<List<RoutineListDto>>> GetAll() =>
+        Ok(await _routineService.GetAllAsync(GetUserId()));
 
     [HttpGet("{id}")]
     public async Task<ActionResult<RoutineDto>> GetById(int id)
     {
-        var role = GetUserRole();
-        int? studentId = role == "Alumno" ? GetUserId() : null;
-        var routine = await _routineService.GetByIdAsync(id, studentId);
-        if (routine is null) return NotFound();
-        return Ok(routine);
+        var routine = await _routineService.GetByIdAsync(GetUserId(), id);
+        return routine is null ? NotFound() : Ok(routine);
     }
 
     [HttpPost]
-    [Authorize(Roles = "Profesor,Superusuario")]
+    [Authorize(Roles = "Profesor,Superusuario,Administrativo")]
     public async Task<ActionResult<RoutineDto>> Create([FromBody] CreateRoutineRequest request)
     {
         var routine = await _routineService.CreateAsync(GetUserId(), request);
@@ -50,18 +41,15 @@ public class RoutinesController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = "Profesor,Superusuario")]
-    public async Task<ActionResult<RoutineDto>> Update(int id, [FromBody] UpdateRoutineRequest request)
-    {
-        var routine = await _routineService.UpdateAsync(id, GetUserId(), request);
-        return Ok(routine);
-    }
+    [Authorize(Roles = "Profesor,Superusuario,Administrativo")]
+    public async Task<ActionResult<RoutineDto>> Update(int id, [FromBody] UpdateRoutineRequest request) =>
+        Ok(await _routineService.UpdateAsync(GetUserId(), id, request));
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Profesor,Superusuario")]
+    [Authorize(Roles = "Profesor,Superusuario,Administrativo")]
     public async Task<IActionResult> Delete(int id)
     {
-        await _routineService.DeleteAsync(id, GetUserId());
+        await _routineService.DeleteAsync(GetUserId(), id);
         return NoContent();
     }
 }

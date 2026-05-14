@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using GymAdmin.Application.DTOs.Users;
 using GymAdmin.Application.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -11,58 +12,57 @@ namespace GymAdmin.Api.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
-
-    public UsersController(IUserService userService)
-    {
-        _userService = userService;
-    }
+    public UsersController(IUserService userService) { _userService = userService; }
+    private int GetUserId() => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
     [HttpGet]
-    [Authorize(Roles = "Superusuario")]
-    public async Task<ActionResult<List<UserDto>>> GetAll()
-    {
-        var users = await _userService.GetAllUsersAsync();
-        return Ok(users);
-    }
+    [Authorize(Roles = "Superusuario,Administrativo")]
+    public async Task<ActionResult<List<UserDto>>> GetAll() => Ok(await _userService.GetAllUsersAsync(GetUserId()));
 
     [HttpGet("{id}")]
-    [Authorize(Roles = "Superusuario")]
+    [Authorize(Roles = "Superusuario,Administrativo")]
     public async Task<ActionResult<UserDto>> GetById(int id)
     {
-        var user = await _userService.GetUserByIdAsync(id);
-        if (user is null) return NotFound();
-        return Ok(user);
+        var user = await _userService.GetUserByIdAsync(GetUserId(), id);
+        return user is null ? NotFound() : Ok(user);
     }
 
     [HttpGet("students")]
-    [Authorize(Roles = "Profesor,Superusuario")]
-    public async Task<ActionResult<List<UserDto>>> GetStudents()
-    {
-        var students = await _userService.GetStudentsAsync();
-        return Ok(students);
-    }
+    [Authorize(Roles = "Profesor,Superusuario,Administrativo")]
+    public async Task<ActionResult<List<UserDto>>> GetStudents() => Ok(await _userService.GetStudentsAsync(GetUserId()));
+
+    [HttpPost]
+    [Authorize(Roles = "Superusuario,Administrativo")]
+    public async Task<ActionResult<UserDto>> Create([FromBody] CreateUserRequest request) => Ok(await _userService.CreateUserAsync(GetUserId(), request));
 
     [HttpPut("{id}/role")]
     [Authorize(Roles = "Superusuario")]
-    public async Task<ActionResult<UserDto>> ChangeRole(int id, [FromBody] ChangeRoleRequest request)
+    public async Task<ActionResult<UserDto>> ChangeRole(int id, [FromBody] ChangeRoleRequest request) => Ok(await _userService.ChangeRoleAsync(GetUserId(), id, request));
+
+    [HttpPut("{id}/password")]
+    [Authorize(Roles = "Superusuario")]
+    public async Task<IActionResult> ChangePassword(int id, [FromBody] ChangePasswordRequest request)
     {
-        var user = await _userService.ChangeRoleAsync(id, request);
-        return Ok(user);
+        await _userService.ChangePasswordAsync(GetUserId(), id, request);
+        return Ok(new { message = "Contraseña actualizada exitosamente" });
+    }
+
+    [HttpPut("me/change-initial-password")]
+    public async Task<IActionResult> ChangeInitialPassword([FromBody] ChangePasswordRequest request)
+    {
+        await _userService.ChangeMyInitialPasswordAsync(GetUserId(), request);
+        return Ok(new { message = "Contraseña actualizada exitosamente" });
     }
 
     [HttpPatch("{id}/toggle-status")]
-    [Authorize(Roles = "Superusuario")]
-    public async Task<ActionResult<UserDto>> ToggleStatus(int id)
-    {
-        var user = await _userService.ToggleStatusAsync(id);
-        return Ok(user);
-    }
+    [Authorize(Roles = "Superusuario,Administrativo")]
+    public async Task<ActionResult<UserDto>> ToggleStatus(int id) => Ok(await _userService.ToggleStatusAsync(GetUserId(), id));
 
     [HttpDelete("{id}")]
     [Authorize(Roles = "Superusuario")]
     public async Task<IActionResult> Delete(int id)
     {
-        await _userService.DeleteUserAsync(id);
+        await _userService.DeleteUserAsync(GetUserId(), id);
         return NoContent();
     }
 }

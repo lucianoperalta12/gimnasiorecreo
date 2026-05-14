@@ -1,0 +1,2 @@
+C:\RepositoriosFront\Prueba Gemini\GymAdminLauncher\GymAdminLauncher\bin\Release\net8.0\win-x64\publish\Lanzador.pdb
+C:\RepositoriosFront\Prueba Gemini\GymAdminLauncher\GymAdminLauncher\bin\Release\net8.0\win-x64\publish\Lanzador.exe

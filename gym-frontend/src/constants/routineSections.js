@@ -1,7 +1,7 @@
 export const ROUTINE_SECTIONS = [
-  { value: 'calentamientoInicial', label: 'Calentamiento inicial' },
-  { value: 'parteMedia', label: 'Parte media' },
-  { value: 'fuerza', label: 'Fuerza' }
+  { value: 'calentamientoInicial', label: 'Calentamiento' },
+  { value: 'parteMedia', label: 'Bloque Central' },
+  { value: 'fuerza', label: 'Movilidad' }
 ]
 
 export function groupRoutineExercises(ejercicios = []) {

@@ -1,5 +1,5 @@
 using GymAdmin.Application.DTOs.Exercises;
-using GymAdmin.Domain.Entities;
+using GymAdmin.Domain.Enums;
 using GymAdmin.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,82 +8,58 @@ namespace GymAdmin.Application.Services;
 public class ExerciseService : IExerciseService
 {
     private readonly AppDbContext _context;
+    public ExerciseService(AppDbContext context) { _context = context; }
 
-    public ExerciseService(AppDbContext context)
+    public async Task<List<ExerciseDto>> GetAllAsync(int requesterId)
     {
-        _context = context;
+        var requester = await _context.Users.FindAsync(requesterId) ?? throw new UnauthorizedAccessException();
+        var query = _context.Exercises.Include(e => e.Gym).AsNoTracking();
+        if (requester.Rol != UserRole.Superusuario) query = query.Where(e => e.GymId == requester.GymId);
+        return await query.OrderBy(e => e.GrupoMuscular).ThenBy(e => e.Nombre).Select(e => new ExerciseDto(e.Id, e.Nombre, e.Descripcion, e.GrupoMuscular, e.VideoUrl, e.GymId, e.Gym.Nombre)).ToListAsync();
     }
 
-    public async Task<List<ExerciseDto>> GetAllAsync()
+    public async Task<ExerciseDto?> GetByIdAsync(int requesterId, int id)
     {
-        return await _context.Exercises
-            .AsNoTracking()
-            .OrderBy(e => e.GrupoMuscular)
-            .ThenBy(e => e.Nombre)
-            .Select(e => new ExerciseDto(e.Id, e.Nombre, e.Descripcion, e.GrupoMuscular, e.VideoUrl))
-            .ToListAsync();
+        var requester = await _context.Users.FindAsync(requesterId) ?? throw new UnauthorizedAccessException();
+        var query = _context.Exercises.Include(e => e.Gym).AsNoTracking().Where(e => e.Id == id);
+        if (requester.Rol != UserRole.Superusuario) query = query.Where(e => e.GymId == requester.GymId);
+        return await query.Select(e => new ExerciseDto(e.Id, e.Nombre, e.Descripcion, e.GrupoMuscular, e.VideoUrl, e.GymId, e.Gym.Nombre)).FirstOrDefaultAsync();
     }
 
-    public async Task<ExerciseDto?> GetByIdAsync(int id)
+    public async Task<ExerciseDto> CreateAsync(int requesterId, CreateExerciseRequest request)
     {
-        var exercise = await _context.Exercises
-            .AsNoTracking()
-            .FirstOrDefaultAsync(e => e.Id == id);
-
-        return exercise is null
-            ? null
-            : new ExerciseDto(exercise.Id, exercise.Nombre, exercise.Descripcion, exercise.GrupoMuscular, exercise.VideoUrl);
-    }
-
-    public async Task<ExerciseDto> CreateAsync(CreateExerciseRequest request)
-    {
-        if (string.IsNullOrWhiteSpace(request.Nombre))
-            throw new ArgumentException("El nombre del ejercicio es obligatorio.");
-
-        if (string.IsNullOrWhiteSpace(request.GrupoMuscular))
-            throw new ArgumentException("El grupo muscular es obligatorio.");
-
-        var exercise = new Exercise
+        var requester = await _context.Users.FindAsync(requesterId) ?? throw new UnauthorizedAccessException();
+        var exercise = new Domain.Entities.Exercise
         {
+            GymId = requester.GymId,
             Nombre = request.Nombre.Trim(),
             Descripcion = request.Descripcion?.Trim(),
             GrupoMuscular = request.GrupoMuscular.Trim(),
             VideoUrl = request.VideoUrl?.Trim()
         };
-
         _context.Exercises.Add(exercise);
         await _context.SaveChangesAsync();
-
         return new ExerciseDto(exercise.Id, exercise.Nombre, exercise.Descripcion, exercise.GrupoMuscular, exercise.VideoUrl);
     }
 
-    public async Task<ExerciseDto> UpdateAsync(int id, UpdateExerciseRequest request)
+    public async Task<ExerciseDto> UpdateAsync(int requesterId, int id, UpdateExerciseRequest request)
     {
-        var exercise = await _context.Exercises.FindAsync(id)
-            ?? throw new KeyNotFoundException("Ejercicio no encontrado.");
-
-        if (string.IsNullOrWhiteSpace(request.Nombre))
-            throw new ArgumentException("El nombre del ejercicio es obligatorio.");
-
+        var requester = await _context.Users.FindAsync(requesterId) ?? throw new UnauthorizedAccessException();
+        var exercise = await _context.Exercises.FindAsync(id) ?? throw new KeyNotFoundException("Ejercicio no encontrado.");
+        if (requester.Rol != UserRole.Superusuario && exercise.GymId != requester.GymId) throw new UnauthorizedAccessException();
         exercise.Nombre = request.Nombre.Trim();
         exercise.Descripcion = request.Descripcion?.Trim();
         exercise.GrupoMuscular = request.GrupoMuscular.Trim();
         exercise.VideoUrl = request.VideoUrl?.Trim();
-
         await _context.SaveChangesAsync();
-
         return new ExerciseDto(exercise.Id, exercise.Nombre, exercise.Descripcion, exercise.GrupoMuscular, exercise.VideoUrl);
     }
 
-    public async Task DeleteAsync(int id)
+    public async Task DeleteAsync(int requesterId, int id)
     {
-        var exercise = await _context.Exercises.FindAsync(id)
-            ?? throw new KeyNotFoundException("Ejercicio no encontrado.");
-
-        var isUsed = await _context.RoutineExercises.AnyAsync(re => re.EjercicioId == id);
-        if (isUsed)
-            throw new InvalidOperationException("No se puede eliminar un ejercicio que está siendo usado en rutinas.");
-
+        var requester = await _context.Users.FindAsync(requesterId) ?? throw new UnauthorizedAccessException();
+        var exercise = await _context.Exercises.FindAsync(id) ?? throw new KeyNotFoundException("Ejercicio no encontrado.");
+        if (requester.Rol != UserRole.Superusuario && exercise.GymId != requester.GymId) throw new UnauthorizedAccessException();
         _context.Exercises.Remove(exercise);
         await _context.SaveChangesAsync();
     }

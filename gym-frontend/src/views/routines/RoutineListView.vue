@@ -3,16 +3,28 @@
     <div class="flex items-center justify-between mb-6">
       <div>
         <h1 class="page-title">Rutinas</h1>
-        <p class="page-subtitle">Gestión de rutinas de entrenamiento</p>
+        <p class="page-subtitle">Gestión de rutinas</p>
       </div>
-      <router-link to="/routines/new">
-        <AppButton>
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+      <div class="flex items-center gap-3">
+        <AppButton 
+          variant="secondary" 
+          @click="router.push('/dashboard')"
+          class="md:px-4 px-2.5 !rounded-xl md:!rounded-lg"
+        >
+          <svg class="w-5 h-5 md:w-3 md:h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
           </svg>
-          Nueva Rutina
+          <span class="hidden md:inline ml-1 text-[10px] font-black uppercase tracking-[0.2em]">Volver</span>
         </AppButton>
-      </router-link>
+        <router-link to="/routines/new">
+          <AppButton variant="primary" class="md:px-4 px-2.5 !rounded-xl md:!rounded-lg">
+            <svg class="w-5 h-5 md:w-4 md:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            <span class="hidden md:inline ml-1">Nueva Rutina</span>
+          </AppButton>
+        </router-link>
+      </div>
     </div>
 
     <LoadingSpinner v-if="store.loading" />
@@ -20,7 +32,7 @@
     <template v-else>
       <div v-if="store.routines.length === 0" class="card text-center py-12">
         <p class="text-dark-400">No hay rutinas creadas</p>
-        <router-link to="/routines/new" class="text-primary-400 text-sm hover:underline mt-2 inline-block">Crear la primera rutina</router-link>
+        <router-link to="/routines/new" class="text-primary-600 text-sm hover:underline mt-2 inline-block">Crear la primera rutina</router-link>
       </div>
 
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -32,12 +44,13 @@
             </span>
           </div>
           <p class="text-sm text-dark-400 mb-4 line-clamp-2">{{ routine.descripcion || 'Sin descripción' }}</p>
-          <div class="flex items-center justify-between text-xs text-dark-500">
-            <div class="flex items-center gap-3">
-              <span>{{ routine.cantidadEjercicios }} ejercicios</span>
-              <span>{{ routine.profesorNombre }}</span>
+            <div class="flex flex-col gap-1">
+              <div class="flex items-center gap-3">
+                <span>{{ routine.cantidadEjercicios }} ejercicios</span>
+                <span>{{ routine.profesorNombre }}</span>
+              </div>
+              <span v-if="authStore.hasRole('Superusuario')" class="text-[10px] text-primary-400 font-bold uppercase tracking-wider">{{ routine.gymNombre }}</span>
             </div>
-          </div>
           <div class="flex items-center gap-2 mt-4 pt-4 border-t border-dark-700/50">
             <router-link :to="`/routines/${routine.id}`" class="btn-ghost btn-sm flex-1 text-center">Ver</router-link>
             <router-link :to="`/routines/${routine.id}/edit`" class="btn-ghost btn-sm flex-1 text-center">Editar</router-link>
@@ -64,13 +77,17 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { useRoutineStore } from '@/stores/routine.store'
+import { useAuthStore } from '@/stores/auth.store'
 import { useNotification } from '@/composables/useNotification'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppModal from '@/components/ui/AppModal.vue'
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
 
+const router = useRouter()
 const store = useRoutineStore()
+const authStore = useAuthStore()
 const { success, error: showError } = useNotification()
 
 const showDeleteModal = ref(false)

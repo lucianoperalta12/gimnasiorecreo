@@ -3,14 +3,20 @@ using GymAdmin.Api.Middleware;
 using GymAdmin.Application.Services;
 using GymAdmin.Infrastructure.Data;
 using GymAdmin.Infrastructure.Seed;
+using GymAdmin.Api.BackgroundServices;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ===== HOST =====
+var port = Environment.GetEnvironmentVariable("PORT") ?? "5000";
+builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+
 // ===== Database =====
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     if (connectionString?.Contains("Data Source=") == true)
@@ -25,6 +31,10 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IExerciseService, ExerciseService>();
 builder.Services.AddScoped<IRoutineService, RoutineService>();
 builder.Services.AddScoped<IAssignmentService, AssignmentService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IGymService, GymService>();
+
+builder.Services.AddHostedService<StartupNotificationService>();
 
 // ===== Authentication =====
 builder.Services.AddAuthentication(options =>
@@ -44,7 +54,7 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = builder.Configuration["Jwt:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(
             Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!)),
-        ClockSkew = TimeSpan.Zero // No tolerance for token expiration
+        ClockSkew = TimeSpan.Zero
     };
 });
 
@@ -55,7 +65,8 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://localhost:3000")
+        policy
+            .SetIsOriginAllowed(_ => true)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
@@ -66,7 +77,8 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.PropertyNamingPolicy =
+            System.Text.Json.JsonNamingPolicy.CamelCase;
     });
 
 builder.Services.AddEndpointsApiExplorer();
@@ -92,9 +104,13 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapGet("/api/health", () => Results.Ok(new { status = "healthy" }));
+
 app.MapFallbackToFile("index.html");
 
 // ===== Seed Database =====
-await DbSeeder.SeedAsync(app.Services);
+// Se corre en segundo plano para que el servidor inicie inmediatamente
+_ = Task.Run(() => DbSeeder.SeedAsync(app.Services));
 
 app.Run();
