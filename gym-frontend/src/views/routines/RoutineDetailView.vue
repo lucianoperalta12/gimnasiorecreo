@@ -170,7 +170,7 @@
                     v-if="ej.videoUrl"
                     :href="ej.videoUrl"
                     target="_blank"
-                    class="w-10 h-10 rounded-2xl bg-primary-600 text-white flex items-center justify-center shadow-glow-sm active:scale-90 transition-transform"
+                    class="w-10 h-10 rounded-2xl bg-primary-600 text-white flex items-center justify-center  active:scale-90 transition-transform"
                   >
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347c-.75.412-1.667-.13-1.667-.986V5.653z" />

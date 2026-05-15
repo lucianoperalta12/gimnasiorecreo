@@ -39,7 +39,7 @@
                   {{ user?.nombre?.charAt(0)?.toUpperCase() || 'A' }}
                 </div>
               </div>
-              <div class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-600 border-2 border-dark-950 rounded-full shadow-glow-sm"></div>
+              <div class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-600 border-2 border-dark-950 rounded-full "></div>
             </div>
             <div class="flex-1 min-w-0">
               <p class="text-sm font-black text-white truncate leading-none mb-1">{{ user?.nombre || 'Admin' }}</p>
@@ -79,7 +79,7 @@
           <p class="text-base font-bold text-white truncate">{{ $route.name || 'Dashboard' }}</p>
         </div>
         <!-- Mobile Logo (Sutil) -->
-        <div class="lg:hidden flex items-center justify-center mr-4 py-1">
+        <div class="lg:hidden flex items-center justify-center mr-4 py-1 cursor-pointer" @click="router.push('/')">
           <img :src="logoUrl" alt="Logo" class="h-10 w-auto object-contain opacity-80" />
         </div>
 

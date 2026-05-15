@@ -19,7 +19,7 @@
         <AppButton 
           @click="handleSubmit" 
           :loading="saving" 
-          class="md:px-4 px-2.5 !rounded-xl md:!rounded-lg shadow-glow-sm"
+          class="md:px-4 px-2.5 !rounded-xl md:!rounded-lg "
         >
           {{ isEditing ? 'Guardar' : 'Crear Rutina' }}
         </AppButton>

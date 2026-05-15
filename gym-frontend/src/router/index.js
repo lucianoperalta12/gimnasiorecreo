@@ -46,7 +46,7 @@ const routes = [
       },
       {
         path: 'routines/:id',
-        name: 'Detalle de tu Rutina',
+        name: 'Detalle de la Rutina',
         component: () => import('@/views/routines/RoutineDetailView.vue')
       },
       // Assignments

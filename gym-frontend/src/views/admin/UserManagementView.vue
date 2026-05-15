@@ -6,24 +6,46 @@
         <h1 class="page-title">Usuarios</h1>
         <p class="page-subtitle hidden sm:block">Administración de usuarios y roles</p>
       </div>
-      <button @click="openCreateModal" class="btn-primary flex items-center gap-2">
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-        </svg>
-        <span class="hidden sm:inline text-sm">Crear usuario</span>
-      </button>
+      
+      <div class="flex items-center gap-3">
+        <AppButton 
+          variant="secondary" 
+          @click="router.push('/dashboard')"
+          class="md:px-4 px-2.5 !rounded-xl md:!rounded-lg"
+        >
+          <svg class="w-5 h-5 md:w-3 md:h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+          </svg>
+          <span class="hidden md:inline ml-1 text-[10px] font-black uppercase tracking-[0.2em]">Volver</span>
+        </AppButton>
+
+        <AppButton @click="openCreateModal" class="md:px-4 px-2.5 !rounded-xl md:!rounded-lg">
+          <svg class="w-5 h-5 md:w-4 md:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          <span class="hidden md:inline ml-1">Crear usuario</span>
+        </AppButton>
+      </div>
+      
     </div>
 
-    <!-- Filters -->
     <div class="flex flex-col sm:flex-row gap-3 mb-4">
       <input v-model="search" type="text" placeholder="Buscar por nombre, email o DNI..." class="input flex-1 sm:max-w-sm" />
-      <select v-model="roleFilter" class="input w-full sm:w-auto sm:min-w-[180px]">
-        <option value="">Todos los roles</option>
-        <option value="Administrativo">Administrativo</option>
-        <option value="Profesor">Profesor</option>
-        <option value="Alumno">Alumno</option>
-        <option v-if="authStore.hasRole('Superusuario')" value="Superusuario">Superusuario</option>
-      </select>
+      
+      <div class="flex flex-col sm:flex-row gap-3">
+        <select v-model="roleFilter" class="input w-full sm:w-auto sm:min-w-[150px]">
+          <option value="">Todos los roles</option>
+          <option value="Administrativo">Administrativo</option>
+          <option value="Profesor">Profesor</option>
+          <option value="Alumno">Alumno</option>
+          <option v-if="authStore.hasRole('Superusuario')" value="Superusuario">Superusuario</option>
+        </select>
+
+        <select v-if="authStore.hasRole('Superusuario')" v-model="gymFilter" class="input w-full sm:w-auto sm:min-w-[180px]">
+          <option value="">Todos los gimnasios</option>
+          <option v-for="gym in gyms" :key="gym.id" :value="gym.id">{{ gym.nombre }}</option>
+        </select>
+      </div>
     </div>
 
     <LoadingSpinner v-if="userStore.loading" />
@@ -53,7 +75,10 @@
             <span v-else :class="roleBadge(u.rol)" class="text-[10px]">{{ u.rol }}</span>
           </div>
           <div class="flex items-center justify-between text-xs text-dark-400">
-            <span>DNI: {{ u.dni || '-' }}</span>
+            <div class="flex flex-col gap-1">
+              <span>DNI: {{ u.dni || '-' }}</span>
+              <span v-if="authStore.hasRole('Superusuario')" class="text-primary-400 font-bold uppercase tracking-wider text-[9px]">{{ u.gymNombre || '-' }}</span>
+            </div>
             <span :class="u.activo ? 'text-emerald-500' : 'text-red-400'">{{ u.activo ? 'Activo' : 'Inactivo' }}</span>
           </div>
           <div class="flex items-center justify-end gap-2 mt-3 pt-3 border-t border-dark-800/50">
@@ -93,7 +118,7 @@
               <th class="px-3 py-3 text-xs font-semibold text-dark-400 uppercase tracking-wider hidden lg:table-cell">Email</th>
               <th class="px-3 py-3 text-xs font-semibold text-dark-400 uppercase tracking-wider hidden xl:table-cell">DNI</th>
               <th class="px-3 py-3 text-xs font-semibold text-dark-400 uppercase tracking-wider">Rol</th>
-              <th v-if="authStore.hasRole('Superusuario')" class="px-3 py-3 text-xs font-semibold text-dark-400 uppercase tracking-wider hidden xl:table-cell">Gimnasio</th>
+              <th v-if="authStore.hasRole('Superusuario')" class="px-3 py-3 text-xs font-semibold text-dark-400 uppercase tracking-wider hidden md:table-cell">Gimnasio</th>
               <th class="px-3 py-3 text-xs font-semibold text-dark-400 uppercase tracking-wider">Estado</th>
               <th class="px-3 py-3 text-xs font-semibold text-dark-400 uppercase tracking-wider text-right">Acciones</th>
             </tr>
@@ -117,7 +142,7 @@
                 </select>
                 <span v-else :class="roleBadge(u.rol)">{{ u.rol }}</span>
               </td>
-              <td v-if="authStore.hasRole('Superusuario')" class="px-3 py-3 text-dark-400 hidden xl:table-cell">{{ u.gymNombre || '-' }}</td>
+              <td v-if="authStore.hasRole('Superusuario')" class="px-3 py-3 text-dark-400 hidden md:table-cell">{{ u.gymNombre || '-' }}</td>
               <td class="px-3 py-3">
                 <span :class="u.activo ? 'badge-success' : 'badge-danger'">{{ u.activo ? 'Activo' : 'Inactivo' }}</span>
               </td>
@@ -221,6 +246,7 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user.store'
 import { useAuthStore } from '@/stores/auth.store'
 import { useNotification } from '@/composables/useNotification'
@@ -230,11 +256,13 @@ import AppInput from '@/components/ui/AppInput.vue'
 import AppModal from '@/components/ui/AppModal.vue'
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
 
+const router = useRouter()
 const userStore = useUserStore()
 const authStore = useAuthStore()
 const { success, error: showError } = useNotification()
 const search = ref('')
 const roleFilter = ref('')
+const gymFilter = ref('')
 const gyms = ref([])
 const showCreateModal = ref(false)
 const showPasswordModal = ref(false)
@@ -261,6 +289,7 @@ const allowedCreateRoles = computed(() =>
 const filteredUsers = computed(() => {
   const q = search.value.toLowerCase()
   const r = roleFilter.value
+  const g = gymFilter.value
   
   return userStore.users.filter(u => {
     const matchesSearch = fullName(u).toLowerCase().includes(q) ||
@@ -268,8 +297,9 @@ const filteredUsers = computed(() => {
       String(u.dni || '').toLowerCase().includes(q)
     
     const matchesRole = !r || u.rol === r
+    const matchesGym = !g || u.gymId === Number(g)
     
-    return matchesSearch && matchesRole
+    return matchesSearch && matchesRole && matchesGym
   })
 })
 
@@ -320,7 +350,7 @@ async function openCreateModal() {
   if (authStore.hasRole('Superusuario') && (!gyms.value || gyms.value.length === 0)) {
     try {
       const response = await gymsApi.getAll()
-      gyms.value = (response.data || []).filter(g => g.activo)
+      gyms.value = response.data || []
     } catch (err) {
       showError('No se pudieron cargar los gimnasios')
     }
@@ -404,8 +434,12 @@ async function confirmPasswordChange() {
 onMounted(async () => {
   try {
     await userStore.fetchUsers()
+    if (authStore.hasRole('Superusuario')) {
+      const response = await gymsApi.getAll()
+      gyms.value = response.data || []
+    }
   } catch (err) {
-    showError('No se pudieron cargar los usuarios')
+    showError('No se pudieron cargar los datos')
   }
 })
 </script>

@@ -6,12 +6,25 @@
         <h1 class="page-title">Gimnasios</h1>
         <p class="page-subtitle hidden sm:block">Administración de gimnasios</p>
       </div>
-      <button @click="openCreateModal" class="btn-primary flex items-center gap-2">
-        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-        </svg>
-        <span class="hidden sm:inline text-sm">Crear gimnasio</span>
-      </button>
+      <div class="flex items-center gap-3">
+        <AppButton 
+          variant="secondary" 
+          @click="router.push('/dashboard')"
+          class="md:px-4 px-2.5 !rounded-xl md:!rounded-lg"
+        >
+          <svg class="w-5 h-5 md:w-3 md:h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+          </svg>
+          <span class="hidden md:inline ml-1 text-[10px] font-black uppercase tracking-[0.2em]">Volver</span>
+        </AppButton>
+
+        <AppButton @click="openCreateModal" class="md:px-4 px-2.5 !rounded-xl md:!rounded-lg">
+          <svg class="w-5 h-5 md:w-4 md:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          <span class="hidden md:inline ml-1">Crear gimnasio</span>
+        </AppButton>
+      </div>
     </div>
 
     <LoadingSpinner v-if="loading" />
@@ -117,6 +130,7 @@
 
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { gymsApi } from '@/api/gyms.api'
 import { useNotification } from '@/composables/useNotification'
 import AppButton from '@/components/ui/AppButton.vue'
@@ -124,6 +138,7 @@ import AppInput from '@/components/ui/AppInput.vue'
 import AppModal from '@/components/ui/AppModal.vue'
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
 
+const router = useRouter()
 const { success, error: showError } = useNotification()
 const gyms = ref([])
 const loading = ref(false)
