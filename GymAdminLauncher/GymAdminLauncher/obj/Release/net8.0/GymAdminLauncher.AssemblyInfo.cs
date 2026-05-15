@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Lanzador")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+76d150f8f3761cf55c1e941fc09d6450b8a49b07")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+4c1edb90949c4f6fb14cad97b835a07af9ce14e9")]
 [assembly: System.Reflection.AssemblyProductAttribute("Lanzador")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Lanzador")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
