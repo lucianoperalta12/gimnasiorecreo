@@ -5,10 +5,10 @@ Este documento centraliza la información técnica y funcional del proyecto **Gy
 ---
 
 ## 🎯 Objetivos del Proyecto
-1.  **Administración Centralizada**: Gestionar alumnos, profesores, ejercicios y rutinas en una única plataforma.
-2.  **Seguridad Robusta**: Implementar un flujo de autenticación profesional con rotación de tokens.
-3.  **Experiencia Premium**: Ofrecer una interfaz moderna, rápida y visualmente impactante (Red & Black Theme).
-4.  **Escalabilidad**: Mantener una arquitectura desacoplada que permita futuras expansiones (ej: Multi-tenant).
+1.  **Administración Multi-Tenant**: Gestionar múltiples gimnasios de forma aislada en una única plataforma.
+2.  **Seguridad y Aislamiento**: Implementar un flujo de autenticación profesional con rotación de tokens y estricta separación de datos por `GymId`.
+3.  **Experiencia Premium Personalizable**: Ofrecer una interfaz moderna (Glassmorphism) con branding dinámico (colores y logos) según el gimnasio.
+4.  **Escalabilidad**: Mantener una arquitectura Clean Architecture que permita el crecimiento de la red de gimnasios.
 
 ---
 
@@ -17,7 +17,8 @@ Este documento centraliza la información técnica y funcional del proyecto **Gy
 - **Framework**: Vue 3 (Composition API)
 - **Estado**: Pinia
 - **Routing**: Vue Router
-- **Estilos**: TailwindCSS (Custom Palette: Red #950606 & Black #000000)
+- **Estilos**: TailwindCSS (Branding dinámico via CSS Variables: `--gym-primary`)
+- **UI**: Glassmorphism, animaciones suaves y modo oscuro persistente.
 - **HTTP**: Axios (con interceptores para Refresh Token)
 
 ### Backend
@@ -44,16 +45,19 @@ El proyecto se divide en 4 proyectos (capas) dentro de la solución `.sln`:
 | Rol | Permisos |
 | :--- | :--- |
 | **Alumno** | Ver sus rutinas asignadas, editar su perfil. |
-| **Profesor** | Todo lo del Alumno + Crear/Editar Ejercicios y Rutinas, Asignar rutinas a alumnos. |
-| **Superusuario** | Todo lo del Profesor + Gestión de Usuarios (Cambio de roles, eliminación). |
+| **Profesor** | Todo lo del Alumno + Crear/Editar Ejercicios y Rutinas, Asignar rutinas a alumnos (dentro de su gimnasio). |
+| **Administrativo** | Gestión de Usuarios del gimnasio (Crear Alumnos/Profesores), ver estadísticas básicas. Hereda permisos de consulta de Profesor. |
+| **Superusuario** | Control total: Gestión de Gimnasios (CRUD, colores, logos), Gestión global de Usuarios y Roles de todo el sistema. |
 
 ---
 
 ## 📋 Reglas de Negocio Críticas
-- **Asignaciones**: Un alumno no puede tener la misma rutina asignada más de una vez simultáneamente (validado en `AssignmentService`).
-- **Autoría**: Solo el profesor que creó una rutina puede editarla o eliminarla (excepto el Superusuario).
-- **Ejercicios**: Los ejercicios son globales; cualquier profesor puede usarlos para sus rutinas.
-- **Auth**: Los Refresh Tokens tienen rotación; cada vez que se usa uno para obtener un nuevo Access Token, el Refresh Token viejo se invalida y se genera uno nuevo.
+- **Aislamiento**: Ningún usuario (excepto el Superusuario) puede ver o modificar datos de un gimnasio diferente al suyo.
+- **Asignaciones**: Un alumno no puede tener la misma rutina asignada más de una vez simultáneamente.
+- **Autoría**: Solo el profesor que creó una rutina puede editarla o eliminarla.
+- **Gimnasios**: El Superusuario es el único capaz de crear gimnasios y definir su branding (Logo y Color Hexadecimal).
+- **Auth**: Los Refresh Tokens tienen rotación; cada vez que se usa uno para obtener un nuevo Access Token, el Refresh Token viejo se invalida.
+- **Primer Login**: El DNI es la contraseña inicial, pero el sistema obliga a cambiarla en el primer acceso.
 
 ---
 
@@ -92,10 +96,10 @@ El proyecto se divide en 4 proyectos (capas) dentro de la solución `.sln`:
 
 ## 🚀 Futuras Mejoras
 - Implementar **Google OAuth** como alternativa de login.
-- Agregar **Multi-tenancy** para soportar varios gimnasios.
-- Integración con **Cloudinary** para subir fotos de ejercicios.
-- Generación de **PDFs** para las rutinas.
-- Gráficos de **progreso** para los alumnos.
+- Integración con **Cloudinary** para subir fotos de ejercicios reales.
+- Generación de **PDFs** automáticos con códigos QR para las rutinas.
+- Dashboard con **gráficos de evolución** física para alumnos.
+- Módulo de **Asistencia** (QR Check-in).
 
 ---
 
@@ -108,5 +112,5 @@ El proyecto se divide en 4 proyectos (capas) dentro de la solución `.sln`:
 
 ---
 
-**Última actualización**: 2026-05-07
-**Estado del Proyecto**: Base completa, Funcionalidades Core operativas.
+**Última actualización**: 2026-05-15
+**Estado del Proyecto**: Arquitectura Multi-tenant completa, Branding dinámico operativo.
