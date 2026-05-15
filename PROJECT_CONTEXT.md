@@ -44,10 +44,10 @@ El proyecto se divide en 4 proyectos (capas) dentro de la solución `.sln`:
 
 | Rol | Permisos |
 | :--- | :--- |
-| **Alumno** | Ver sus rutinas asignadas, editar su perfil. |
-| **Profesor** | Todo lo del Alumno + Crear/Editar Ejercicios y Rutinas, Asignar rutinas a alumnos (dentro de su gimnasio). |
-| **Administrativo** | Gestión de Usuarios del gimnasio (Crear Alumnos/Profesores), ver estadísticas básicas. Hereda permisos de consulta de Profesor. |
-| **Superusuario** | Control total: Gestión de Gimnasios (CRUD, colores, logos), Gestión global de Usuarios y Roles de todo el sistema. |
+| **Alumno** | Ver sus rutinas asignadas, editar su perfil, consultar su estado de acceso (`GET /api/memberships/me/access`). |
+| **Profesor** | Todo lo del Alumno + Crear/Editar Ejercicios y Rutinas, Asignar rutinas a alumnos (dentro de su gimnasio). Consulta de membresías y estado de acceso de alumnos (solo lectura). |
+| **Administrativo** | Gestión de Usuarios del gimnasio (Crear Alumnos/Profesores), Planes de membresía, Membresías, Pagos, ver estadísticas básicas. Hereda permisos de consulta de Profesor. |
+| **Superusuario** | Control total: Gestión de Gimnasios (CRUD, colores, logos), Gestión global de Usuarios, Roles, Planes, Membresías y Pagos de todo el sistema. |
 
 ---
 
@@ -58,6 +58,18 @@ El proyecto se divide en 4 proyectos (capas) dentro de la solución `.sln`:
 - **Gimnasios**: El Superusuario es el único capaz de crear gimnasios y definir su branding (Logo y Color Hexadecimal).
 - **Auth**: Los Refresh Tokens tienen rotación; cada vez que se usa uno para obtener un nuevo Access Token, el Refresh Token viejo se invalida.
 - **Primer Login**: El DNI es la contraseña inicial, pero el sistema obliga a cambiarla en el primer acceso.
+- **Membresías**: Un alumno solo puede tener **una membresía activa** a la vez. Las renovaciones **no sobrescriben** el historial: la membresía anterior pasa a `Vencida` y se crea un registro nuevo.
+- **Estado de acceso**: Se deriva de la membresía vigente (`Activo`, `Vencido`, `Moroso`, `Suspendido`, `Sin membresía`). **No** se persiste en la entidad `User`. `Moroso` = membresía activa con pagos en estado `Pendiente`.
+- **Vencimiento automático**: Al consultar o modificar membresías, las activas con `FechaVencimiento` pasada se marcan como `Vencida`.
+- **Planes**: Solo `Administrativo` y `Superusuario` gestionan planes. Un plan con membresías asociadas no se elimina; se desactiva (`Activo = false`).
+
+### API de Membresías (Fase 2)
+| Recurso | Ruta base | Roles |
+| :--- | :--- | :--- |
+| Planes | `GET/POST/PUT/DELETE /api/membershipplans` | Administrativo, Superusuario |
+| Membresías | `GET/POST /api/memberships`, `POST .../renew`, `POST .../cancel` | Lectura: Profesor+. Escritura: Administrativo+ |
+| Acceso alumno | `GET /api/memberships/me/access` | Alumno |
+| Pagos | `GET/POST/PUT/DELETE /api/payments` | Administrativo, Superusuario |
 
 ---
 
@@ -71,7 +83,8 @@ El proyecto se divide en 4 proyectos (capas) dentro de la solución `.sln`:
 
 ### Frontend
 - `src/api/`: Servicios de Axios espejo de los controladores del backend.
-- `src/stores/`: Stores de Pinia (auth, routine, user).
+  - Membresías: `membership-plans.api.js`, `memberships.api.js`, `payments.api.js`
+- `src/stores/`: Stores de Pinia (auth, routine, user, **membership**).
 - `src/views/`: Vistas de la aplicación organizadas por módulos.
 - `src/components/ui/`: Componentes atómicos (AppButton, AppInput, AppModal).
 
@@ -113,4 +126,4 @@ El proyecto se divide en 4 proyectos (capas) dentro de la solución `.sln`:
 ---
 
 **Última actualización**: 2026-05-15
-**Estado del Proyecto**: Arquitectura Multi-tenant completa, Branding dinámico operativo.
+**Estado del Proyecto**: Arquitectura Multi-tenant completa, Branding dinámico operativo, **módulo de membresías (backend Fase 1–2)**.

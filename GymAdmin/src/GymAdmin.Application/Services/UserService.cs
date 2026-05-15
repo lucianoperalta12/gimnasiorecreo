@@ -93,10 +93,39 @@ public class UserService : IUserService
     public async Task<UserDto> ChangeRoleAsync(int requesterId, int userId, ChangeRoleRequest request)
     {
         var requester = await GetRequester(requesterId);
-        if (requester.Rol != UserRole.Superusuario) throw new UnauthorizedAccessException("Solo superusuario.");
-        var user = await _context.Users.Include(u => u.Gym).FirstOrDefaultAsync(u => u.Id == userId) ?? throw new KeyNotFoundException("Usuario no encontrado.");
+        var user = await _context.Users.Include(u => u.Gym).FirstOrDefaultAsync(u => u.Id == userId) 
+            ?? throw new KeyNotFoundException("Usuario no encontrado.");
+
         if (!Enum.TryParse<UserRole>(request.Rol, true, out var newRole)) throw new ArgumentException("Rol inválido.");
+
+        if (requester.Rol == UserRole.Superusuario) { /* OK */ }
+        else if (requester.Rol == UserRole.Administrativo)
+        {
+            if (user.GymId != requester.GymId) throw new UnauthorizedAccessException("No autorizado para este gimnasio.");
+            if (newRole == UserRole.Superusuario || newRole == UserRole.Administrativo)
+                throw new UnauthorizedAccessException("No autorizado para asignar este rol.");
+            
+            if (user.Rol != UserRole.Alumno && user.Rol != UserRole.Profesor)
+                throw new UnauthorizedAccessException("No autorizado para cambiar el rol de este usuario.");
+        }
+        else throw new UnauthorizedAccessException("No autorizado.");
+
         user.Rol = newRole;
+
+        // Si el nuevo rol es Profesor, cancelamos cualquier membresía activa que pudiera tener
+        if (newRole == UserRole.Profesor)
+        {
+            var activeMemberships = await _context.Memberships
+                .Where(m => m.AlumnoId == userId && m.Estado == MembershipStatus.Activa)
+                .ToListAsync();
+            
+            foreach (var m in activeMemberships)
+            {
+                m.Estado = MembershipStatus.Vencida;
+                m.Notas = (string.IsNullOrWhiteSpace(m.Notas) ? "" : m.Notas + " | ") + "Cancelada automáticamente por cambio de rol a Profesor.";
+            }
+        }
+
         await _context.SaveChangesAsync();
         return (await GetUserByIdAsync(requesterId, user.Id))!;
     }
@@ -141,10 +170,33 @@ public class UserService : IUserService
     public async Task DeleteUserAsync(int requesterId, int userId)
     {
         var requester = await GetRequester(requesterId);
-        if (requester.Rol != UserRole.Superusuario) throw new UnauthorizedAccessException("Solo superusuario.");
         var user = await _context.Users.FindAsync(userId) ?? throw new KeyNotFoundException("Usuario no encontrado.");
-        _context.Users.Remove(user);
-        await _context.SaveChangesAsync();
+
+        if (userId == requesterId) throw new InvalidOperationException("No puedes eliminar tu propio usuario.");
+        if (user.Email == "admin" || user.Nombre.ToLower() == "admin") throw new InvalidOperationException("No se puede eliminar el administrador del sistema.");
+
+        if (requester.Rol == UserRole.Superusuario) { /* OK */ }
+        else if (requester.Rol == UserRole.Administrativo)
+        {
+            if (user.GymId != requester.GymId) throw new UnauthorizedAccessException("No autorizado para este gimnasio.");
+            if (user.Rol != UserRole.Alumno && user.Rol != UserRole.Profesor)
+                throw new UnauthorizedAccessException("No autorizado para eliminar este tipo de usuario.");
+        }
+        else throw new UnauthorizedAccessException("No autorizado.");
+
+        try 
+        {
+            _context.Users.Remove(user);
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            throw new InvalidOperationException("No se pudo eliminar el usuario porque tiene registros vinculados (pagos, rutinas, etc.). Pruebe desactivándolo en lugar de borrarlo.");
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"No se pudo eliminar el usuario: {ex.Message}");
+        }
     }
 
     private async Task<User> GetRequester(int requesterId) => await _context.Users.FindAsync(requesterId) ?? throw new UnauthorizedAccessException("Usuario inválido.");

@@ -63,34 +63,63 @@
           </div>
         </router-link>
 
+        <router-link
+          v-if="authStore.hasRole('Superusuario', 'Administrativo')"
+          to="/memberships"
+          class="group flex items-center p-4 rounded-2xl bg-dark-900/40 border border-dark-800/50 hover:bg-dark-800/60 hover:border-primary-500/30 transition-all duration-300"
+        >
+          <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center mr-4">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-white">Membresías</h3>
+            <p class="text-xs text-dark-500">Alumnos y pagos</p>
+          </div>
+        </router-link>
       </div>
     </div>
 
-   
-    <div v-if="authStore.hasRole('Alumno')" class="space-y-4">
-  <h2 class="text-lg font-semibold text-white">Tus Rutinas Activas</h2>
-  <LoadingSpinner v-if="loadingRoutines" />
-  <div v-else-if="myRoutines.length === 0" class="card text-center py-12">
-    <p class="text-dark-400">No tenes rutinas asignadas todavia.</p>
-    <p class="text-sm text-dark-500 mt-1">Tu profesor te asignara rutinas pronto.</p>
-  </div>
-  <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <router-link
-      v-for="routine in myRoutines"
-      :key="routine.id"
-      :to="`/routines/${routine.id}`"
-      class="card-hover group"
-    >
-      <div class="flex items-start justify-between">
-        <div>
-          <h3 class="font-semibold text-white group-hover:text-primary-300 transition-colors">{{ routine.nombre }}</h3>
-          <p class="text-sm text-dark-400 mt-1">{{ routine.descripcion || 'Sin descripcion' }}</p>
+    <div v-if="authStore.hasRole('Alumno')" class="space-y-8">
+      <router-link v-if="myAccess" to="/my-membership" class="card p-5 max-w-2xl block hover:border-primary-500/30 transition-colors">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <p class="text-xs uppercase tracking-widest text-dark-500 font-bold mb-2">Tu membresía</p>
+            <span :class="accessStatusBadgeClass(myAccess.estadoAcceso)" class="text-sm px-3 py-1">{{ myAccess.estadoAcceso }}</span>
+            <p v-if="myAccess.planNombre" class="text-sm text-dark-400 mt-3">{{ myAccess.planNombre }} · vence {{ formatDate(myAccess.fechaVencimiento) }}</p>
+          </div>
+          <div class="w-10 h-10 rounded-xl bg-primary-500/10 text-primary-400 flex items-center justify-center">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
+            </svg>
+          </div>
         </div>
-        <span class="badge-success">Activa</span>
+      </router-link>
+      <div v-if="myAccess?.estadoAcceso === 'Activo'">
+        <h2 class="text-lg font-semibold text-white mb-4">Tus rutinas activas</h2>
+        <LoadingSpinner v-if="loadingRoutines" />
+        <div v-else-if="myRoutines.length === 0" class="card text-center py-12">
+          <p class="text-dark-400">No tenés rutinas asignadas todavía.</p>
+        </div>
+        <div v-else class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <router-link v-for="routine in myRoutines" :key="routine.id" :to="`/routines/${routine.id}`" class="card-hover group">
+            <div class="flex items-start justify-between">
+              <div>
+                <h3 class="font-semibold text-white">{{ routine.nombre }}</h3>
+                <p class="text-sm text-dark-400 mt-1">{{ routine.descripcion || 'Sin descripción' }}</p>
+              </div>
+              <span class="badge-success">Activa</span>
+            </div>
+          </router-link>
+        </div>
       </div>
-    </router-link>
-  </div>
-  </div>
+      <div v-else-if="!loadingRoutines" class="card p-8 text-center border-amber-500/20 bg-amber-500/5">
+        <div class="text-3xl mb-3">⚠️</div>
+        <p class="text-white font-semibold">Por favor regular tu situación</p>
+        <p class="text-sm text-dark-400 mt-1">Para ver tus rutinas necesitas tener una membresía activa.</p>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -100,10 +129,14 @@ import { useAuthStore } from '@/stores/auth.store'
 import { useRoutineStore } from '@/stores/routine.store'
 import { useUserStore } from '@/stores/user.store'
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
+import { useMembershipStore } from '@/stores/membership.store'
+import { accessStatusBadgeClass, formatDate } from '@/constants/membershipStatus'
 
 const authStore = useAuthStore()
 const routineStore = useRoutineStore()
 const userStore = useUserStore()
+const membershipStore = useMembershipStore()
+const myAccess = computed(() => membershipStore.myAccess)
 
 const user = computed(() => authStore.user)
 const myRoutines = computed(() => routineStore.myRoutines)
@@ -126,7 +159,7 @@ const stats = ref([
 if (authStore.hasRole('Superusuario', 'Administrativo')) {
   stats.value.push(
     { icon: '👥', label: 'Alumnos', value: '-', bgColor: 'bg-primary-700/10 text-primary-400', path: '/users' },
-    { icon: '👨‍🏫', label: 'Profesores', value: '-', bgColor: 'bg-primary-800/10 text-primary-400', path: '/users' }
+    { icon: '🪪', label: 'Membresías activas', value: '-', bgColor: 'bg-amber-500/10 text-amber-400', path: '/memberships' }
   )
 }
 
@@ -145,10 +178,10 @@ function updateDashboardStats() {
   if (authStore.hasRole('Superusuario', 'Administrativo') && stats.value.length > 2) {
     if (userStore.users.length > 0) {
       stats.value[2].value = getActiveStudentsCount()
-      stats.value[3].value = getActiveProfessorsCount()
+      stats.value[3].value = membershipStore.memberships.length
     } else {
       stats.value[2].value = assignmentSummary.value.alumnosCount || 0
-      stats.value[3].value = assignmentSummary.value.profesoresCount || 0
+      stats.value[3].value = membershipStore.memberships.length || 0
     }
   }
 }
@@ -157,7 +190,7 @@ onMounted(async () => {
   if (authStore.hasRole('Alumno')) {
     loadingRoutines.value = true
     try {
-      await routineStore.fetchMyRoutines()
+      await Promise.all([routineStore.fetchMyRoutines(), membershipStore.fetchMyAccess()])
     } finally {
       loadingRoutines.value = false
     }
@@ -171,7 +204,7 @@ onMounted(async () => {
     ]
 
     if (authStore.hasRole('Superusuario', 'Administrativo')) {
-      requests.push(userStore.fetchUsers())
+      requests.push(userStore.fetchUsers(), membershipStore.fetchMemberships({ estado: 'Activa' }))
     }
 
     await Promise.allSettled(requests)

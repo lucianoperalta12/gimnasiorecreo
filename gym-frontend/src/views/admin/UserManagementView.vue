@@ -58,7 +58,7 @@
     <template v-else>
       <!-- Mobile Cards (visible < md) -->
       <div class="md:hidden space-y-3">
-        <div v-for="u in filteredUsers" :key="u.id" class="p-4 rounded-2xl bg-dark-900/40 border border-dark-800/50" :class="{ 'opacity-50': !u.activo }">
+        <div v-for="u in paginatedUsers" :key="u.id" class="p-4 rounded-2xl bg-dark-900/40 border border-dark-800/50" :class="{ 'opacity-50': !u.activo }">
           <div class="flex items-center justify-between mb-3">
             <div>
               <p class="font-semibold text-white text-sm">{{ fullName(u) }}</p>
@@ -124,7 +124,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="u in filteredUsers" :key="u.id" class="border-b border-dark-800 hover:bg-dark-800/40 transition-colors" :class="{ 'opacity-50': !u.activo }">
+            <tr v-for="u in paginatedUsers" :key="u.id" class="border-b border-dark-800 hover:bg-dark-800/40 transition-colors" :class="{ 'opacity-50': !u.activo }">
               <td class="px-3 py-3 font-medium text-white">
                 <div class="max-w-[160px] truncate">{{ fullName(u) }}</div>
                 <div class="lg:hidden text-[10px] text-dark-500 mt-0.5 max-w-[160px] truncate">{{ u.email }}</div>
@@ -179,6 +179,43 @@
           </tbody>
         </table>
       </div>
+
+      <!-- Pagination Controls -->
+      <div v-if="filteredUsers.length > pageSize" class="mt-6 flex items-center justify-between px-2">
+        <div class="text-xs text-dark-500 font-medium">
+          Mostrando {{ (currentPage - 1) * pageSize + 1 }} - {{ Math.min(currentPage * pageSize, filteredUsers.length) }} 
+          de {{ filteredUsers.length }} registros
+        </div>
+        <div class="flex items-center gap-2">
+          <button 
+            class="btn-secondary !p-2 !rounded-lg" 
+            :disabled="currentPage === 1"
+            @click="currentPage--"
+          >
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+          </button>
+          
+          <div class="flex items-center gap-1">
+            <button 
+              v-for="p in totalPages" 
+              :key="p"
+              @click="currentPage = p"
+              class="w-8 h-8 rounded-lg text-xs font-black transition-all"
+              :class="currentPage === p ? 'bg-primary-600 text-white' : 'bg-dark-800 text-dark-400 hover:bg-dark-700'"
+            >
+              {{ p }}
+            </button>
+          </div>
+
+          <button 
+            class="btn-secondary !p-2 !rounded-lg" 
+            :disabled="currentPage === totalPages"
+            @click="currentPage++"
+          >
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+          </button>
+        </div>
+      </div>
     </template>
 
     <!-- Create User Modal -->
@@ -187,7 +224,7 @@
         <AppInput v-model="createForm.nombre" label="Nombre" required />
         <AppInput v-model="createForm.apellido" label="Apellido" required />
         <AppInput v-model="createForm.email" label="Correo electrónico" type="email" required />
-        <AppInput v-model="createForm.dni" label="DNI" maxlength="8" required />
+        <AppInput v-model="createForm.dni" label="DNI" required />
         <div>
           <label class="label">Rol</label>
           <select v-model="createForm.rol" class="input">
@@ -274,13 +311,12 @@ const userToDelete = ref(null)
 const showDeleteModal = ref(false)
 const newPassword = ref('')
 const formError = ref('')
+const pageSize = ref(15)
+const currentPage = ref(1)
 const createForm = reactive({ nombre: '', apellido: '', email: '', dni: '', rol: 'Alumno', gymId: null })
 
-watch(() => createForm.dni, (val) => {
-  if (val) {
-    createForm.dni = val.replace(/\D/g, '').slice(0, 8)
-  }
-})
+// Removí el watcher que limpiaba el DNI para permitir texto alfanumérico (extranjeros, etc) como pidió el usuario.
+
 
 const allowedCreateRoles = computed(() =>
   authStore.hasRole('Superusuario') ? ['Administrativo', 'Profesor', 'Alumno'] : ['Profesor', 'Alumno']
@@ -301,6 +337,19 @@ const filteredUsers = computed(() => {
     
     return matchesSearch && matchesRole && matchesGym
   })
+})
+
+const totalPages = computed(() => Math.ceil(filteredUsers.value.length / pageSize.value))
+
+const paginatedUsers = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  return filteredUsers.value.slice(start, end)
+})
+
+// Reset to first page when filters change
+watch([search, roleFilter, gymFilter], () => {
+  currentPage.value = 1
 })
 
 function fullName(user) {
@@ -409,11 +458,11 @@ async function confirmDelete() {
     await userStore.deleteUser(userToDelete.value.id)
     success('Usuario eliminado correctamente')
     showDeleteModal.value = false
+    userToDelete.value = null
   } catch (err) {
     showError(err.response?.data?.error || 'No se pudo eliminar el usuario')
   } finally {
     deleting.value = false
-    userToDelete.value = null
   }
 }
 

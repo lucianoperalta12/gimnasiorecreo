@@ -29,9 +29,11 @@ public class ExerciseService : IExerciseService
     public async Task<ExerciseDto> CreateAsync(int requesterId, CreateExerciseRequest request)
     {
         var requester = await _context.Users.FindAsync(requesterId) ?? throw new UnauthorizedAccessException();
+        var gymId = (requester.Rol == UserRole.Superusuario && request.GymId.HasValue) ? request.GymId.Value : requester.GymId;
+        
         var exercise = new Domain.Entities.Exercise
         {
-            GymId = requester.GymId,
+            GymId = gymId,
             Nombre = request.Nombre.Trim(),
             Descripcion = request.Descripcion?.Trim(),
             GrupoMuscular = request.GrupoMuscular.Trim(),
@@ -39,7 +41,7 @@ public class ExerciseService : IExerciseService
         };
         _context.Exercises.Add(exercise);
         await _context.SaveChangesAsync();
-        return new ExerciseDto(exercise.Id, exercise.Nombre, exercise.Descripcion, exercise.GrupoMuscular, exercise.VideoUrl);
+        return new ExerciseDto(exercise.Id, exercise.Nombre, exercise.Descripcion, exercise.GrupoMuscular, exercise.VideoUrl, exercise.GymId);
     }
 
     public async Task<ExerciseDto> UpdateAsync(int requesterId, int id, UpdateExerciseRequest request)
@@ -47,12 +49,17 @@ public class ExerciseService : IExerciseService
         var requester = await _context.Users.FindAsync(requesterId) ?? throw new UnauthorizedAccessException();
         var exercise = await _context.Exercises.FindAsync(id) ?? throw new KeyNotFoundException("Ejercicio no encontrado.");
         if (requester.Rol != UserRole.Superusuario && exercise.GymId != requester.GymId) throw new UnauthorizedAccessException();
+        
         exercise.Nombre = request.Nombre.Trim();
         exercise.Descripcion = request.Descripcion?.Trim();
         exercise.GrupoMuscular = request.GrupoMuscular.Trim();
         exercise.VideoUrl = request.VideoUrl?.Trim();
+        
+        if (requester.Rol == UserRole.Superusuario && request.GymId.HasValue)
+            exercise.GymId = request.GymId.Value;
+
         await _context.SaveChangesAsync();
-        return new ExerciseDto(exercise.Id, exercise.Nombre, exercise.Descripcion, exercise.GrupoMuscular, exercise.VideoUrl);
+        return new ExerciseDto(exercise.Id, exercise.Nombre, exercise.Descripcion, exercise.GrupoMuscular, exercise.VideoUrl, exercise.GymId);
     }
 
     public async Task DeleteAsync(int requesterId, int id)

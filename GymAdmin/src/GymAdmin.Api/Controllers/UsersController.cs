@@ -36,11 +36,11 @@ public class UsersController : ControllerBase
     public async Task<ActionResult<UserDto>> Create([FromBody] CreateUserRequest request) => Ok(await _userService.CreateUserAsync(GetUserId(), request));
 
     [HttpPut("{id}/role")]
-    [Authorize(Roles = "Superusuario")]
+    [Authorize(Roles = "Superusuario,Administrativo")]
     public async Task<ActionResult<UserDto>> ChangeRole(int id, [FromBody] ChangeRoleRequest request) => Ok(await _userService.ChangeRoleAsync(GetUserId(), id, request));
 
     [HttpPut("{id}/password")]
-    [Authorize(Roles = "Superusuario")]
+    [Authorize(Roles = "Superusuario,Administrativo")]
     public async Task<IActionResult> ChangePassword(int id, [FromBody] ChangePasswordRequest request)
     {
         await _userService.ChangePasswordAsync(GetUserId(), id, request);
@@ -59,7 +59,7 @@ public class UsersController : ControllerBase
     public async Task<ActionResult<UserDto>> ToggleStatus(int id) => Ok(await _userService.ToggleStatusAsync(GetUserId(), id));
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Superusuario")]
+    [Authorize(Roles = "Superusuario,Administrativo")]
     public async Task<IActionResult> Delete(int id)
     {
         await _userService.DeleteUserAsync(GetUserId(), id);

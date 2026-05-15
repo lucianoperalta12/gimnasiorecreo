@@ -91,6 +91,154 @@ namespace GymAdmin.Infrastructure.Migrations
                     b.ToTable("Gyms", (string)null);
                 });
 
+            modelBuilder.Entity("GymAdmin.Domain.Entities.Membership", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AlumnoId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT")
+                        .HasDefaultValue("Activa");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<DateTime>("FechaInicio")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("FechaVencimiento")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("GymId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Notas")
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("PlanId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AlumnoId")
+                        .IsUnique()
+                        .HasFilter("\"Estado\" = 'Activa'");
+
+                    b.HasIndex("Estado");
+
+                    b.HasIndex("FechaVencimiento");
+
+                    b.HasIndex("PlanId");
+
+                    b.HasIndex("GymId", "AlumnoId");
+
+                    b.ToTable("Memberships", (string)null);
+                });
+
+            modelBuilder.Entity("GymAdmin.Domain.Entities.MembershipPayment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<DateTime>("FechaPago")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("GymId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MembresiaId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("MetodoPago")
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Monto")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Notas")
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Referencia")
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FechaPago");
+
+                    b.HasIndex("MembresiaId");
+
+                    b.HasIndex("GymId", "MembresiaId");
+
+                    b.ToTable("MembershipPayments", (string)null);
+                });
+
+            modelBuilder.Entity("GymAdmin.Domain.Entities.MembershipPlan", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("Activo")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(1000)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("DuracionDias")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+                    b.Property<int>("GymId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("Precio")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GymId", "Nombre");
+
+                    b.ToTable("MembershipPlans", (string)null);
+                });
+
             modelBuilder.Entity("GymAdmin.Domain.Entities.Routine", b =>
                 {
                     b.Property<int>("Id")
@@ -309,6 +457,63 @@ namespace GymAdmin.Infrastructure.Migrations
                     b.Navigation("Gym");
                 });
 
+            modelBuilder.Entity("GymAdmin.Domain.Entities.Membership", b =>
+                {
+                    b.HasOne("GymAdmin.Domain.Entities.User", "Alumno")
+                        .WithMany("Membresias")
+                        .HasForeignKey("AlumnoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("GymAdmin.Domain.Entities.Gym", "Gym")
+                        .WithMany("Memberships")
+                        .HasForeignKey("GymId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("GymAdmin.Domain.Entities.MembershipPlan", "Plan")
+                        .WithMany("Membresias")
+                        .HasForeignKey("PlanId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Alumno");
+
+                    b.Navigation("Gym");
+
+                    b.Navigation("Plan");
+                });
+
+            modelBuilder.Entity("GymAdmin.Domain.Entities.MembershipPayment", b =>
+                {
+                    b.HasOne("GymAdmin.Domain.Entities.Gym", "Gym")
+                        .WithMany("MembershipPayments")
+                        .HasForeignKey("GymId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("GymAdmin.Domain.Entities.Membership", "Membresia")
+                        .WithMany("Pagos")
+                        .HasForeignKey("MembresiaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Gym");
+
+                    b.Navigation("Membresia");
+                });
+
+            modelBuilder.Entity("GymAdmin.Domain.Entities.MembershipPlan", b =>
+                {
+                    b.HasOne("GymAdmin.Domain.Entities.Gym", "Gym")
+                        .WithMany("MembershipPlans")
+                        .HasForeignKey("GymId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Gym");
+                });
+
             modelBuilder.Entity("GymAdmin.Domain.Entities.Routine", b =>
                 {
                     b.HasOne("GymAdmin.Domain.Entities.Gym", "Gym")
@@ -320,7 +525,7 @@ namespace GymAdmin.Infrastructure.Migrations
                     b.HasOne("GymAdmin.Domain.Entities.User", "Profesor")
                         .WithMany("RutinasCreadas")
                         .HasForeignKey("ProfesorId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Gym");
@@ -394,11 +599,27 @@ namespace GymAdmin.Infrastructure.Migrations
                 {
                     b.Navigation("Exercises");
 
+                    b.Navigation("MembershipPayments");
+
+                    b.Navigation("MembershipPlans");
+
+                    b.Navigation("Memberships");
+
                     b.Navigation("Routines");
 
                     b.Navigation("StudentRoutines");
 
                     b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("GymAdmin.Domain.Entities.Membership", b =>
+                {
+                    b.Navigation("Pagos");
+                });
+
+            modelBuilder.Entity("GymAdmin.Domain.Entities.MembershipPlan", b =>
+                {
+                    b.Navigation("Membresias");
                 });
 
             modelBuilder.Entity("GymAdmin.Domain.Entities.Routine", b =>
@@ -410,6 +631,8 @@ namespace GymAdmin.Infrastructure.Migrations
 
             modelBuilder.Entity("GymAdmin.Domain.Entities.User", b =>
                 {
+                    b.Navigation("Membresias");
+
                     b.Navigation("RutinasAsignadas");
 
                     b.Navigation("RutinasCreadas");

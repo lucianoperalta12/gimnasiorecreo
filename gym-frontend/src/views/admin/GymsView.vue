@@ -42,7 +42,10 @@
             <div v-else class="w-10 h-10 rounded bg-dark-900 border border-dark-700 shrink-0" />
             <div class="flex-1 min-w-0">
               <p class="font-semibold text-white text-sm truncate">{{ gym.nombre }}</p>
-              <p class="text-[11px] text-dark-500 mt-0.5 truncate">{{ gym.duenoNombreApellido }}</p>
+              <div class="flex items-center gap-2 mt-0.5">
+                <p class="text-[11px] text-dark-500 truncate">{{ gym.duenoNombreApellido }}</p>
+                <span class="text-[9px] px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-400 font-bold">{{ gym.moneda }}</span>
+              </div>
             </div>
             <span :class="gym.activo ? 'badge-success' : 'badge-danger'" class="text-[10px] shrink-0">{{ gym.activo ? 'Activo' : 'Inactivo' }}</span>
           </div>
@@ -68,6 +71,7 @@
             <tr>
               <th class="px-4 py-3 text-xs font-semibold text-dark-400 uppercase tracking-wider">Gimnasio</th>
               <th class="px-4 py-3 text-xs font-semibold text-dark-400 uppercase tracking-wider">Dueño</th>
+              <th class="px-4 py-3 text-xs font-semibold text-dark-400 uppercase tracking-wider">Moneda</th>
               <th class="px-4 py-3 text-xs font-semibold text-dark-400 uppercase tracking-wider">Color</th>
               <th class="px-4 py-3 text-xs font-semibold text-dark-400 uppercase tracking-wider">Estado</th>
               <th class="px-4 py-3 text-xs font-semibold text-dark-400 uppercase tracking-wider text-right">Acciones</th>
@@ -83,6 +87,9 @@
                 </div>
               </td>
               <td class="px-4 py-3 text-dark-400">{{ gym.duenoNombreApellido }}</td>
+              <td class="px-4 py-3">
+                <span class="badge-primary !bg-blue-500/10 !text-blue-400 text-[10px]">{{ gym.moneda === 'ARS' ? 'Pesos (ARS)' : 'Dólares (USD)' }}</span>
+              </td>
               <td class="px-4 py-3">
                 <div class="flex items-center gap-2">
                   <span class="w-5 h-5 rounded border border-dark-700" :style="{ backgroundColor: gym.colorPrincipalHex }" />
@@ -118,6 +125,13 @@
             <input v-model="form.colorPrincipalHex" class="input" placeholder="#2563EB" required />
           </div>
         </div>
+        <div>
+          <label class="label">Moneda de cobro</label>
+          <select v-model="form.moneda" class="input" required>
+            <option value="ARS">Pesos (ARS)</option>
+            <option value="USD">Dólares (USD)</option>
+          </select>
+        </div>
         <p v-if="formError" class="sm:col-span-2 text-sm text-red-400">{{ formError }}</p>
         <div class="sm:col-span-2 flex justify-end gap-3">
           <button type="button" class="btn-secondary" @click="showModal = false">Cancelar</button>
@@ -146,7 +160,7 @@ const saving = ref(false)
 const showModal = ref(false)
 const editingGym = ref(null)
 const formError = ref('')
-const form = reactive({ nombre: '', duenoNombreApellido: '', logoUrl: '', colorPrincipalHex: '#2563EB' })
+const form = reactive({ nombre: '', duenoNombreApellido: '', logoUrl: '', colorPrincipalHex: '#2563EB', moneda: 'ARS' })
 
 async function load() {
   loading.value = true
@@ -165,6 +179,7 @@ function resetForm() {
   form.duenoNombreApellido = ''
   form.logoUrl = ''
   form.colorPrincipalHex = '#2563EB'
+  form.moneda = 'ARS'
   formError.value = ''
 }
 
@@ -180,6 +195,7 @@ function openEditModal(gym) {
   form.duenoNombreApellido = gym.duenoNombreApellido
   form.logoUrl = gym.logoUrl || ''
   form.colorPrincipalHex = gym.colorPrincipalHex
+  form.moneda = gym.moneda || 'ARS'
   formError.value = ''
   showModal.value = true
 }

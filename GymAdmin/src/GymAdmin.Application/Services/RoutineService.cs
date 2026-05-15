@@ -76,12 +76,14 @@ public class RoutineService : IRoutineService
         if (requester.Rol == UserRole.Alumno)
             throw new UnauthorizedAccessException("No autorizado.");
 
+        var gymId = (requester.Rol == UserRole.Superusuario && request.GymId.HasValue) ? request.GymId.Value : requester.GymId;
+
         ValidateRequest(request);
-        await ValidateExercisesBelongToGymAsync(request.Ejercicios, requester.GymId);
+        await ValidateExercisesBelongToGymAsync(request.Ejercicios, gymId);
 
         var routine = new Routine
         {
-            GymId = requester.GymId,
+            GymId = gymId,
             Nombre = request.Nombre.Trim(),
             Descripcion = request.Descripcion?.Trim(),
             ProfesorId = requester.Id,
@@ -109,14 +111,17 @@ public class RoutineService : IRoutineService
         if (requester.Rol != UserRole.Superusuario && routine.GymId != requester.GymId)
             throw new UnauthorizedAccessException("No autorizado.");
 
+        var targetGymId = (requester.Rol == UserRole.Superusuario && request.GymId.HasValue) ? request.GymId.Value : routine.GymId;
+
         ValidateRequest(request);
-        await ValidateExercisesBelongToGymAsync(request.Ejercicios, routine.GymId);
+        await ValidateExercisesBelongToGymAsync(request.Ejercicios, targetGymId);
 
         routine.Nombre = request.Nombre.Trim();
         routine.Descripcion = request.Descripcion?.Trim();
         routine.Activa = request.Activa;
         routine.IsByDays = request.IsByDays;
         routine.DaysCount = request.IsByDays ? request.DaysCount : 1;
+        routine.GymId = targetGymId;
 
         _context.RoutineExercises.RemoveRange(routine.Ejercicios);
         routine.Ejercicios = BuildRoutineExercises(request, routine.Id);
@@ -226,7 +231,8 @@ public class RoutineService : IRoutineService
             re.Orden,
             re.Observaciones,
             re.DayNumber
-        )).ToList()
+        )).ToList(),
+        routine.GymId
     );
 
     private static void ValidateExerciseSections(IEnumerable<CreateRoutineExerciseRequest> ejercicios)

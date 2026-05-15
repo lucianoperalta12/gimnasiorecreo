@@ -43,6 +43,15 @@
               <label class="label">Descripción</label>
               <textarea v-model="form.descripcion" rows="4" class="input text-sm" placeholder="Objetivos de la rutina..." />
             </div>
+
+            <!-- Gym Selection for Superuser -->
+            <div v-if="authStore.hasRole('Superusuario')">
+              <label class="label">Gimnasio</label>
+              <select v-model="form.gymId" class="input text-sm font-bold" @change="onGymChange">
+                <option :value="0" disabled>Seleccionar gimnasio...</option>
+                <option v-for="gym in gyms" :key="gym.id" :value="gym.id">{{ gym.nombre }}</option>
+              </select>
+            </div>
             
             
 
@@ -194,6 +203,9 @@ import AppInput from '@/components/ui/AppInput.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
 import { ROUTINE_SECTIONS } from '@/constants/routineSections'
+import { useAuthStore } from '@/stores/auth.store'
+
+const authStore = useAuthStore()
 
 const route = useRoute()
 const router = useRouter()
@@ -203,7 +215,14 @@ const { success, error: showError } = useNotification()
 const isEditing = computed(() => !!route.params.id)
 const loading = ref(false)
 const saving = ref(false)
-const exercises = computed(() => store.exercises)
+const gyms = ref([])
+
+const exercises = computed(() => {
+  if (!authStore.hasRole('Superusuario')) return store.exercises
+  if (!form.gymId) return []
+  return store.exercises.filter(e => e.gymId === form.gymId)
+})
+
 const routineSections = ROUTINE_SECTIONS
 
 const form = reactive({
@@ -212,7 +231,8 @@ const form = reactive({
   activa: true,
   isByDays: false,
   daysCount: 1,
-  ejercicios: []
+  ejercicios: [],
+  gymId: 0
 })
 
 const currentDay = ref(1)
@@ -221,6 +241,11 @@ function onDaysCountChange() {
   if (form.daysCount < 1) form.daysCount = 1
   if (form.daysCount > 5) form.daysCount = 5
   if (currentDay.value > form.daysCount) currentDay.value = form.daysCount
+}
+
+function onGymChange() {
+  // Clear exercises if gym changes because they might not belong to the new gym
+  form.ejercicios = []
 }
 
 // Helper to get exercises for a specific section with tracking for original index
@@ -283,6 +308,19 @@ onMounted(async () => {
   loading.value = true
   try {
     await store.fetchExercises()
+    
+    if (authStore.hasRole('Superusuario')) {
+      try {
+        const { gymsApi } = await import('@/api/gyms.api')
+        const { data } = await gymsApi.getAll()
+        gyms.value = data
+      } catch (err) {
+        console.error('Error fetching gyms:', err)
+      }
+    } else {
+      form.gymId = authStore.user?.gymId || 0
+    }
+
     if (isEditing.value) {
       const routine = await store.fetchRoutine(route.params.id)
       if (routine) {
@@ -291,6 +329,7 @@ onMounted(async () => {
         form.activa = routine.activa
         form.isByDays = routine.isByDays || false
         form.daysCount = routine.daysCount || 1
+        form.gymId = routine.gymId || 0
         form.ejercicios = routine.ejercicios.map((ejercicio) => ({
           ejercicioId: ejercicio.ejercicioId,
           bloque: ejercicio.bloque || 'parteMedia',

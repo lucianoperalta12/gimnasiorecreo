@@ -23,4 +23,5 @@ public class User
     public Gym Gym { get; set; } = null!;
     public ICollection<Routine> RutinasCreadas { get; set; } = new List<Routine>();
     public ICollection<StudentRoutine> RutinasAsignadas { get; set; } = new List<StudentRoutine>();
+    public ICollection<Membership> Membresias { get; set; } = new List<Membership>();
 }

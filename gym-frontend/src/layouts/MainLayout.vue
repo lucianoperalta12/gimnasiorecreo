@@ -2,23 +2,23 @@
   <div class="min-h-screen flex">
     <!-- Sidebar -->
     <aside
-      class="fixed inset-y-0 left-0 z-50 w-72 bg-[#080808] border-r border-dark-900 transform transition-transform duration-300 lg:translate-x-0 shadow-2xl"
+      class="fixed inset-y-0 left-0 z-50 w-72 bg-[#080808] border-r border-dark-900 transform transition-transform duration-300 lg:translate-x-0 shadow-2xl flex flex-col"
       :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
     >
       <!-- Logo Container (Oculto en móvil) -->
-      <div class="hidden lg:flex py-2 flex-col items-center justify-center bg-black">
+      <div class="flex-none hidden lg:flex py-2 flex-col items-center justify-center bg-black">
         <div class="relative w-50 h-24 flex items-center justify-center overflow-hidden cursor-pointer" @click="router.push('/')">
           <img :src="logoUrl" alt="Logo" class="max-w-full max-h-full object-contain" />
         </div>
       </div>
 
       <!-- Navigation -->
-      <nav class="p-1 space-y-2">
+      <nav class="flex-1 overflow-y-auto p-1 space-y-1 custom-scrollbar">
         <router-link
           v-for="item in navItems"
           :key="item.to"
           :to="item.to"
-          class="flex items-center gap-4 px-5 py-4 rounded-xl text-[16px] font-semibold transition-all duration-300 group"
+          class="flex items-center gap-4 px-5 py-3.5 rounded-xl text-[15px] font-semibold transition-all duration-300 group"
           :class="$route.path === item.to || $route.path.startsWith(item.to + '/')
             ? 'bg-primary-600/10 text-primary-600'
             : 'text-dark-400 hover:text-dark-200 hover:bg-dark-900/50'"
@@ -30,7 +30,7 @@
       </nav>
 
       <!-- User info at bottom -->
-      <div class="absolute bottom-0 left-0 right-0 p-6 border-t border-dark-900 bg-black/40 backdrop-blur-md">
+      <div class="flex-none p-6 border-t border-dark-900 bg-black/40 backdrop-blur-md">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">
             <div class="relative">
@@ -86,7 +86,7 @@
         <!-- Notifications -->
         <div class="ml-auto">
           <Teleport to="body">
-            <div class="fixed top-4 right-4 z-50 space-y-2">
+            <div class="fixed top-4 right-4 z-[100] space-y-2">
               <TransitionGroup name="notification">
                 <div
                   v-for="n in notifications"
@@ -177,14 +177,27 @@ const IconUsers = (_, { attrs }) => h('svg', { ...attrs, fill: 'none', viewBox: 
   h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z' })
 ])
 const IconGym = IconDumbbell
+const IconMembership = (_, { attrs }) => h('svg', { ...attrs, fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', 'stroke-width': '2' }, [
+  h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z' })
+])
+const IconPlan = (_, { attrs }) => h('svg', { ...attrs, fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', 'stroke-width': '2' }, [
+  h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M9 12h3.75M9 15h3.75M9 18h3.75m.75-12h3.75M9 9h3.75M4.5 12H6m-1.5 3H6m-1.5 3H6m-1.5-9H6m-1.5-3H6m3-3h10.5a2.25 2.25 0 012.25 2.25v13.5a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V5.25A2.25 2.25 0 016 3h3z' })
+])
+const IconPayment = (_, { attrs }) => h('svg', { ...attrs, fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', 'stroke-width': '2' }, [
+  h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75m0 1.5v.75m0 1.5v.75m0 1.5V15m1.5 1.5h15m-15-1.5v-1.5m0-1.5v-1.5m0-1.5v-.75m0-1.5v-.75m0-1.5V4.5m15 0v1.5m0 1.5v.75m0 1.5v.75m0 1.5V15m0 1.5h-15m15-1.5v-1.5m0-1.5v-1.5m0-1.5v-.75m0-1.5v-.75m0-1.5V4.5m-13.5 0h12m-12 0v1.5m0 1.5v.75m0 1.5v.75m0 1.5v1.5m12-1.5V4.5m0 1.5v.75m0 1.5v.75m0 1.5v1.5m-6 4.5a3 3 0 110-6 3 3 0 010 6z' })
+])
 
 const allNavItems = [
   { to: '/', label: 'Panel Principal', icon: IconDashboard, roles: null },
+  { to: '/memberships', label: 'Membresías', icon: IconMembership, roles: ['Superusuario', 'Administrativo'] },
+  { to: '/membership-plans', label: 'Planes', icon: IconPlan, roles: ['Superusuario', 'Administrativo'] },
+  { to: '/payments', label: 'Pagos', icon: IconPayment, roles: ['Superusuario', 'Administrativo'] },
   { to: '/exercises', label: 'Ejercicios', icon: IconDumbbell, roles: ['Profesor', 'Superusuario', 'Administrativo'] },
   { to: '/routines', label: 'Rutinas', icon: IconClipboard, roles: ['Profesor', 'Superusuario', 'Administrativo'] },
   { to: '/assignments', label: 'Asignaciones', icon: IconLink, roles: ['Profesor', 'Superusuario', 'Administrativo'] },
-  { to: '/users', label: 'Usuarios', icon: IconUsers, roles: ['Superusuario', 'Administrativo'] },
   { to: '/gyms', label: 'Gimnasios', icon: IconGym, roles: ['Superusuario'] },
+  { to: '/my-membership', label: 'Mi Membresía', icon: IconMembership, roles: ['Alumno'] },
+  { to: '/users', label: 'Usuarios', icon: IconUsers, roles: ['Superusuario', 'Administrativo'] },
 ]
 
 const navItems = computed(() =>

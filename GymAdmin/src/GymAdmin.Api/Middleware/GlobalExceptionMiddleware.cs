@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 
 namespace GymAdmin.Api.Middleware;
 
@@ -34,6 +35,8 @@ public class GlobalExceptionMiddleware
             KeyNotFoundException => (HttpStatusCode.NotFound, exception.Message),
             ArgumentException => (HttpStatusCode.BadRequest, exception.Message),
             InvalidOperationException => (HttpStatusCode.Conflict, exception.Message),
+            DbUpdateException dbEx when dbEx.InnerException?.Message.Contains("FOREIGN KEY") == true || dbEx.Message.Contains("FOREIGN KEY") => 
+                (HttpStatusCode.Conflict, "No se puede eliminar el registro porque tiene otros datos asociados (ej: membresías, rutinas o pagos)."),
             _ => (HttpStatusCode.InternalServerError, "Ocurrió un error interno en el servidor.")
         };
 

@@ -75,6 +75,30 @@ const routes = [
         name: 'Gimnasios',
         component: () => import('@/views/admin/GymsView.vue'),
         meta: { roles: ['Superusuario'] }
+      },
+      {
+        path: 'membership-plans',
+        name: 'Planes',
+        component: () => import('@/views/admin/MembershipPlansView.vue'),
+        meta: { roles: ['Superusuario', 'Administrativo'] }
+      },
+      {
+        path: 'memberships',
+        name: 'Membresías',
+        component: () => import('@/views/admin/MembershipsView.vue'),
+        meta: { roles: ['Superusuario', 'Administrativo'] }
+      },
+      {
+        path: 'payments',
+        name: 'Pagos',
+        component: () => import('@/views/admin/PaymentsView.vue'),
+        meta: { roles: ['Superusuario', 'Administrativo'] }
+      },
+      {
+        path: 'my-membership',
+        name: 'Mi Membresía',
+        component: () => import('@/views/students/MyMembershipView.vue'),
+        meta: { roles: ['Alumno'] }
       }
     ]
   },

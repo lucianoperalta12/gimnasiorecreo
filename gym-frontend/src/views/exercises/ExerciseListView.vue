@@ -28,9 +28,23 @@
     <LoadingSpinner v-if="store.loading" />
 
     <template v-else>
-      <!-- Filter -->
-      <div class="mb-4">
-        <input v-model="search" type="text" placeholder="Buscar ejercicio..." class="input max-w-sm" />
+      <!-- Filters -->
+      <div class="flex flex-col sm:flex-row gap-4 mb-6">
+        <div class="relative flex-1 max-w-sm">
+          <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-dark-500">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+          </span>
+          <input v-model="search" type="text" placeholder="Buscar ejercicio..." class="input pl-10" />
+        </div>
+        
+        <select 
+          v-if="authStore.hasRole('Superusuario')" 
+          v-model="gymFilter" 
+          class="input w-full sm:w-auto sm:min-w-[200px]"
+        >
+          <option :value="0">Todos los gimnasios</option>
+          <option v-for="gym in gyms" :key="gym.id" :value="gym.id">{{ gym.nombre }}</option>
+        </select>
       </div>
 
       <!-- Responsive List -->
@@ -105,6 +119,15 @@
           <textarea v-model="form.descripcion" rows="3" class="input" placeholder="Descripción del ejercicio..." />
         </div>
         <AppInput v-model="form.videoUrl" label="URL del Video (opcional)" placeholder="https://..." />
+
+        <!-- Gym Selection for Superuser -->
+        <div v-if="authStore.hasRole('Superusuario')">
+          <label class="label">Gimnasio</label>
+          <select v-model="form.gymId" class="input">
+            <option :value="0" disabled>Seleccionar gimnasio...</option>
+            <option v-for="gym in gyms" :key="gym.id" :value="gym.id">{{ gym.nombre }}</option>
+          </select>
+        </div>
       </form>
       <template #footer>
         <AppButton variant="secondary" @click="showModal = false">Cancelar</AppButton>
@@ -141,30 +164,60 @@ const authStore = useAuthStore()
 const { success, error: showError } = useNotification()
 
 const search = ref('')
+const gymFilter = ref(0)
+const gyms = ref([])
 const showModal = ref(false)
 const showDeleteModal = ref(false)
 const saving = ref(false)
 const editingExercise = ref(null)
 const deletingExercise = ref(null)
 
-const form = reactive({ nombre: '', descripcion: '', grupoMuscular: '', videoUrl: '' })
+const form = reactive({ 
+  nombre: '', 
+  descripcion: '', 
+  grupoMuscular: '', 
+  videoUrl: '',
+  gymId: 0
+})
 
 const filteredExercises = computed(() => {
+  let result = store.exercises
+  
+  if (authStore.hasRole('Superusuario') && gymFilter.value !== 0) {
+    result = result.filter(e => e.gymId === gymFilter.value)
+  }
+
   const q = search.value.toLowerCase()
-  return store.exercises.filter(e =>
-    e.nombre.toLowerCase().includes(q) || e.grupoMuscular.toLowerCase().includes(q)
-  )
+  if (q) {
+    result = result.filter(e =>
+      e.nombre.toLowerCase().includes(q) || e.grupoMuscular.toLowerCase().includes(q)
+    )
+  }
+  
+  return result
 })
 
 function openCreateModal() {
   editingExercise.value = null
-  Object.assign(form, { nombre: '', descripcion: '', grupoMuscular: '', videoUrl: '' })
+  Object.assign(form, { 
+    nombre: '', 
+    descripcion: '', 
+    grupoMuscular: '', 
+    videoUrl: '',
+    gymId: authStore.user?.gymId || 0
+  })
   showModal.value = true
 }
 
 function openEditModal(exercise) {
   editingExercise.value = exercise
-  Object.assign(form, { nombre: exercise.nombre, descripcion: exercise.descripcion || '', grupoMuscular: exercise.grupoMuscular, videoUrl: exercise.videoUrl || '' })
+  Object.assign(form, { 
+    nombre: exercise.nombre, 
+    descripcion: exercise.descripcion || '', 
+    grupoMuscular: exercise.grupoMuscular, 
+    videoUrl: exercise.videoUrl || '',
+    gymId: exercise.gymId
+  })
   showModal.value = true
 }
 
@@ -204,5 +257,16 @@ async function handleDelete() {
   }
 }
 
-onMounted(() => store.fetchExercises())
+onMounted(async () => {
+  store.fetchExercises()
+  if (authStore.hasRole('Superusuario')) {
+    try {
+      const { gymsApi } = await import('@/api/gyms.api')
+      const { data } = await gymsApi.getAll()
+      gyms.value = data
+    } catch (err) {
+      console.error('Error fetching gyms:', err)
+    }
+  }
+})
 </script>

@@ -32,6 +32,9 @@ builder.Services.AddScoped<IRoutineService, RoutineService>();
 builder.Services.AddScoped<IAssignmentService, AssignmentService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IGymService, GymService>();
+builder.Services.AddScoped<IMembershipPlanService, MembershipPlanService>();
+builder.Services.AddScoped<IMembershipService, MembershipService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 builder.Services.AddHostedService<StartupNotificationService>();
 

@@ -27,16 +27,25 @@
       </div>
     </div>
 
+    <div v-if="authStore.hasRole('Superusuario')" class="mb-6 flex justify-end">
+      <select 
+        v-model="gymFilter" 
+        class="input w-full sm:w-auto sm:min-w-[200px]"
+      >
+        <option :value="0">Todos los gimnasios</option>
+        <option v-for="gym in gyms" :key="gym.id" :value="gym.id">{{ gym.nombre }}</option>
+      </select>
+    </div>
+
     <LoadingSpinner v-if="store.loading" />
 
     <template v-else>
-      <div v-if="store.routines.length === 0" class="card text-center py-12">
-        <p class="text-dark-400">No hay rutinas creadas</p>
-        <router-link to="/routines/new" class="text-primary-600 text-sm hover:underline mt-2 inline-block">Crear la primera rutina</router-link>
+      <div v-if="filteredRoutines.length === 0" class="card text-center py-12">
+        <p class="text-dark-400">No hay rutinas que coincidan</p>
       </div>
 
       <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div v-for="routine in store.routines" :key="routine.id" class="card-hover group">
+        <div v-for="routine in filteredRoutines" :key="routine.id" class="card-hover group">
           <div class="flex items-start justify-between mb-3">
             <h3 class="font-semibold text-white group-hover:text-primary-300 transition-colors">{{ routine.nombre }}</h3>
             <span :class="routine.activa ? 'badge-success' : 'badge-danger'">
@@ -76,7 +85,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useRoutineStore } from '@/stores/routine.store'
 import { useAuthStore } from '@/stores/auth.store'
@@ -90,9 +99,18 @@ const store = useRoutineStore()
 const authStore = useAuthStore()
 const { success, error: showError } = useNotification()
 
+const gymFilter = ref(0)
+const gyms = ref([])
 const showDeleteModal = ref(false)
 const deletingRoutine = ref(null)
 const deleting = ref(false)
+
+const filteredRoutines = computed(() => {
+  if (!authStore.hasRole('Superusuario') || gymFilter.value === 0) {
+    return store.routines
+  }
+  return store.routines.filter(r => r.gymId === gymFilter.value)
+})
 
 function confirmDelete(routine) {
   deletingRoutine.value = routine
@@ -112,5 +130,16 @@ async function handleDelete() {
   }
 }
 
-onMounted(() => store.fetchRoutines())
+onMounted(async () => {
+  store.fetchRoutines()
+  if (authStore.hasRole('Superusuario')) {
+    try {
+      const { gymsApi } = await import('@/api/gyms.api')
+      const { data } = await gymsApi.getAll()
+      gyms.value = data
+    } catch (err) {
+      console.error('Error fetching gyms:', err)
+    }
+  }
+})
 </script>

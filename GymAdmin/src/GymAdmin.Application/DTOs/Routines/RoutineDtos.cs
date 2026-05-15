@@ -11,7 +11,8 @@ public record RoutineDto(
     bool Activa,
     bool IsByDays,
     int DaysCount,
-    List<RoutineExerciseDto> Ejercicios
+    List<RoutineExerciseDto> Ejercicios,
+    int GymId = 0
 );
 
 public record RoutineListDto(
@@ -47,7 +48,8 @@ public record CreateRoutineRequest(
     string? Descripcion,
     bool IsByDays,
     int DaysCount,
-    List<CreateRoutineExerciseRequest> Ejercicios
+    List<CreateRoutineExerciseRequest> Ejercicios,
+    int? GymId = null
 );
 
 public record CreateRoutineExerciseRequest(
@@ -68,5 +70,6 @@ public record UpdateRoutineRequest(
     bool Activa,
     bool IsByDays,
     int DaysCount,
-    List<CreateRoutineExerciseRequest> Ejercicios
+    List<CreateRoutineExerciseRequest> Ejercicios,
+    int? GymId = null
 );

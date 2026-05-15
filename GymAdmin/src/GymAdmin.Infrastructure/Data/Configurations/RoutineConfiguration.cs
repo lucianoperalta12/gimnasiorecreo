@@ -28,7 +28,7 @@ public class RoutineConfiguration : IEntityTypeConfiguration<Routine>
         builder.HasOne(r => r.Profesor)
             .WithMany(u => u.RutinasCreadas)
             .HasForeignKey(r => r.ProfesorId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(r => r.Gym)
             .WithMany(g => g.Routines)

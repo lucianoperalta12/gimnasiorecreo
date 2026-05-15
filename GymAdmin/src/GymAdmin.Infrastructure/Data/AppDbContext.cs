@@ -13,6 +13,9 @@ public class AppDbContext : DbContext
     public DbSet<Routine> Routines => Set<Routine>();
     public DbSet<RoutineExercise> RoutineExercises => Set<RoutineExercise>();
     public DbSet<StudentRoutine> StudentRoutines => Set<StudentRoutine>();
+    public DbSet<MembershipPlan> MembershipPlans => Set<MembershipPlan>();
+    public DbSet<Membership> Memberships => Set<Membership>();
+    public DbSet<MembershipPayment> MembershipPayments => Set<MembershipPayment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
