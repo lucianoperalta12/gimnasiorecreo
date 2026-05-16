@@ -1,0 +1,1 @@
+import{E as g}from"./index-BBqtjkph.js";const e={getAll:()=>g.get("/gyms"),create:t=>g.post("/gyms",t),update:(t,s)=>g.put(`/gyms/${t}`,s),toggleStatus:t=>g.patch(`/gyms/${t}/toggle-status`)};export{e as g};
