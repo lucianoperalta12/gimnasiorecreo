@@ -15,7 +15,6 @@ builder.WebHost.UseUrls("http://0.0.0.0:8080");
 
 // ===== Database =====
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     if (connectionString?.Contains("Data Source=") == true)
