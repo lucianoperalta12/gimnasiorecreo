@@ -11,7 +11,7 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 
 // ===== HOST =====
-builder.WebHost.UseUrls("http://0.0.0.0:5000");
+builder.WebHost.UseUrls("http://0.0.0.0:8080");
 
 // ===== Database =====
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -88,6 +88,14 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// ===== Auto Migrations =====
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    db.Database.Migrate();
+}
+
 // ===== Middleware Pipeline =====
 if (app.Environment.IsDevelopment())
 {
@@ -110,7 +118,6 @@ app.MapControllers();
 app.MapFallbackToFile("index.html");
 
 // ===== Seed Database =====
-// Se corre en segundo plano para que el servidor inicie inmediatamente
-_ = Task.Run(() => DbSeeder.SeedAsync(app.Services));
+await DbSeeder.SeedAsync(app.Services);
 
 app.Run();
