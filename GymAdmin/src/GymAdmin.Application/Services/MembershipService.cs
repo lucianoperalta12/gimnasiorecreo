@@ -249,7 +249,9 @@ public class MembershipService : IMembershipService
                 m.FechaVencimiento,
                 m.Estado.ToString(),
                 AccessStatusHelper.ToDisplayString(access),
-                AccessStatusHelper.DiasRestantes(m)
+                AccessStatusHelper.DiasRestantes(m),
+                m.Plan.PaseLibre,
+                m.Plan.DiasPorSemana
             ));
         }
         return result;

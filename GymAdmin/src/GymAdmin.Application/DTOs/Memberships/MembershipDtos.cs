@@ -32,7 +32,9 @@ public record MembershipListDto(
     DateTime FechaVencimiento,
     string Estado,
     string EstadoAcceso,
-    int DiasRestantes
+    int DiasRestantes,
+    bool PaseLibre = true,
+    int? DiasPorSemana = null
 );
 
 public record CreateMembershipRequest(

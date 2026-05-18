@@ -57,7 +57,12 @@
           <div class="space-y-1.5">
             <div class="flex items-center justify-between text-xs">
               <span class="text-dark-400">Plan:</span>
-              <span class="text-primary-400 font-bold">{{ m.planNombre }}</span>
+              <div class="text-right">
+                <span class="text-primary-400 font-bold block">{{ m.planNombre }}</span>
+                <span class="text-[10px] text-dark-400 font-medium block">
+                  {{ m.paseLibre ? 'Pase Libre' : `${m.diasPorSemana} días/sem` }}
+                </span>
+              </div>
             </div>
             <div class="flex items-center justify-between text-xs">
               <span class="text-dark-400">Vencimiento:</span>
@@ -103,7 +108,14 @@
           <tbody>
             <tr v-for="m in paginatedMemberships" :key="m.id">
               <td class="font-medium text-white">{{ m.alumnoNombreCompleto }}</td>
-              <td>{{ m.planNombre }}</td>
+              <td>
+                <div class="flex flex-col">
+                  <span>{{ m.planNombre }}</span>
+                  <span class="text-[10px] text-dark-400 font-medium">
+                    {{ m.paseLibre ? 'Pase Libre' : `${m.diasPorSemana} días/sem` }}
+                  </span>
+                </div>
+              </td>
               <td>{{ formatDate(m.fechaInicio) }}</td>
               <td>{{ formatDate(m.fechaVencimiento) }}</td>
               <td><span :class="membershipEstadoBadgeClass(m.estado)">{{ m.estado }}</span></td>
