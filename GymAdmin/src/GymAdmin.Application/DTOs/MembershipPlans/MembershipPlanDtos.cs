@@ -8,6 +8,8 @@ public record MembershipPlanDto(
     string? Descripcion,
     int DuracionDias,
     decimal Precio,
+    bool PaseLibre,
+    int? DiasPorSemana,
     bool Activo,
     DateTime FechaCreacion,
     string? Moneda = null
@@ -18,6 +20,8 @@ public record CreateMembershipPlanRequest(
     string? Descripcion,
     int DuracionDias,
     decimal Precio,
+    bool PaseLibre = true,
+    int? DiasPorSemana = null,
     bool Activo = true,
     int? GymId = null
 );
@@ -27,5 +31,7 @@ public record UpdateMembershipPlanRequest(
     string? Descripcion,
     int DuracionDias,
     decimal Precio,
+    bool PaseLibre,
+    int? DiasPorSemana,
     bool Activo
 );

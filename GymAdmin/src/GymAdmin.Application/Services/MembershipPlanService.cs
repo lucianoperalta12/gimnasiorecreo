@@ -53,6 +53,9 @@ public class MembershipPlanService : IMembershipPlanService
         if (!await _context.Gyms.AnyAsync(g => g.Id == gymId && g.Activo))
             throw new KeyNotFoundException("Gimnasio no encontrado.");
 
+        if (!request.PaseLibre && (request.DiasPorSemana == null || request.DiasPorSemana < 1 || request.DiasPorSemana > 5))
+            throw new ArgumentException("Si no es pase libre, los días por semana deben estar entre 1 y 5.");
+
         var plan = new MembershipPlan
         {
             GymId = gymId,
@@ -60,6 +63,8 @@ public class MembershipPlanService : IMembershipPlanService
             Descripcion = request.Descripcion?.Trim(),
             DuracionDias = request.DuracionDias,
             Precio = request.Precio,
+            PaseLibre = request.PaseLibre,
+            DiasPorSemana = request.PaseLibre ? null : request.DiasPorSemana,
             Activo = request.Activo
         };
 
@@ -82,10 +87,15 @@ public class MembershipPlanService : IMembershipPlanService
 
         EnsureSameGym(requester, plan.GymId);
 
+        if (!request.PaseLibre && (request.DiasPorSemana == null || request.DiasPorSemana < 1 || request.DiasPorSemana > 5))
+            throw new ArgumentException("Si no es pase libre, los días por semana deben estar entre 1 y 5.");
+
         plan.Nombre = request.Nombre.Trim();
         plan.Descripcion = request.Descripcion?.Trim();
         plan.DuracionDias = request.DuracionDias;
         plan.Precio = request.Precio;
+        plan.PaseLibre = request.PaseLibre;
+        plan.DiasPorSemana = request.PaseLibre ? null : request.DiasPorSemana;
         plan.Activo = request.Activo;
 
         await _context.SaveChangesAsync();
@@ -110,7 +120,7 @@ public class MembershipPlanService : IMembershipPlanService
     }
 
     private static MembershipPlanDto MapToDto(MembershipPlan p) =>
-        new(p.Id, p.GymId, p.Gym?.Nombre, p.Nombre, p.Descripcion, p.DuracionDias, p.Precio, p.Activo, p.FechaCreacion, p.Gym?.Moneda);
+        new(p.Id, p.GymId, p.Gym?.Nombre, p.Nombre, p.Descripcion, p.DuracionDias, p.Precio, p.PaseLibre, p.DiasPorSemana, p.Activo, p.FechaCreacion, p.Gym?.Moneda);
 
     private static IQueryable<MembershipPlan> ApplyGymFilter(
         IQueryable<MembershipPlan> query,

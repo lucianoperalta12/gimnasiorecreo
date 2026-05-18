@@ -8,6 +8,8 @@ public class MembershipPlan
     public string? Descripcion { get; set; }
     public int DuracionDias { get; set; }
     public decimal Precio { get; set; }
+    public bool PaseLibre { get; set; } = true;
+    public int? DiasPorSemana { get; set; }
     public bool Activo { get; set; } = true;
     public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
 

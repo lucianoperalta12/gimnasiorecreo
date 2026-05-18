@@ -47,7 +47,7 @@
             <span :class="plan.activo ? 'badge-success' : 'badge-danger'" class="text-[10px]">{{ plan.activo ? 'Activo' : 'Inactivo' }}</span>
           </div>
           <div class="flex items-center justify-between text-xs text-dark-400">
-            <span>{{ plan.duracionDias }} días</span>
+            <span>{{ plan.duracionDias }} días ({{ plan.paseLibre ? 'Pase Libre' : plan.diasPorSemana + ' días/sem' }})</span>
             <span class="font-bold text-primary-400">{{ formatCurrency(plan.precio, plan.moneda) }}</span>
           </div>
           <div v-if="authStore.hasRole('Superusuario')" class="text-[10px] text-dark-500 uppercase font-black tracking-wider border-t border-dark-800 pt-2 mt-1">
@@ -79,7 +79,12 @@
           <tbody>
             <tr v-for="plan in filteredPlans" :key="plan.id">
               <td class="font-medium text-white">{{ plan.nombre }}</td>
-              <td>{{ plan.duracionDias }} días</td>
+              <td>
+                <div class="flex flex-col">
+                  <span>{{ plan.duracionDias }} días</span>
+                  <span class="text-xs text-dark-400">{{ plan.paseLibre ? 'Pase Libre' : plan.diasPorSemana + ' días/sem' }}</span>
+                </div>
+              </td>
               <td>{{ formatCurrency(plan.precio, plan.moneda) }}</td>
               <td><span :class="plan.activo ? 'badge-success' : 'badge-danger'">{{ plan.activo ? 'Activo' : 'Inactivo' }}</span></td>
               <td v-if="authStore.hasRole('Superusuario')">{{ plan.gymNombre || '—' }}</td>
@@ -107,6 +112,23 @@
           <AppInput v-model.number="form.duracionDias" label="Duración (días)" type="number" min="1" />
           <AppInput v-model.number="form.precio" label="Precio" type="number" min="0" step="0.01" />
         </div>
+
+        <div class="flex items-center justify-between p-3 rounded-xl bg-dark-900/50 border border-dark-800">
+          <span class="text-sm font-medium text-dark-300">Pase libre</span>
+          <button
+            type="button"
+            class="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus:outline-none"
+            :class="form.paseLibre ? 'bg-emerald-600' : 'bg-dark-700'"
+            @click="form.paseLibre = !form.paseLibre"
+          >
+            <span class="inline-block h-4 w-4 rounded-full bg-white transition-transform" :class="form.paseLibre ? 'translate-x-6' : 'translate-x-1'" />
+          </button>
+        </div>
+
+        <div v-if="!form.paseLibre" class="animate-fade-in">
+          <AppInput v-model.number="form.diasPorSemana" label="Días por semana" type="number" min="1" max="5" />
+        </div>
+
         <div class="flex items-center justify-between p-3 rounded-xl bg-dark-900/50 border border-dark-800">
           <span class="text-sm font-medium text-dark-300">Plan activo</span>
           <button
@@ -169,7 +191,7 @@ const saving = ref(false)
 const editingPlan = ref(null)
 const deletingPlan = ref(null)
 
-const form = reactive({ nombre: '', descripcion: '', duracionDias: 30, precio: 0, activo: true, gymId: 0 })
+const form = reactive({ nombre: '', descripcion: '', duracionDias: 30, precio: 0, paseLibre: true, diasPorSemana: 3, activo: true, gymId: 0 })
 
 const filteredPlans = computed(() => {
   const q = search.value.toLowerCase()
@@ -178,13 +200,13 @@ const filteredPlans = computed(() => {
 
 function openCreateModal() {
   editingPlan.value = null
-  Object.assign(form, { nombre: '', descripcion: '', duracionDias: 30, precio: 0, activo: true, gymId: authStore.user?.gymId || 0 })
+  Object.assign(form, { nombre: '', descripcion: '', duracionDias: 30, precio: 0, paseLibre: true, diasPorSemana: 3, activo: true, gymId: authStore.user?.gymId || 0 })
   showModal.value = true
 }
 
 function openEditModal(plan) {
   editingPlan.value = plan
-  Object.assign(form, { nombre: plan.nombre, descripcion: plan.descripcion || '', duracionDias: plan.duracionDias, precio: plan.precio, activo: plan.activo, gymId: plan.gymId })
+  Object.assign(form, { nombre: plan.nombre, descripcion: plan.descripcion || '', duracionDias: plan.duracionDias, precio: plan.precio, paseLibre: plan.paseLibre, diasPorSemana: plan.diasPorSemana || 3, activo: plan.activo, gymId: plan.gymId })
   showModal.value = true
 }
 
@@ -200,7 +222,15 @@ async function loadPlans() {
 async function handleSubmit() {
   saving.value = true
   try {
-    const payload = { nombre: form.nombre, descripcion: form.descripcion || null, duracionDias: Number(form.duracionDias), precio: Number(form.precio), activo: form.activo }
+    const payload = { 
+      nombre: form.nombre, 
+      descripcion: form.descripcion || null, 
+      duracionDias: Number(form.duracionDias), 
+      precio: Number(form.precio), 
+      paseLibre: form.paseLibre,
+      diasPorSemana: form.paseLibre ? null : Number(form.diasPorSemana),
+      activo: form.activo 
+    }
     if (authStore.hasRole('Superusuario') && !editingPlan.value) payload.gymId = form.gymId || null
     if (editingPlan.value) {
       await store.updatePlan(editingPlan.value.id, payload)
