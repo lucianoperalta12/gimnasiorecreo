@@ -16,7 +16,7 @@ namespace GymAdmin.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
+                        .Annotation("Sqlite:Autoincrement", true).Annotation("Npgsql:ValueGenerationStrategy", Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Nombre = table.Column<string>(maxLength: 150, nullable: false),
                     Descripcion = table.Column<string>(maxLength: 1000, nullable: true),
                     GrupoMuscular = table.Column<string>(maxLength: 100, nullable: false),
@@ -32,7 +32,7 @@ namespace GymAdmin.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
+                        .Annotation("Sqlite:Autoincrement", true).Annotation("Npgsql:ValueGenerationStrategy", Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Nombre = table.Column<string>(maxLength: 100, nullable: false),
                     Email = table.Column<string>(maxLength: 200, nullable: false),
                     PasswordHash = table.Column<string>(nullable: true),
@@ -53,7 +53,7 @@ namespace GymAdmin.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
+                        .Annotation("Sqlite:Autoincrement", true).Annotation("Npgsql:ValueGenerationStrategy", Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Nombre = table.Column<string>(maxLength: 200, nullable: false),
                     Descripcion = table.Column<string>(maxLength: 1000, nullable: true),
                     ProfesorId = table.Column<int>(nullable: false),
@@ -76,7 +76,7 @@ namespace GymAdmin.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
+                        .Annotation("Sqlite:Autoincrement", true).Annotation("Npgsql:ValueGenerationStrategy", Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     RutinaId = table.Column<int>(nullable: false),
                     EjercicioId = table.Column<int>(nullable: false),
                     Series = table.Column<int>(nullable: false),
@@ -108,7 +108,7 @@ namespace GymAdmin.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
+                        .Annotation("Sqlite:Autoincrement", true).Annotation("Npgsql:ValueGenerationStrategy", Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     AlumnoId = table.Column<int>(nullable: false),
                     RutinaId = table.Column<int>(nullable: false),
                     FechaAsignacion = table.Column<DateTime>(nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),

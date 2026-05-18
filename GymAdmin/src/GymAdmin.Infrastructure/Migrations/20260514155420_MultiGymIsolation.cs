@@ -66,7 +66,7 @@ namespace GymAdmin.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
+                        .Annotation("Sqlite:Autoincrement", true).Annotation("Npgsql:ValueGenerationStrategy", Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Nombre = table.Column<string>(maxLength: 150, nullable: false),
                     DuenoNombreApellido = table.Column<string>(maxLength: 200, nullable: false),
                     LogoUrl = table.Column<string>(maxLength: 500, nullable: true),

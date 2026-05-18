@@ -16,7 +16,7 @@ namespace GymAdmin.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
+                        .Annotation("Sqlite:Autoincrement", true).Annotation("Npgsql:ValueGenerationStrategy", Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     GymId = table.Column<int>(nullable: false),
                     Nombre = table.Column<string>(maxLength: 150, nullable: false),
                     Descripcion = table.Column<string>(maxLength: 1000, nullable: true),
@@ -41,7 +41,7 @@ namespace GymAdmin.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
+                        .Annotation("Sqlite:Autoincrement", true).Annotation("Npgsql:ValueGenerationStrategy", Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     GymId = table.Column<int>(nullable: false),
                     AlumnoId = table.Column<int>(nullable: false),
                     PlanId = table.Column<int>(nullable: false),
@@ -79,7 +79,7 @@ namespace GymAdmin.Infrastructure.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
+                        .Annotation("Sqlite:Autoincrement", true).Annotation("Npgsql:ValueGenerationStrategy", Npgsql.EntityFrameworkCore.PostgreSQL.Metadata.NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     GymId = table.Column<int>(nullable: false),
                     MembresiaId = table.Column<int>(nullable: false),
                     Monto = table.Column<decimal>(precision: 10, scale: 2, nullable: false),
