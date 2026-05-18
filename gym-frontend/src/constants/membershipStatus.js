@@ -47,9 +47,10 @@ export const MEMBERSHIP_ESTADOS = ['Activa', 'Vencida', 'Cancelada', 'Suspendida
 export const PAYMENT_ESTADOS = ['Pendiente', 'Completado', 'Rechazado', 'Reembolsado']
 
 export function formatCurrency(value, currencyCode = 'ARS') {
-  return new Intl.NumberFormat(currencyCode === 'ARS' ? 'es-AR' : 'en-US', {
+  const code = currencyCode || 'ARS'
+  return new Intl.NumberFormat(code === 'ARS' ? 'es-AR' : 'en-US', {
     style: 'currency',
-    currency: currencyCode,
+    currency: code,
     maximumFractionDigits: 0
   }).format(value ?? 0)
 }

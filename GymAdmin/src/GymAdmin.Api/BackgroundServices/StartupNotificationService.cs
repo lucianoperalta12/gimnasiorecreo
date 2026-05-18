@@ -71,7 +71,7 @@ public class StartupNotificationService : BackgroundService
                 </table>
                 <p style='color: #666; font-size: 0.8em; margin-top: 20px;'>Este es un mensaje automático generado al iniciar la aplicación.</p>";
 
-            await emailService.SendEmailAsync("lucianoperalta12@gmail.com", "Inicio de Aplicación - Reporte de Usuarios", body);
+            // await emailService.SendEmailAsync("lucianoperalta12@gmail.com", "Inicio de Aplicación - Reporte de Usuarios", body);
             
             _logger.LogInformation("Startup notification email sent successfully.");
         }

@@ -20,10 +20,11 @@ public class MembershipPlanService : IMembershipPlanService
         var query = _context.MembershipPlans.AsNoTracking().Include(p => p.Gym).AsQueryable();
         query = ApplyGymFilter(query, requester, gymId);
 
-        return await query
+        var plans = await query
             .OrderBy(p => p.Nombre)
-            .Select(p => MapToDto(p))
             .ToListAsync();
+
+        return plans.Select(p => MapToDto(p)).ToList();
     }
 
     public async Task<MembershipPlanDto?> GetByIdAsync(int requesterId, int id)
