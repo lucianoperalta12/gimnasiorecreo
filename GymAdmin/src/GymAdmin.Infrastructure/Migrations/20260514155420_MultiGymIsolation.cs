@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -81,22 +81,22 @@ namespace GymAdmin.Infrastructure.Migrations
                 });
 
             migrationBuilder.Sql("""
-                INSERT INTO Gyms (Id, Nombre, DuenoNombreApellido, LogoUrl, ColorPrincipalHex, Activo, FechaCreacion)
-                VALUES (1, 'Gimnasio Central', 'Administrador General', NULL, '#2563EB', 1, CURRENT_TIMESTAMP);
+                INSERT INTO "Gyms" ("Id", "Nombre", "DuenoNombreApellido", "LogoUrl", "ColorPrincipalHex", "Activo", "FechaCreacion")
+                VALUES (1, 'Gimnasio Central', 'Administrador General', NULL, '#2563EB', true, CURRENT_TIMESTAMP);
                 """);
 
             migrationBuilder.Sql("""
-                UPDATE Users
+                UPDATE "Users"
                 SET
-                    GymId = 1,
-                    Apellido = CASE WHEN Apellido = '' THEN Nombre ELSE Apellido END,
-                    Dni = CASE WHEN Dni = '' THEN Email ELSE Dni END,
-                    DebeCambiarPassword = 0;
+                    "GymId" = 1,
+                    "Apellido" = CASE WHEN "Apellido" = '' THEN "Nombre" ELSE "Apellido" END,
+                    "Dni" = CASE WHEN "Dni" = '' THEN "Email" ELSE "Dni" END,
+                    "DebeCambiarPassword" = false;
                 """);
 
-            migrationBuilder.Sql("UPDATE Exercises SET GymId = 1;");
-            migrationBuilder.Sql("UPDATE Routines SET GymId = 1;");
-            migrationBuilder.Sql("UPDATE StudentRoutines SET GymId = 1;");
+            migrationBuilder.Sql("UPDATE \"Exercises\" SET \"GymId\" = 1;");
+            migrationBuilder.Sql("UPDATE \"Routines\" SET \"GymId\" = 1;");
+            migrationBuilder.Sql("UPDATE \"StudentRoutines\" SET \"GymId\" = 1;");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_Dni",
