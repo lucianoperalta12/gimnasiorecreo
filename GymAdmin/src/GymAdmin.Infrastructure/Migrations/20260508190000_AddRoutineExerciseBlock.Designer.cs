@@ -22,25 +22,25 @@ namespace GymAdmin.Infrastructure.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<string>("Descripcion")
                         .HasMaxLength(1000)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("GrupoMuscular")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(150)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("VideoUrl")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.HasKey("Id");
 
@@ -51,29 +51,29 @@ namespace GymAdmin.Infrastructure.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<bool>("Activa")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        
                         .HasDefaultValue(true);
 
                     b.Property<string>("Descripcion")
                         .HasMaxLength(1000)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("FechaCreacion")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT")
+                        
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int>("ProfesorId")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.HasKey("Id");
 
@@ -86,38 +86,38 @@ namespace GymAdmin.Infrastructure.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<string>("Bloque")
                         .IsRequired()
                         .HasMaxLength(50)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int?>("DescansoSegundos")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<int>("EjercicioId")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<string>("Observaciones")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int>("Orden")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<decimal?>("Peso")
                         .HasPrecision(8, 2)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<int>("Repeticiones")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<int>("RutinaId")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<int>("Series")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.HasKey("Id");
 
@@ -133,23 +133,23 @@ namespace GymAdmin.Infrastructure.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<bool>("Activa")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
+                        
                         .HasDefaultValue(true);
 
                     b.Property<int>("AlumnoId")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<DateTime>("FechaAsignacion")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT")
+                        
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<int>("RutinaId")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.HasKey("Id");
 
@@ -165,45 +165,45 @@ namespace GymAdmin.Infrastructure.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<bool>("Activo")
-                        .HasColumnType("INTEGER");
+                        ;
 
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime>("FechaCreacion")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT")
+                        
                         .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("GoogleId")
                         .HasMaxLength(200)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(100)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("PasswordHash")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("RefreshToken")
                         .HasMaxLength(500)
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<DateTime?>("RefreshTokenExpiracion")
-                        .HasColumnType("TEXT");
+                        ;
 
                     b.Property<string>("Rol")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasMaxLength(20)
-                        .HasColumnType("TEXT")
+                        
                         .HasDefaultValue("Alumno");
 
                     b.HasKey("Id");
