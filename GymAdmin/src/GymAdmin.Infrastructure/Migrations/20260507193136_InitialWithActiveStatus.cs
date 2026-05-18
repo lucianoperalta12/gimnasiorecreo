@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -38,7 +38,7 @@ namespace GymAdmin.Infrastructure.Migrations
                     PasswordHash = table.Column<string>(type: "TEXT", nullable: true),
                     GoogleId = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
                     Rol = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false, defaultValue: "Alumno"),
-                    Activo = table.Column<bool>(type: "INTEGER", nullable: false),
+                    Activo = table.Column<bool>(nullable: false),
                     FechaCreacion = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
                     RefreshToken = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
                     RefreshTokenExpiracion = table.Column<DateTime>(type: "TEXT", nullable: true)
@@ -58,7 +58,7 @@ namespace GymAdmin.Infrastructure.Migrations
                     Descripcion = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: true),
                     ProfesorId = table.Column<int>(type: "INTEGER", nullable: false),
                     FechaCreacion = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
-                    Activa = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: true)
+                    Activa = table.Column<bool>(nullable: false, defaultValue: true)
                 },
                 constraints: table =>
                 {
@@ -112,7 +112,7 @@ namespace GymAdmin.Infrastructure.Migrations
                     AlumnoId = table.Column<int>(type: "INTEGER", nullable: false),
                     RutinaId = table.Column<int>(type: "INTEGER", nullable: false),
                     FechaAsignacion = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
-                    Activa = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: true)
+                    Activa = table.Column<bool>(nullable: false, defaultValue: true)
                 },
                 constraints: table =>
                 {

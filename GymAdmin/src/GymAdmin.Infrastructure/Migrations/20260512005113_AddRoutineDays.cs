@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -20,7 +20,6 @@ namespace GymAdmin.Infrastructure.Migrations
             migrationBuilder.AddColumn<bool>(
                 name: "IsByDays",
                 table: "Routines",
-                type: "INTEGER",
                 nullable: false,
                 defaultValue: false);
 

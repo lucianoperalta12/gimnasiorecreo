@@ -22,7 +22,6 @@ namespace GymAdmin.Infrastructure.Migrations
             migrationBuilder.AddColumn<bool>(
                 name: "DebeCambiarPassword",
                 table: "Users",
-                type: "INTEGER",
                 nullable: false,
                 defaultValue: false);
 
@@ -72,7 +71,7 @@ namespace GymAdmin.Infrastructure.Migrations
                     DuenoNombreApellido = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
                     LogoUrl = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
                     ColorPrincipalHex = table.Column<string>(type: "TEXT", maxLength: 7, nullable: false),
-                    Activo = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: true),
+                    Activo = table.Column<bool>(nullable: false, defaultValue: true),
                     FechaCreacion = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
                 constraints: table =>

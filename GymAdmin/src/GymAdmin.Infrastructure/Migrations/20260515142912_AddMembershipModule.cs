@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -15,14 +15,14 @@ namespace GymAdmin.Infrastructure.Migrations
                 name: "MembershipPlans",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    GymId = table.Column<int>(type: "INTEGER", nullable: false),
+                    GymId = table.Column<int>(nullable: false),
                     Nombre = table.Column<string>(type: "TEXT", maxLength: 150, nullable: false),
                     Descripcion = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: true),
-                    DuracionDias = table.Column<int>(type: "INTEGER", nullable: false),
-                    Precio = table.Column<decimal>(type: "TEXT", precision: 10, scale: 2, nullable: false),
-                    Activo = table.Column<bool>(type: "INTEGER", nullable: false, defaultValue: true),
+                    DuracionDias = table.Column<int>(nullable: false),
+                    Precio = table.Column<decimal>(type: "TEXT", nullable: false),
+                    Activo = table.Column<bool>(nullable: false, defaultValue: true),
                     FechaCreacion = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
                 constraints: table =>
