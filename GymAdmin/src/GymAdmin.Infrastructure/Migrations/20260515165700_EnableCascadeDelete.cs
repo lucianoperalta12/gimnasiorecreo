@@ -25,7 +25,6 @@ namespace GymAdmin.Infrastructure.Migrations
                 maxLength: 20,
                 nullable: false,
                 oldClrType: typeof(string),
-                old
                 oldMaxLength: 20,
                 oldDefaultValue: "Completado");
 
@@ -65,7 +64,6 @@ namespace GymAdmin.Infrastructure.Migrations
                 nullable: false,
                 defaultValue: "Completado",
                 oldClrType: typeof(string),
-                old
                 oldMaxLength: 20);
 
             migrationBuilder.AddForeignKey(
