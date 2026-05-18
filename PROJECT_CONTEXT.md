@@ -1,6 +1,6 @@
-# 🏋️ Project Context: Gym Manager System
+# 🏋️ Project Context: Gym Center Manager System
 
-Este documento centraliza la información técnica y funcional del proyecto **Gym Manager**. Debe ser utilizado como contexto base por cualquier agente o desarrollador que trabaje en el repositorio para asegurar consistencia, seguir las reglas de negocio y mantener la calidad arquitectónica.
+Este documento centraliza la información técnica y funcional del proyecto **Gym Center Manager**. Debe ser utilizado como contexto base por cualquier agente o desarrollador que trabaje en el repositorio para asegurar consistencia, seguir las reglas de negocio y mantener la calidad arquitectónica.
 
 ---
 
