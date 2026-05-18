@@ -35,10 +35,14 @@
         <label class="text-xs text-dark-400 font-medium">Hasta:</label>
         <input v-model="dateTo" type="date" class="input max-w-[150px] text-sm" />
       </div>
-      <select v-if="authStore.hasRole('Superusuario')" v-model="selectedGymId" class="input max-w-xs" @change="loadData">
-        <option :value="null">Todos los gimnasios</option>
-        <option v-for="gym in gyms" :key="gym.id" :value="gym.id">{{ gym.nombre }}</option>
-      </select>
+      <AppSearchSelect
+        v-if="authStore.hasRole('Superusuario')"
+        v-model="selectedGymId"
+        :options="gymOptions"
+        placeholder="Todos los gimnasios"
+        class="w-full max-w-xs"
+        @update:model-value="loadData"
+      />
     </div>
 
     <LoadingSpinner v-if="store.loading" />
@@ -162,16 +166,19 @@
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="label">Método de pago</label>
-            <select v-model="form.metodoPago" class="input">
-              <option value="Efectivo">Efectivo</option>
-              <option value="Transferencia">Transferencia</option>
-            </select>
+            <AppSearchSelect
+              v-model="form.metodoPago"
+              :options="metodoPagoOptions"
+              placeholder="Método de pago"
+            />
           </div>
           <div>
             <label class="label">Estado</label>
-            <select v-model="form.estado" class="input">
-              <option v-for="e in PAYMENT_ESTADOS" :key="e" :value="e">{{ e }}</option>
-            </select>
+            <AppSearchSelect
+              v-model="form.estado"
+              :options="paymentEstadoOptions"
+              placeholder="Estado"
+            />
           </div>
         </div>
         
@@ -266,6 +273,25 @@ const paginatedPayments = computed(() => {
 
 watch([search, dateFrom, dateTo, selectedGymId], () => {
   currentPage.value = 1
+})
+
+const gymOptions = computed(() => {
+  const list = [{ id: null, label: 'Todos los gimnasios' }]
+  if (gyms.value) {
+    gyms.value.forEach(g => {
+      list.push({ id: g.id, label: g.nombre })
+    })
+  }
+  return list
+})
+
+const metodoPagoOptions = [
+  { id: 'Efectivo', label: 'Efectivo' },
+  { id: 'Transferencia', label: 'Transferencia' }
+]
+
+const paymentEstadoOptions = computed(() => {
+  return PAYMENT_ESTADOS.map(e => ({ id: e, label: e }))
 })
 
 const studentOptions = computed(() => {

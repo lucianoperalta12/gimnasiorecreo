@@ -27,14 +27,21 @@
 
     <div class="mb-4 flex flex-wrap gap-3">
       <input v-model="search" type="text" placeholder="Buscar alumno o plan..." class="input max-w-sm" />
-      <select v-model="filterEstado" class="input max-w-[180px]" @change="loadMemberships">
-        <option value="">Todos los estados</option>
-        <option v-for="e in MEMBERSHIP_ESTADOS" :key="e" :value="e">{{ e }}</option>
-      </select>
-      <select v-if="authStore.hasRole('Superusuario')" v-model="selectedGymId" class="input max-w-xs" @change="loadMemberships">
-        <option :value="null">Todos los gimnasios</option>
-        <option v-for="gym in gyms" :key="gym.id" :value="gym.id">{{ gym.nombre }}</option>
-      </select>
+      <AppSearchSelect
+        v-model="filterEstado"
+        :options="estadoOptions"
+        placeholder="Todos los estados"
+        class="w-full max-w-[180px]"
+        @update:model-value="loadMemberships"
+      />
+      <AppSearchSelect
+        v-if="authStore.hasRole('Superusuario')"
+        v-model="selectedGymId"
+        :options="gymOptions"
+        placeholder="Todos los gimnasios"
+        class="w-full max-w-xs"
+        @update:model-value="loadMemberships"
+      />
     </div>
 
     <LoadingSpinner v-if="store.loading" />
@@ -160,10 +167,11 @@
       <form class="space-y-4" @submit.prevent="handleCreate">
         <AppSearchSelect v-model="createForm.alumnoId" label="Alumno" placeholder="Buscar alumno..." :options="studentOptions" />
         <label class="label">Plan</label>
-        <select v-model.number="createForm.planId" class="input" required>
-          <option :value="0" disabled>Seleccionar plan</option>
-          <option v-for="p in activePlans" :key="p.id" :value="p.id">{{ p.nombre }} ({{ p.duracionDias }} días - {{ formatCurrency(p.precio, p.moneda) }})</option>
-        </select>
+        <AppSearchSelect
+          v-model.number="createForm.planId"
+          :options="planOptions"
+          placeholder="Seleccionar plan"
+        />
         <AppInput v-model="createForm.fechaInicio" label="Fecha de inicio" type="date" />
         <textarea v-model="createForm.notas" rows="2" class="input" placeholder="Notas opcionales" />
       </form>
@@ -189,16 +197,19 @@
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="label">Método de pago</label>
-            <select v-model="paymentForm.metodoPago" class="input">
-              <option value="Efectivo">Efectivo</option>
-              <option value="Transferencia">Transferencia</option>
-            </select>
+            <AppSearchSelect
+              v-model="paymentForm.metodoPago"
+              :options="metodoPagoOptions"
+              placeholder="Método de pago"
+            />
           </div>
           <div>
             <label class="label">Estado</label>
-            <select v-model="paymentForm.estado" class="input">
-              <option v-for="e in PAYMENT_ESTADOS" :key="e" :value="e">{{ e }}</option>
-            </select>
+            <AppSearchSelect
+              v-model="paymentForm.estado"
+              :options="paymentEstadoOptions"
+              placeholder="Estado"
+            />
           </div>
         </div>
         <textarea v-model="paymentForm.notas" rows="2" class="input" placeholder="Notas opcionales" />
@@ -213,9 +224,11 @@
       <form class="space-y-4" @submit.prevent="handleRenew">
         <p class="text-sm text-dark-400">Alumno: <strong class="text-white">{{ renewingMembership?.alumnoNombreCompleto }}</strong></p>
         <label class="label">Plan</label>
-        <select v-model.number="renewForm.planId" class="input" required>
-          <option v-for="p in activePlans" :key="p.id" :value="p.id">{{ p.nombre }}</option>
-        </select>
+        <AppSearchSelect
+          v-model.number="renewForm.planId"
+          :options="planOptions"
+          placeholder="Seleccionar plan"
+        />
         <AppInput v-model="renewForm.fechaInicio" label="Fecha de inicio (opcional)" type="date" />
         <textarea v-model="renewForm.notas" rows="2" class="input" placeholder="Notas" />
       </form>
@@ -309,6 +322,40 @@ const studentOptions = computed(() =>
 )
 
 const activePlans = computed(() => store.plans.filter(p => p.activo))
+
+const estadoOptions = computed(() => {
+  const list = [{ id: '', label: 'Todos los estados' }]
+  MEMBERSHIP_ESTADOS.forEach(e => {
+    list.push({ id: e, label: e })
+  })
+  return list
+})
+
+const gymOptions = computed(() => {
+  const list = [{ id: null, label: 'Todos los gimnasios' }]
+  if (gyms.value) {
+    gyms.value.forEach(g => {
+      list.push({ id: g.id, label: g.nombre })
+    })
+  }
+  return list
+})
+
+const planOptions = computed(() => {
+  return activePlans.value.map(p => ({
+    id: p.id,
+    label: `${p.nombre} (${p.duracionDias} días - ${formatCurrency(p.precio, p.moneda)})`
+  }))
+})
+
+const metodoPagoOptions = [
+  { id: 'Efectivo', label: 'Efectivo' },
+  { id: 'Transferencia', label: 'Transferencia' }
+]
+
+const paymentEstadoOptions = computed(() => {
+  return PAYMENT_ESTADOS.map(e => ({ id: e, label: e }))
+})
 
 const filteredMemberships = computed(() => {
   const q = search.value.toLowerCase()

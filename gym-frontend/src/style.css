@@ -84,6 +84,23 @@
     transition-all duration-200;
   }
 
+  select.input {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.8' d='m6 8 4 4 4-4'/%3E%3C/svg%3E") !important;
+    background-position: right 0.75rem center !important;
+    background-size: 1.25rem !important;
+    background-repeat: no-repeat !important;
+    padding-right: 2.5rem !important;
+  }
+
+  select.input option {
+    background-color: #0b0b0c !important;
+    color: #e4e4e7 !important;
+    font-size: 14px !important;
+  }
+
   .label {
     @apply block text-sm font-medium text-dark-300 mb-1.5;
   }

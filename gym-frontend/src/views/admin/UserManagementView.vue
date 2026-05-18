@@ -33,18 +33,20 @@
       <input v-model="search" type="text" placeholder="Buscar por nombre, email o DNI..." class="input flex-1 sm:max-w-sm" />
       
       <div class="flex flex-col sm:flex-row gap-3">
-        <select v-model="roleFilter" class="input w-full sm:w-auto sm:min-w-[150px]">
-          <option value="">Todos los roles</option>
-          <option value="Administrativo">Administrativo</option>
-          <option value="Profesor">Profesor</option>
-          <option value="Alumno">Alumno</option>
-          <option v-if="authStore.hasRole('Superusuario')" value="Superusuario">Superusuario</option>
-        </select>
+        <AppSearchSelect
+          v-model="roleFilter"
+          :options="roleOptions"
+          placeholder="Todos los roles"
+          class="w-full sm:w-auto sm:min-w-[160px]"
+        />
 
-        <select v-if="authStore.hasRole('Superusuario')" v-model="gymFilter" class="input w-full sm:w-auto sm:min-w-[180px]">
-          <option value="">Todos los gimnasios</option>
-          <option v-for="gym in gyms" :key="gym.id" :value="gym.id">{{ gym.nombre }}</option>
-        </select>
+        <AppSearchSelect
+          v-if="authStore.hasRole('Superusuario')"
+          v-model="gymFilter"
+          :options="gymOptions"
+          placeholder="Todos los gimnasios"
+          class="w-full sm:w-auto sm:min-w-[200px]"
+        />
       </div>
     </div>
 
@@ -227,16 +229,19 @@
         <AppInput v-model="createForm.dni" label="DNI" required />
         <div>
           <label class="label">Rol</label>
-          <select v-model="createForm.rol" class="input">
-            <option v-for="rol in allowedCreateRoles" :key="rol" :value="rol">{{ rol }}</option>
-          </select>
+          <AppSearchSelect
+            v-model="createForm.rol"
+            :options="createRoleOptions"
+            placeholder="Seleccionar rol"
+          />
         </div>
         <div v-if="authStore.hasRole('Superusuario')">
           <label class="label">Gimnasio</label>
-          <select v-model.number="createForm.gymId" class="input" required>
-            <option disabled :value="null">Seleccionar gimnasio</option>
-            <option v-for="gym in gyms" :key="gym.id" :value="gym.id">{{ gym.nombre }}</option>
-          </select>
+          <AppSearchSelect
+            v-model.number="createForm.gymId"
+            :options="createGymOptions"
+            placeholder="Seleccionar gimnasio"
+          />
         </div>
         <p v-if="formError" class="sm:col-span-2 text-sm text-red-400">{{ formError }}</p>
         <div class="sm:col-span-2 flex justify-end gap-3">
@@ -291,6 +296,7 @@ import { gymsApi } from '@/api/gyms.api'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppInput from '@/components/ui/AppInput.vue'
 import AppModal from '@/components/ui/AppModal.vue'
+import AppSearchSelect from '@/components/ui/AppSearchSelect.vue'
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
 
 const router = useRouter()
@@ -321,6 +327,37 @@ const createForm = reactive({ nombre: '', apellido: '', email: '', dni: '', rol:
 const allowedCreateRoles = computed(() =>
   authStore.hasRole('Superusuario') ? ['Administrativo', 'Profesor', 'Alumno'] : ['Profesor', 'Alumno']
 )
+
+const roleOptions = computed(() => {
+  const list = [
+    { id: '', label: 'Todos los roles' },
+    { id: 'Administrativo', label: 'Administrativo' },
+    { id: 'Profesor', label: 'Profesor' },
+    { id: 'Alumno', label: 'Alumno' }
+  ]
+  if (authStore.hasRole('Superusuario')) {
+    list.push({ id: 'Superusuario', label: 'Superusuario' })
+  }
+  return list
+})
+
+const gymOptions = computed(() => {
+  const list = [{ id: '', label: 'Todos los gimnasios' }]
+  if (gyms.value) {
+    gyms.value.forEach(g => {
+      list.push({ id: g.id, label: g.nombre })
+    })
+  }
+  return list
+})
+
+const createRoleOptions = computed(() => {
+  return allowedCreateRoles.value.map(rol => ({ id: rol, label: rol }))
+})
+
+const createGymOptions = computed(() => {
+  return gyms.value.map(g => ({ id: g.id, label: g.nombre }))
+})
 
 const filteredUsers = computed(() => {
   const q = search.value.toLowerCase()
