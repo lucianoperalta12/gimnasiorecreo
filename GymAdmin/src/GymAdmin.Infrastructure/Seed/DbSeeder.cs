@@ -18,7 +18,7 @@ public static class DbSeeder
         {
             Nombre = "Gimnasio Central",
             DuenoNombreApellido = "Administrador General",
-            ColorPrincipalHex = "#2563EB",
+            ColorPrincipalHex = "#ff6600",
             Activo = true
         };
         if (gym.Id == 0)

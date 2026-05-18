@@ -4,9 +4,9 @@
 
 @layer base {
   :root {
-    --gym-primary: #2563eb;
-    --gym-primary-hover: #1d4ed8;
-    --gym-primary-soft: rgb(37 99 235 / 0.18);
+    --gym-primary: #ff6600;
+    --gym-primary-hover: #e65c00;
+    --gym-primary-soft: rgb(255 102 0 / 0.18);
   }
 
   * {

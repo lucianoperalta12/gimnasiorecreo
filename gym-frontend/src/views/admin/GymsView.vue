@@ -122,7 +122,7 @@
           <label class="label">Color principal</label>
           <div class="flex gap-3">
             <input v-model="form.colorPrincipalHex" type="color" class="h-11 w-14 rounded bg-dark-800 border border-dark-600" />
-            <input v-model="form.colorPrincipalHex" class="input" placeholder="#2563EB" required />
+            <input v-model="form.colorPrincipalHex" class="input" placeholder="#ff6600" required />
           </div>
         </div>
         <div>
@@ -160,7 +160,7 @@ const saving = ref(false)
 const showModal = ref(false)
 const editingGym = ref(null)
 const formError = ref('')
-const form = reactive({ nombre: '', duenoNombreApellido: '', logoUrl: '', colorPrincipalHex: '#2563EB', moneda: 'ARS' })
+const form = reactive({ nombre: '', duenoNombreApellido: '', logoUrl: '', colorPrincipalHex: '#ff6600', moneda: 'ARS' })
 
 async function load() {
   loading.value = true
@@ -178,7 +178,7 @@ function resetForm() {
   form.nombre = ''
   form.duenoNombreApellido = ''
   form.logoUrl = ''
-  form.colorPrincipalHex = '#2563EB'
+  form.colorPrincipalHex = '#ff6600'
   form.moneda = 'ARS'
   formError.value = ''
 }

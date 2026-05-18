@@ -6,7 +6,7 @@ public class Gym
     public string Nombre { get; set; } = string.Empty;
     public string DuenoNombreApellido { get; set; } = string.Empty;
     public string? LogoUrl { get; set; }
-    public string ColorPrincipalHex { get; set; } = "#2563EB";
+    public string ColorPrincipalHex { get; set; } = "#ff6600";
     public bool Activo { get; set; } = true;
     public string Moneda { get; set; } = "ARS"; // ARS o USD
     public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;

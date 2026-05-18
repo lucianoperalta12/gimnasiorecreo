@@ -68,6 +68,6 @@ public class GymService : IGymService
         if (string.IsNullOrWhiteSpace(nombre)) throw new ArgumentException("El nombre del gimnasio es obligatorio.");
         if (string.IsNullOrWhiteSpace(dueno)) throw new ArgumentException("El nombre del dueño es obligatorio.");
         if (!System.Text.RegularExpressions.Regex.IsMatch(color.Trim(), "^#[0-9A-Fa-f]{6}$"))
-            throw new ArgumentException("El color principal debe tener formato hexadecimal, por ejemplo #2563EB.");
+            throw new ArgumentException("El color principal debe tener formato hexadecimal, por ejemplo #ff6600.");
     }
 }

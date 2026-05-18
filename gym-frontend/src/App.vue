@@ -5,7 +5,7 @@ import { useAuthStore } from '@/stores/auth.store'
 const authStore = useAuthStore()
 
 watchEffect(() => {
-  const color = authStore.user?.gymColorPrincipalHex || '#2563eb'
+  const color = authStore.user?.gymColorPrincipalHex || '#ff6600'
   document.documentElement.style.setProperty('--gym-primary', color)
   document.documentElement.style.setProperty('--gym-primary-hover', color)
   document.documentElement.style.setProperty('--gym-primary-soft', `${color}33`)
