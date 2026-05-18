@@ -13,7 +13,7 @@ namespace GymAdmin.Infrastructure.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "Moneda",
                 table: "Gyms",
-                type: "TEXT",
+                
                 nullable: false,
                 defaultValue: "");
         }

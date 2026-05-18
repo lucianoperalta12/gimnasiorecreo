@@ -21,11 +21,11 @@ namespace GymAdmin.Infrastructure.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "Estado",
                 table: "MembershipPayments",
-                type: "TEXT",
+                
                 maxLength: 20,
                 nullable: false,
                 oldClrType: typeof(string),
-                oldType: "TEXT",
+                old
                 oldMaxLength: 20,
                 oldDefaultValue: "Completado");
 
@@ -60,12 +60,12 @@ namespace GymAdmin.Infrastructure.Migrations
             migrationBuilder.AlterColumn<string>(
                 name: "Estado",
                 table: "MembershipPayments",
-                type: "TEXT",
+                
                 maxLength: 20,
                 nullable: false,
                 defaultValue: "Completado",
                 oldClrType: typeof(string),
-                oldType: "TEXT",
+                old
                 oldMaxLength: 20);
 
             migrationBuilder.AddForeignKey(

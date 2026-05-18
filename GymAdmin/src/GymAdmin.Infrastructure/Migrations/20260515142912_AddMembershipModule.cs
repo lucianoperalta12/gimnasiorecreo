@@ -18,12 +18,12 @@ namespace GymAdmin.Infrastructure.Migrations
                     Id = table.Column<int>(nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     GymId = table.Column<int>(nullable: false),
-                    Nombre = table.Column<string>(type: "TEXT", maxLength: 150, nullable: false),
-                    Descripcion = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: true),
+                    Nombre = table.Column<string>(maxLength: 150, nullable: false),
+                    Descripcion = table.Column<string>(maxLength: 1000, nullable: true),
                     DuracionDias = table.Column<int>(nullable: false),
-                    Precio = table.Column<decimal>(type: "TEXT", nullable: false),
+                    Precio = table.Column<decimal>(nullable: false),
                     Activo = table.Column<bool>(nullable: false, defaultValue: true),
-                    FechaCreacion = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
+                    FechaCreacion = table.Column<DateTime>(nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
                 constraints: table =>
                 {
@@ -40,16 +40,16 @@ namespace GymAdmin.Infrastructure.Migrations
                 name: "Memberships",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    GymId = table.Column<int>(type: "INTEGER", nullable: false),
-                    AlumnoId = table.Column<int>(type: "INTEGER", nullable: false),
-                    PlanId = table.Column<int>(type: "INTEGER", nullable: false),
-                    FechaInicio = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    FechaVencimiento = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    Estado = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false, defaultValue: "Activa"),
-                    Notas = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: true),
-                    FechaCreacion = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
+                    GymId = table.Column<int>(nullable: false),
+                    AlumnoId = table.Column<int>(nullable: false),
+                    PlanId = table.Column<int>(nullable: false),
+                    FechaInicio = table.Column<DateTime>(nullable: false),
+                    FechaVencimiento = table.Column<DateTime>(nullable: false),
+                    Estado = table.Column<string>(maxLength: 20, nullable: false, defaultValue: "Activa"),
+                    Notas = table.Column<string>(maxLength: 1000, nullable: true),
+                    FechaCreacion = table.Column<DateTime>(nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
                 constraints: table =>
                 {
@@ -78,17 +78,17 @@ namespace GymAdmin.Infrastructure.Migrations
                 name: "MembershipPayments",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    GymId = table.Column<int>(type: "INTEGER", nullable: false),
-                    MembresiaId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Monto = table.Column<decimal>(type: "TEXT", precision: 10, scale: 2, nullable: false),
-                    FechaPago = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    MetodoPago = table.Column<string>(type: "TEXT", maxLength: 50, nullable: true),
-                    Estado = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false, defaultValue: "Completado"),
-                    Referencia = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
-                    Notas = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: true),
-                    FechaCreacion = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
+                    GymId = table.Column<int>(nullable: false),
+                    MembresiaId = table.Column<int>(nullable: false),
+                    Monto = table.Column<decimal>(precision: 10, scale: 2, nullable: false),
+                    FechaPago = table.Column<DateTime>(nullable: false),
+                    MetodoPago = table.Column<string>(maxLength: 50, nullable: true),
+                    Estado = table.Column<string>(maxLength: 20, nullable: false, defaultValue: "Completado"),
+                    Referencia = table.Column<string>(maxLength: 200, nullable: true),
+                    Notas = table.Column<string>(maxLength: 1000, nullable: true),
+                    FechaCreacion = table.Column<DateTime>(nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
                 constraints: table =>
                 {

@@ -11,7 +11,7 @@ namespace GymAdmin.Infrastructure.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "Bloque",
                 table: "RoutineExercises",
-                type: "TEXT",
+                
                 maxLength: 50,
                 nullable: false,
                 defaultValue: "parteMedia");

@@ -14,7 +14,7 @@ namespace GymAdmin.Infrastructure.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "Apellido",
                 table: "Users",
-                type: "TEXT",
+                
                 maxLength: 100,
                 nullable: false,
                 defaultValue: "");
@@ -28,7 +28,7 @@ namespace GymAdmin.Infrastructure.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "Dni",
                 table: "Users",
-                type: "TEXT",
+                
                 maxLength: 20,
                 nullable: false,
                 defaultValue: "");
@@ -36,28 +36,28 @@ namespace GymAdmin.Infrastructure.Migrations
             migrationBuilder.AddColumn<int>(
                 name: "GymId",
                 table: "Users",
-                type: "INTEGER",
+                
                 nullable: false,
                 defaultValue: 1);
 
             migrationBuilder.AddColumn<int>(
                 name: "GymId",
                 table: "StudentRoutines",
-                type: "INTEGER",
+                
                 nullable: false,
                 defaultValue: 1);
 
             migrationBuilder.AddColumn<int>(
                 name: "GymId",
                 table: "Routines",
-                type: "INTEGER",
+                
                 nullable: false,
                 defaultValue: 1);
 
             migrationBuilder.AddColumn<int>(
                 name: "GymId",
                 table: "Exercises",
-                type: "INTEGER",
+                
                 nullable: false,
                 defaultValue: 1);
 
@@ -65,14 +65,14 @@ namespace GymAdmin.Infrastructure.Migrations
                 name: "Gyms",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Nombre = table.Column<string>(type: "TEXT", maxLength: 150, nullable: false),
-                    DuenoNombreApellido = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    LogoUrl = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
-                    ColorPrincipalHex = table.Column<string>(type: "TEXT", maxLength: 7, nullable: false),
+                    Nombre = table.Column<string>(maxLength: 150, nullable: false),
+                    DuenoNombreApellido = table.Column<string>(maxLength: 200, nullable: false),
+                    LogoUrl = table.Column<string>(maxLength: 500, nullable: true),
+                    ColorPrincipalHex = table.Column<string>(maxLength: 7, nullable: false),
                     Activo = table.Column<bool>(nullable: false, defaultValue: true),
-                    FechaCreacion = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
+                    FechaCreacion = table.Column<DateTime>(nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
                 constraints: table =>
                 {

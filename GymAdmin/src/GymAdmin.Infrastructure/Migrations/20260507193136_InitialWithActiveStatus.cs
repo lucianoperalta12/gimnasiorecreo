@@ -15,12 +15,12 @@ namespace GymAdmin.Infrastructure.Migrations
                 name: "Exercises",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Nombre = table.Column<string>(type: "TEXT", maxLength: 150, nullable: false),
-                    Descripcion = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: true),
-                    GrupoMuscular = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
-                    VideoUrl = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true)
+                    Nombre = table.Column<string>(maxLength: 150, nullable: false),
+                    Descripcion = table.Column<string>(maxLength: 1000, nullable: true),
+                    GrupoMuscular = table.Column<string>(maxLength: 100, nullable: false),
+                    VideoUrl = table.Column<string>(maxLength: 500, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -31,17 +31,17 @@ namespace GymAdmin.Infrastructure.Migrations
                 name: "Users",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Nombre = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
-                    Email = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    PasswordHash = table.Column<string>(type: "TEXT", nullable: true),
-                    GoogleId = table.Column<string>(type: "TEXT", maxLength: 200, nullable: true),
-                    Rol = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false, defaultValue: "Alumno"),
+                    Nombre = table.Column<string>(maxLength: 100, nullable: false),
+                    Email = table.Column<string>(maxLength: 200, nullable: false),
+                    PasswordHash = table.Column<string>(nullable: true),
+                    GoogleId = table.Column<string>(maxLength: 200, nullable: true),
+                    Rol = table.Column<string>(maxLength: 20, nullable: false, defaultValue: "Alumno"),
                     Activo = table.Column<bool>(nullable: false),
-                    FechaCreacion = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
-                    RefreshToken = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
-                    RefreshTokenExpiracion = table.Column<DateTime>(type: "TEXT", nullable: true)
+                    FechaCreacion = table.Column<DateTime>(nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    RefreshToken = table.Column<string>(maxLength: 500, nullable: true),
+                    RefreshTokenExpiracion = table.Column<DateTime>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -52,12 +52,12 @@ namespace GymAdmin.Infrastructure.Migrations
                 name: "Routines",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    Nombre = table.Column<string>(type: "TEXT", maxLength: 200, nullable: false),
-                    Descripcion = table.Column<string>(type: "TEXT", maxLength: 1000, nullable: true),
-                    ProfesorId = table.Column<int>(type: "INTEGER", nullable: false),
-                    FechaCreacion = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    Nombre = table.Column<string>(maxLength: 200, nullable: false),
+                    Descripcion = table.Column<string>(maxLength: 1000, nullable: true),
+                    ProfesorId = table.Column<int>(nullable: false),
+                    FechaCreacion = table.Column<DateTime>(nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
                     Activa = table.Column<bool>(nullable: false, defaultValue: true)
                 },
                 constraints: table =>
@@ -75,16 +75,16 @@ namespace GymAdmin.Infrastructure.Migrations
                 name: "RoutineExercises",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    RutinaId = table.Column<int>(type: "INTEGER", nullable: false),
-                    EjercicioId = table.Column<int>(type: "INTEGER", nullable: false),
-                    Series = table.Column<int>(type: "INTEGER", nullable: false),
-                    Repeticiones = table.Column<int>(type: "INTEGER", nullable: false),
-                    Peso = table.Column<decimal>(type: "TEXT", precision: 8, scale: 2, nullable: true),
-                    DescansoSegundos = table.Column<int>(type: "INTEGER", nullable: true),
-                    Orden = table.Column<int>(type: "INTEGER", nullable: false),
-                    Observaciones = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true)
+                    RutinaId = table.Column<int>(nullable: false),
+                    EjercicioId = table.Column<int>(nullable: false),
+                    Series = table.Column<int>(nullable: false),
+                    Repeticiones = table.Column<int>(nullable: false),
+                    Peso = table.Column<decimal>(precision: 8, scale: 2, nullable: true),
+                    DescansoSegundos = table.Column<int>(nullable: true),
+                    Orden = table.Column<int>(nullable: false),
+                    Observaciones = table.Column<string>(maxLength: 500, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -107,11 +107,11 @@ namespace GymAdmin.Infrastructure.Migrations
                 name: "StudentRoutines",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                    Id = table.Column<int>(nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    AlumnoId = table.Column<int>(type: "INTEGER", nullable: false),
-                    RutinaId = table.Column<int>(type: "INTEGER", nullable: false),
-                    FechaAsignacion = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    AlumnoId = table.Column<int>(nullable: false),
+                    RutinaId = table.Column<int>(nullable: false),
+                    FechaAsignacion = table.Column<DateTime>(nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
                     Activa = table.Column<bool>(nullable: false, defaultValue: true)
                 },
                 constraints: table =>

@@ -13,7 +13,7 @@ namespace GymAdmin.Infrastructure.Migrations
             migrationBuilder.AddColumn<int>(
                 name: "DaysCount",
                 table: "Routines",
-                type: "INTEGER",
+                
                 nullable: false,
                 defaultValue: 0);
 
@@ -26,7 +26,7 @@ namespace GymAdmin.Infrastructure.Migrations
             migrationBuilder.AddColumn<int>(
                 name: "DayNumber",
                 table: "RoutineExercises",
-                type: "INTEGER",
+                
                 nullable: false,
                 defaultValue: 0);
         }
