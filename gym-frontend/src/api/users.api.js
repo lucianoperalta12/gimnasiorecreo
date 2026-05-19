@@ -13,6 +13,9 @@ export const usersApi = {
   create(payload) {
     return api.post('/users', payload)
   },
+  update(id, payload) {
+    return api.put(`/users/${id}`, payload)
+  },
   changeRole(id, rol) {
     return api.put(`/users/${id}/role`, { rol })
   },

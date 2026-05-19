@@ -1,6 +1,13 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\GymAdmin",
+    "\\GymAdmin\\src",
+    "\\GymAdmin\\src\\GymAdmin.Api",
+    "\\GymAdmin\\src\\GymAdmin.Application",
+    "\\GymAdmin\\src\\GymAdmin.Application\\DTOs",
+    "\\GymAdmin\\src\\GymAdmin.Application\\DTOs\\Gyms",
+    "\\GymAdmin\\src\\GymAdmin.Application\\Services"
   ],
   "SelectedNode": "\\GymAdmin\\src\\GymAdmin.Api\\Program.cs",
   "PreviewInSolutionExplorer": false

@@ -35,6 +35,10 @@ public class UsersController : ControllerBase
     [Authorize(Roles = "Superusuario,Administrativo")]
     public async Task<ActionResult<UserDto>> Create([FromBody] CreateUserRequest request) => Ok(await _userService.CreateUserAsync(GetUserId(), request));
 
+    [HttpPut("{id}")]
+    [Authorize(Roles = "Superusuario,Administrativo")]
+    public async Task<ActionResult<UserDto>> Update(int id, [FromBody] UpdateUserRequest request) => Ok(await _userService.UpdateUserAsync(GetUserId(), id, request));
+
     [HttpPut("{id}/role")]
     [Authorize(Roles = "Superusuario,Administrativo")]
     public async Task<ActionResult<UserDto>> ChangeRole(int id, [FromBody] ChangeRoleRequest request) => Ok(await _userService.ChangeRoleAsync(GetUserId(), id, request));

@@ -19,6 +19,8 @@ public record UserDto(
 
 public record CreateUserRequest(string Nombre, string Apellido, string Email, string Dni, string Rol, int? GymId);
 
+public record UpdateUserRequest(string Nombre, string Apellido);
+
 public record ChangeRoleRequest(string Rol);
 public record ChangePasswordRequest(string Password);
 

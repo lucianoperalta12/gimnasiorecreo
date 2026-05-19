@@ -97,6 +97,30 @@ public class UserService : IUserService
         return (await GetUserByIdAsync(requesterId, user.Id))!;
     }
 
+    public async Task<UserDto> UpdateUserAsync(int requesterId, int userId, UpdateUserRequest request)
+    {
+        var requester = await GetRequester(requesterId);
+        var user = await _context.Users.Include(u => u.Gym).FirstOrDefaultAsync(u => u.Id == userId) 
+            ?? throw new KeyNotFoundException("Usuario no encontrado.");
+
+        if (requester.Rol == UserRole.Superusuario) { /* OK */ }
+        else if (requester.Rol == UserRole.Administrativo)
+        {
+            if (user.GymId != requester.GymId || (user.Rol != UserRole.Alumno && user.Rol != UserRole.Profesor))
+                throw new UnauthorizedAccessException("No autorizado para modificar este usuario.");
+        }
+        else throw new UnauthorizedAccessException("No autorizado.");
+
+        if (string.IsNullOrWhiteSpace(request.Nombre) || string.IsNullOrWhiteSpace(request.Apellido))
+            throw new ArgumentException("Nombre y Apellido son requeridos.");
+
+        user.Nombre = request.Nombre.Trim();
+        user.Apellido = request.Apellido.Trim();
+
+        await _context.SaveChangesAsync();
+        return (await GetUserByIdAsync(requesterId, user.Id))!;
+    }
+
     public async Task<UserDto> ChangeRoleAsync(int requesterId, int userId, ChangeRoleRequest request)
     {
         var requester = await GetRequester(requesterId);

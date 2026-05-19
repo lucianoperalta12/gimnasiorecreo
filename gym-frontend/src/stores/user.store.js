@@ -40,6 +40,13 @@ export const useUserStore = defineStore('user', () => {
     return data
   }
 
+  async function updateUser(userId, payload) {
+    const { data } = await usersApi.update(userId, payload)
+    const index = users.value.findIndex(u => u.id === userId)
+    if (index !== -1) users.value[index] = data
+    return data
+  }
+
   async function changePassword(userId, password) {
     await usersApi.changePassword(userId, password)
   }
@@ -63,6 +70,7 @@ export const useUserStore = defineStore('user', () => {
     fetchUsers,
     fetchStudents,
     createUser,
+    updateUser,
     changeRole,
     changePassword,
     toggleUserStatus,

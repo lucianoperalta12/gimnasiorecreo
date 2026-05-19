@@ -19,3 +19,4 @@ deploy-demo/
 .db_backup/
 .vs/
 .gemini/
+GymAdmin/src/GymAdmin.Api/wwwroot/

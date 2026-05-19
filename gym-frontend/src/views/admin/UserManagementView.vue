@@ -6,13 +6,9 @@
         <h1 class="page-title">Usuarios</h1>
         <p class="page-subtitle hidden sm:block">Administración de usuarios y roles</p>
       </div>
-      
+
       <div class="flex items-center gap-3">
-        <AppButton 
-          variant="secondary" 
-          @click="router.push('/dashboard')"
-          class="md:px-4 px-2.5 !rounded-xl md:!rounded-lg"
-        >
+        <AppButton variant="secondary" @click="router.push('/dashboard')" class="md:px-4 px-2.5 !rounded-xl md:!rounded-lg">
           <svg class="w-5 h-5 md:w-3 md:h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
             <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
           </svg>
@@ -23,22 +19,16 @@
           <svg class="w-5 h-5 md:w-4 md:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
           </svg>
-          <span class="hidden md:inline ml-1">Crear usuario</span>
+          <span class="hidden md:inline ml-1">Crear Usuario</span>
         </AppButton>
       </div>
-      
     </div>
 
     <div class="flex flex-col sm:flex-row gap-3 mb-4">
       <input v-model="search" type="text" placeholder="Buscar por nombre, email o DNI..." class="input flex-1 sm:max-w-sm" />
-      
+
       <div class="flex flex-col sm:flex-row gap-3">
-        <AppSearchSelect
-          v-model="roleFilter"
-          :options="roleOptions"
-          placeholder="Todos los roles"
-          class="w-full sm:w-auto sm:min-w-[160px]"
-        />
+        <AppSearchSelect v-model="roleFilter" :options="roleOptions" placeholder="Todos los roles" class="w-full sm:w-auto sm:min-w-[160px]" />
 
         <AppSearchSelect
           v-if="authStore.hasRole('Superusuario')"
@@ -79,7 +69,9 @@
           <div class="flex items-center justify-between text-xs text-dark-400">
             <div class="flex flex-col gap-1">
               <span>DNI: {{ u.dni || '-' }}</span>
-              <span v-if="authStore.hasRole('Superusuario')" class="text-primary-400 font-bold uppercase tracking-wider text-[9px]">{{ u.gymNombre || '-' }}</span>
+              <span v-if="authStore.hasRole('Superusuario')" class="text-primary-400 font-bold uppercase tracking-wider text-[9px]">{{
+                u.gymNombre || '-'
+              }}</span>
             </div>
             <span :class="u.activo ? 'text-emerald-500' : 'text-red-400'">{{ u.activo ? 'Activo' : 'Inactivo' }}</span>
           </div>
@@ -95,17 +87,46 @@
             </button>
             <button
               v-if="authStore.hasRole('Superusuario', 'Administrativo') && !isSystemAdmin(u)"
+              class="text-amber-500 hover:text-amber-400 transition-colors p-1"
+              title="Editar Usuario"
+              @click="openEditModal(u)"
+            >
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                />
+              </svg>
+            </button>
+            <button
+              v-if="authStore.hasRole('Superusuario', 'Administrativo') && !isSystemAdmin(u)"
               class="text-primary-500 hover:text-primary-400 transition-colors p-1"
               @click="openPasswordModal(u)"
             >
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
+                />
+              </svg>
             </button>
             <button
               v-if="authStore.hasRole('Superusuario', 'Administrativo') && !isSystemAdmin(u)"
               class="text-red-500 hover:text-red-400 transition-colors p-1"
               @click="handleDeleteClick(u)"
             >
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
+              </svg>
             </button>
           </div>
         </div>
@@ -120,18 +141,27 @@
               <th class="px-3 py-3 text-xs font-semibold text-dark-400 uppercase tracking-wider hidden lg:table-cell">Email</th>
               <th class="px-3 py-3 text-xs font-semibold text-dark-400 uppercase tracking-wider hidden xl:table-cell">DNI</th>
               <th class="px-3 py-3 text-xs font-semibold text-dark-400 uppercase tracking-wider">Rol</th>
-              <th v-if="authStore.hasRole('Superusuario')" class="px-3 py-3 text-xs font-semibold text-dark-400 uppercase tracking-wider hidden md:table-cell">Gimnasio</th>
+              <th v-if="authStore.hasRole('Superusuario')" class="px-3 py-3 text-xs font-semibold text-dark-400 uppercase tracking-wider hidden md:table-cell">
+                Gimnasio
+              </th>
               <th class="px-3 py-3 text-xs font-semibold text-dark-400 uppercase tracking-wider">Estado</th>
               <th class="px-3 py-3 text-xs font-semibold text-dark-400 uppercase tracking-wider text-right">Acciones</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="u in paginatedUsers" :key="u.id" class="border-b border-dark-800 hover:bg-dark-800/40 transition-colors" :class="{ 'opacity-50': !u.activo }">
+            <tr
+              v-for="u in paginatedUsers"
+              :key="u.id"
+              class="border-b border-dark-800 hover:bg-dark-800/40 transition-colors"
+              :class="{ 'opacity-50': !u.activo }"
+            >
               <td class="px-3 py-3 font-medium text-white">
                 <div class="max-w-[160px] truncate">{{ fullName(u) }}</div>
                 <div class="lg:hidden text-[10px] text-dark-500 mt-0.5 max-w-[160px] truncate">{{ u.email }}</div>
               </td>
-              <td class="px-3 py-3 text-dark-400 hidden lg:table-cell"><div class="max-w-[200px] truncate">{{ u.email }}</div></td>
+              <td class="px-3 py-3 text-dark-400 hidden lg:table-cell">
+                <div class="max-w-[200px] truncate">{{ u.email }}</div>
+              </td>
               <td class="px-3 py-3 text-dark-400 hidden xl:table-cell">{{ u.dni }}</td>
               <td class="px-3 py-3">
                 <select
@@ -161,11 +191,33 @@
                   </button>
                   <button
                     v-if="authStore.hasRole('Superusuario', 'Administrativo') && !isSystemAdmin(u)"
+                    class="text-primary-500 hover:text-primary-400 transition-colors p-1"
+                    title="Editar Usuario"
+                    @click="openEditModal(u)"
+                  >
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                      />
+                    </svg>
+                  </button>
+                  <button
+                    v-if="authStore.hasRole('Superusuario', 'Administrativo') && !isSystemAdmin(u)"
                     class="text-primary-500 hover:text-primary-400 transition-colors p-1 shrink-0"
                     title="Cambiar contraseña"
                     @click="openPasswordModal(u)"
                   >
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" /></svg>
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
+                      />
+                    </svg>
                   </button>
                   <button
                     v-if="authStore.hasRole('Superusuario', 'Administrativo') && !isSystemAdmin(u)"
@@ -173,7 +225,14 @@
                     title="Eliminar usuario"
                     @click="handleDeleteClick(u)"
                   >
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
+                    </svg>
                   </button>
                 </div>
               </td>
@@ -185,21 +244,19 @@
       <!-- Pagination Controls -->
       <div v-if="filteredUsers.length > pageSize" class="mt-6 flex items-center justify-between px-2">
         <div class="text-xs text-dark-500 font-medium">
-          Mostrando {{ (currentPage - 1) * pageSize + 1 }} - {{ Math.min(currentPage * pageSize, filteredUsers.length) }} 
-          de {{ filteredUsers.length }} registros
+          Mostrando {{ (currentPage - 1) * pageSize + 1 }} - {{ Math.min(currentPage * pageSize, filteredUsers.length) }} de
+          {{ filteredUsers.length }} registros
         </div>
         <div class="flex items-center gap-2">
-          <button 
-            class="btn-secondary !p-2 !rounded-lg" 
-            :disabled="currentPage === 1"
-            @click="currentPage--"
-          >
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+          <button class="btn-secondary !p-2 !rounded-lg" :disabled="currentPage === 1" @click="currentPage--">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15.75 19.5L8.25 12l7.5-7.5" />
+            </svg>
           </button>
-          
+
           <div class="flex items-center gap-1">
-            <button 
-              v-for="p in totalPages" 
+            <button
+              v-for="p in totalPages"
               :key="p"
               @click="currentPage = p"
               class="w-8 h-8 rounded-lg text-xs font-black transition-all"
@@ -209,44 +266,34 @@
             </button>
           </div>
 
-          <button 
-            class="btn-secondary !p-2 !rounded-lg" 
-            :disabled="currentPage === totalPages"
-            @click="currentPage++"
-          >
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+          <button class="btn-secondary !p-2 !rounded-lg" :disabled="currentPage === totalPages" @click="currentPage++">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
           </button>
         </div>
       </div>
     </template>
 
-    <!-- Create User Modal -->
-    <AppModal v-model="showCreateModal" title="Crear usuario" size="lg">
-      <form class="grid grid-cols-1 sm:grid-cols-2 gap-4" @submit.prevent="createUser">
+    <!-- Create or Edit User Modal -->
+    <AppModal v-model="showCreateModal" :title="userToEdit ? 'Editar usuario' : 'Crear Usuario'" size="lg">
+      <form class="grid grid-cols-1 sm:grid-cols-2 gap-4" @submit.prevent="submitForm">
         <AppInput v-model="createForm.nombre" label="Nombre" required />
         <AppInput v-model="createForm.apellido" label="Apellido" required />
-        <AppInput v-model="createForm.email" label="Correo electrónico" type="email" required />
-        <AppInput v-model="createForm.dni" label="DNI" required />
+        <AppInput v-model="createForm.email" label="Correo electrónico" type="email" required :disabled="!!userToEdit" />
+        <AppInput v-model="createForm.dni" label="DNI" required :disabled="!!userToEdit" />
         <div>
           <label class="label">Rol</label>
-          <AppSearchSelect
-            v-model="createForm.rol"
-            :options="createRoleOptions"
-            placeholder="Seleccionar rol"
-          />
+          <AppSearchSelect v-model="createForm.rol" :options="createRoleOptions" placeholder="Seleccionar rol" :disabled="!!userToEdit" />
         </div>
         <div v-if="authStore.hasRole('Superusuario')">
           <label class="label">Gimnasio</label>
-          <AppSearchSelect
-            v-model.number="createForm.gymId"
-            :options="createGymOptions"
-            placeholder="Seleccionar gimnasio"
-          />
+          <AppSearchSelect v-model.number="createForm.gymId" :options="createGymOptions" placeholder="Seleccionar gimnasio" :disabled="!!userToEdit" />
         </div>
         <p v-if="formError" class="sm:col-span-2 text-sm text-red-400">{{ formError }}</p>
         <div class="sm:col-span-2 flex justify-end gap-3">
           <button type="button" class="btn-secondary" @click="showCreateModal = false">Cancelar</button>
-          <AppButton type="submit" :loading="creating">Crear</AppButton>
+          <AppButton type="submit" :loading="creating">{{ userToEdit ? 'Guardar' : 'Crear' }}</AppButton>
         </div>
       </form>
     </AppModal>
@@ -267,13 +314,19 @@
       <div class="space-y-4">
         <div class="p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex gap-3 items-start">
           <svg class="w-5 h-5 text-red-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
           </svg>
           <div>
             <p class="text-sm font-bold text-white">¿Estás seguro?</p>
             <p class="text-xs text-dark-400 mt-1">
               Esta acción eliminará permanentemente al usuario
-              <span class="font-bold text-dark-200">{{ fullName(userToDelete) }}</span>.
+              <span class="font-bold text-dark-200">{{ fullName(userToDelete) }}</span
+              >.
             </p>
           </div>
         </div>
@@ -287,246 +340,292 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
-import { useUserStore } from '@/stores/user.store'
-import { useAuthStore } from '@/stores/auth.store'
-import { useNotification } from '@/composables/useNotification'
-import { gymsApi } from '@/api/gyms.api'
-import AppButton from '@/components/ui/AppButton.vue'
-import AppInput from '@/components/ui/AppInput.vue'
-import AppModal from '@/components/ui/AppModal.vue'
-import AppSearchSelect from '@/components/ui/AppSearchSelect.vue'
-import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { useRouter } from 'vue-router';
+import { useUserStore } from '@/stores/user.store';
+import { useAuthStore } from '@/stores/auth.store';
+import { useNotification } from '@/composables/useNotification';
+import { gymsApi } from '@/api/gyms.api';
+import AppButton from '@/components/ui/AppButton.vue';
+import AppInput from '@/components/ui/AppInput.vue';
+import AppModal from '@/components/ui/AppModal.vue';
+import AppSearchSelect from '@/components/ui/AppSearchSelect.vue';
+import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
 
-const router = useRouter()
-const userStore = useUserStore()
-const authStore = useAuthStore()
-const { success, error: showError } = useNotification()
-const search = ref('')
-const roleFilter = ref('')
-const gymFilter = ref('')
-const gyms = ref([])
-const showCreateModal = ref(false)
-const showPasswordModal = ref(false)
-const creating = ref(false)
-const deleting = ref(false)
-const isUpdatingPassword = ref(false)
-const userToEdit = ref(null)
-const userToDelete = ref(null)
-const showDeleteModal = ref(false)
-const newPassword = ref('')
-const formError = ref('')
-const pageSize = ref(15)
-const currentPage = ref(1)
-const createForm = reactive({ nombre: '', apellido: '', email: '', dni: '', rol: 'Alumno', gymId: null })
+const router = useRouter();
+const userStore = useUserStore();
+const authStore = useAuthStore();
+const { success, error: showError } = useNotification();
+const search = ref('');
+const roleFilter = ref('');
+const gymFilter = ref('');
+const gyms = ref([]);
+const showCreateModal = ref(false);
+const showPasswordModal = ref(false);
+const creating = ref(false);
+const deleting = ref(false);
+const isUpdatingPassword = ref(false);
+const userToEdit = ref(null);
+const userToDelete = ref(null);
+const showDeleteModal = ref(false);
+const newPassword = ref('');
+const formError = ref('');
+const pageSize = ref(15);
+const currentPage = ref(1);
+const createForm = reactive({ nombre: '', apellido: '', email: '', dni: '', rol: 'Alumno', gymId: null });
 
 // Removí el watcher que limpiaba el DNI para permitir texto alfanumérico (extranjeros, etc) como pidió el usuario.
 
-
-const allowedCreateRoles = computed(() =>
-  authStore.hasRole('Superusuario') ? ['Administrativo', 'Profesor', 'Alumno', 'Terminal'] : ['Profesor', 'Alumno']
-)
+const allowedCreateRoles = computed(() => (authStore.hasRole('Superusuario') ? ['Administrativo', 'Profesor', 'Alumno', 'Terminal'] : ['Profesor', 'Alumno']));
 
 const roleOptions = computed(() => {
   const list = [
     { id: '', label: 'Todos los roles' },
     { id: 'Administrativo', label: 'Administrativo' },
     { id: 'Profesor', label: 'Profesor' },
-    { id: 'Alumno', label: 'Alumno' }
-  ]
+    { id: 'Alumno', label: 'Alumno' },
+  ];
   if (authStore.hasRole('Superusuario')) {
-    list.push({ id: 'Terminal', label: 'Terminal' })
-    list.push({ id: 'Superusuario', label: 'Superusuario' })
+    list.push({ id: 'Terminal', label: 'Terminal' });
+    list.push({ id: 'Superusuario', label: 'Superusuario' });
   }
-  return list
-})
+  return list;
+});
 
 const gymOptions = computed(() => {
-  const list = [{ id: '', label: 'Todos los gimnasios' }]
+  const list = [{ id: '', label: 'Todos los gimnasios' }];
   if (gyms.value) {
-    gyms.value.forEach(g => {
-      list.push({ id: g.id, label: g.nombre })
-    })
+    gyms.value.forEach((g) => {
+      list.push({ id: g.id, label: g.nombre });
+    });
   }
-  return list
-})
+  return list;
+});
 
 const createRoleOptions = computed(() => {
-  return allowedCreateRoles.value.map(rol => ({ id: rol, label: rol }))
-})
+  return allowedCreateRoles.value.map((rol) => ({ id: rol, label: rol }));
+});
 
 const createGymOptions = computed(() => {
-  return gyms.value.map(g => ({ id: g.id, label: g.nombre }))
-})
+  return gyms.value.map((g) => ({ id: g.id, label: g.nombre }));
+});
 
 const filteredUsers = computed(() => {
-  const q = search.value.toLowerCase()
-  const r = roleFilter.value
-  const g = gymFilter.value
-  
-  return userStore.users.filter(u => {
-    const matchesSearch = fullName(u).toLowerCase().includes(q) ||
-      u.email.toLowerCase().includes(q) ||
-      String(u.dni || '').toLowerCase().includes(q)
-    
-    const matchesRole = !r || u.rol === r
-    const matchesGym = !g || u.gymId === Number(g)
-    
-    return matchesSearch && matchesRole && matchesGym
-  })
-})
+  const q = search.value.toLowerCase();
+  const r = roleFilter.value;
+  const g = gymFilter.value;
 
-const totalPages = computed(() => Math.ceil(filteredUsers.value.length / pageSize.value))
+  return userStore.users.filter((u) => {
+    const matchesSearch =
+      fullName(u).toLowerCase().includes(q) ||
+      u.email.toLowerCase().includes(q) ||
+      String(u.dni || '')
+        .toLowerCase()
+        .includes(q);
+
+    const matchesRole = !r || u.rol === r;
+    const matchesGym = !g || u.gymId === Number(g);
+
+    return matchesSearch && matchesRole && matchesGym;
+  });
+});
+
+const totalPages = computed(() => Math.ceil(filteredUsers.value.length / pageSize.value));
 
 const paginatedUsers = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return filteredUsers.value.slice(start, end)
-})
+  const start = (currentPage.value - 1) * pageSize.value;
+  const end = start + pageSize.value;
+  return filteredUsers.value.slice(start, end);
+});
 
 // Reset to first page when filters change
 watch([search, roleFilter, gymFilter], () => {
-  currentPage.value = 1
-})
+  currentPage.value = 1;
+});
 
 function fullName(user) {
-  return `${user.nombre || ''} ${user.apellido || ''}`.trim()
+  return `${user.nombre || ''} ${user.apellido || ''}`.trim();
 }
 
 function roleBadge(rol) {
-  const map = { Alumno: 'badge-primary', Profesor: 'badge-warning', Administrativo: 'badge-success', Superusuario: 'badge-danger', Terminal: 'badge-warning' }
-  return map[rol] || 'badge-primary'
+  const map = { Alumno: 'badge-primary', Profesor: 'badge-warning', Administrativo: 'badge-success', Superusuario: 'badge-danger', Terminal: 'badge-warning' };
+  return map[rol] || 'badge-primary';
 }
 
 function isSystemAdmin(user) {
-  return user.email === 'admin' || user.nombre?.toLowerCase() === 'admin'
+  return user.email === 'admin' || user.nombre?.toLowerCase() === 'admin';
 }
 
 function canChangeRole(user) {
-  if (isSystemAdmin(user)) return false
-  if (authStore.hasRole('Superusuario')) return true
+  if (isSystemAdmin(user)) return false;
+  if (authStore.hasRole('Superusuario')) return true;
   if (authStore.hasRole('Administrativo')) {
-    return user.rol === 'Profesor' || user.rol === 'Alumno'
+    return user.rol === 'Profesor' || user.rol === 'Alumno';
   }
-  return false
+  return false;
 }
 
 function getAvailableRoles(user) {
   if (authStore.hasRole('Superusuario')) {
-    return ['Administrativo', 'Profesor', 'Alumno', 'Terminal']
+    return ['Administrativo', 'Profesor', 'Alumno', 'Terminal'];
   }
   if (authStore.hasRole('Administrativo')) {
-    return ['Profesor', 'Alumno']
+    return ['Profesor', 'Alumno'];
   }
-  return []
+  return [];
 }
 
 function resetCreateForm() {
-  createForm.nombre = ''
-  createForm.apellido = ''
-  createForm.email = ''
-  createForm.dni = ''
-  createForm.rol = allowedCreateRoles.value[allowedCreateRoles.value.length - 1]
-  createForm.gymId = null
-  formError.value = ''
+  userToEdit.value = null;
+  createForm.nombre = '';
+  createForm.apellido = '';
+  createForm.email = '';
+  createForm.dni = '';
+  createForm.rol = allowedCreateRoles.value[allowedCreateRoles.value.length - 1];
+  createForm.gymId = null;
+  formError.value = '';
 }
 
 async function openCreateModal() {
-  resetCreateForm()
+  resetCreateForm();
   if (authStore.hasRole('Superusuario') && (!gyms.value || gyms.value.length === 0)) {
     try {
-      const response = await gymsApi.getAll()
-      gyms.value = response.data || []
+      const response = await gymsApi.getAll();
+      gyms.value = response.data || [];
     } catch (err) {
-      showError('No se pudieron cargar los gimnasios')
+      showError('No se pudieron cargar los gimnasios');
     }
   }
-  showCreateModal.value = true
+  showCreateModal.value = true;
+}
+
+async function openEditModal(user) {
+  userToEdit.value = user;
+  createForm.nombre = user.nombre;
+  createForm.apellido = user.apellido;
+  createForm.email = user.email;
+  createForm.dni = user.dni;
+  createForm.rol = user.rol;
+  createForm.gymId = user.gymId;
+  formError.value = '';
+  if (authStore.hasRole('Superusuario') && (!gyms.value || gyms.value.length === 0)) {
+    try {
+      const response = await gymsApi.getAll();
+      gyms.value = response.data || [];
+    } catch (err) {
+      showError('No se pudieron cargar los gimnasios');
+    }
+  }
+  showCreateModal.value = true;
+}
+
+async function submitForm() {
+  if (userToEdit.value) {
+    await editUser();
+  } else {
+    await createUser();
+  }
 }
 
 async function createUser() {
-  formError.value = ''
-  creating.value = true
+  formError.value = '';
+  creating.value = true;
   try {
-    await userStore.createUser({ ...createForm })
-    success('Usuario creado. La contraseña inicial es el DNI.')
-    showCreateModal.value = false
+    await userStore.createUser({ ...createForm });
+    success('Usuario creado. La contraseña inicial es el DNI.');
+    showCreateModal.value = false;
   } catch (err) {
-    formError.value = err.response?.data?.error || 'No se pudo crear el usuario'
+    formError.value = err.response?.data?.error || 'No se pudo crear el usuario';
   } finally {
-    creating.value = false
+    creating.value = false;
+  }
+}
+
+async function editUser() {
+  formError.value = '';
+  creating.value = true;
+  try {
+    await userStore.updateUser(userToEdit.value.id, {
+      nombre: createForm.nombre,
+      apellido: createForm.apellido,
+    });
+    success('Usuario actualizado correctamente.');
+    showCreateModal.value = false;
+  } catch (err) {
+    formError.value = err.response?.data?.error || 'No se pudo actualizar el usuario';
+  } finally {
+    creating.value = false;
   }
 }
 
 async function handleRoleChange(userId, newRole) {
   try {
-    await userStore.changeRole(userId, newRole)
-    success(`Rol cambiado a ${newRole}`)
+    await userStore.changeRole(userId, newRole);
+    success(`Rol cambiado a ${newRole}`);
   } catch (err) {
-    showError(err.response?.data?.error || 'Error al cambiar rol')
+    showError(err.response?.data?.error || 'Error al cambiar rol');
   }
 }
 
 async function handleToggleStatus(user) {
   try {
-    await userStore.toggleUserStatus(user.id)
-    success(user.activo ? 'Usuario desactivado' : 'Usuario activado')
+    await userStore.toggleUserStatus(user.id);
+    success(user.activo ? 'Usuario desactivado' : 'Usuario activado');
   } catch (err) {
-    showError(err.response?.data?.error || 'Error al cambiar estado')
+    showError(err.response?.data?.error || 'Error al cambiar estado');
   }
 }
 
 function openPasswordModal(user) {
-  userToEdit.value = user
-  newPassword.value = ''
-  showPasswordModal.value = true
+  userToEdit.value = user;
+  newPassword.value = '';
+  showPasswordModal.value = true;
 }
 
 function handleDeleteClick(user) {
-  userToDelete.value = user
-  showDeleteModal.value = true
+  userToDelete.value = user;
+  showDeleteModal.value = true;
 }
 
 async function confirmDelete() {
-  if (!userToDelete.value) return
-  
-  deleting.value = true
+  if (!userToDelete.value) return;
+
+  deleting.value = true;
   try {
-    await userStore.deleteUser(userToDelete.value.id)
-    success('Usuario eliminado correctamente')
-    showDeleteModal.value = false
-    userToDelete.value = null
+    await userStore.deleteUser(userToDelete.value.id);
+    success('Usuario eliminado correctamente');
+    showDeleteModal.value = false;
+    userToDelete.value = null;
   } catch (err) {
-    showError(err.response?.data?.error || 'No se pudo eliminar el usuario')
+    showError(err.response?.data?.error || 'No se pudo eliminar el usuario');
   } finally {
-    deleting.value = false
+    deleting.value = false;
   }
 }
 
 async function confirmPasswordChange() {
-  if (!userToEdit.value || !newPassword.value) return
-  isUpdatingPassword.value = true
+  if (!userToEdit.value || !newPassword.value) return;
+  isUpdatingPassword.value = true;
   try {
-    await userStore.changePassword(userToEdit.value.id, newPassword.value)
-    success('Contraseña actualizada')
-    showPasswordModal.value = false
+    await userStore.changePassword(userToEdit.value.id, newPassword.value);
+    success('Contraseña actualizada');
+    showPasswordModal.value = false;
   } catch (err) {
-    showError(err.response?.data?.error || 'Error al actualizar contraseña')
+    showError(err.response?.data?.error || 'Error al actualizar contraseña');
   } finally {
-    isUpdatingPassword.value = false
+    isUpdatingPassword.value = false;
   }
 }
 
 onMounted(async () => {
   try {
-    await userStore.fetchUsers()
+    await userStore.fetchUsers();
     if (authStore.hasRole('Superusuario')) {
-      const response = await gymsApi.getAll()
-      gyms.value = response.data || []
+      const response = await gymsApi.getAll();
+      gyms.value = response.data || [];
     }
   } catch (err) {
-    showError('No se pudieron cargar los datos')
+    showError('No se pudieron cargar los datos');
   }
-})
+});
 </script>

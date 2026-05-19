@@ -7,13 +7,14 @@
         type="text"
         v-model="searchTerm"
         :placeholder="selectedOption ? selectedOption.label : placeholder"
-        class="input pr-10 focus:ring-primary-500/50"
+        class="input pr-10 focus:ring-primary-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
+        :disabled="disabled"
         @focus="handleFocus"
         @input="isOpen = true"
       />
       
       <div class="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2 pointer-events-none text-dark-500">
-        <svg v-if="searchTerm || selectedOption" @click.stop="clear" class="w-4 h-4 pointer-events-auto hover:text-white cursor-pointer" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg v-if="!disabled && (searchTerm || selectedOption)" @click.stop="clear" class="w-4 h-4 pointer-events-auto hover:text-white cursor-pointer" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
         </svg>
         <svg class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180': isOpen }" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -61,7 +62,8 @@ const props = defineProps({
   modelValue: { type: [String, Number, null], default: null },
   options: { type: Array, required: true }, // [{ id, label, subLabel }]
   label: { type: String, default: '' },
-  placeholder: { type: String, default: 'Buscar...' }
+  placeholder: { type: String, default: 'Buscar...' },
+  disabled: { type: Boolean, default: false }
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -84,6 +86,7 @@ const filteredOptions = computed(() => {
 })
 
 function handleFocus() {
+  if (props.disabled) return
   isOpen.value = true
   // If we have a selection, we don't clear searchTerm immediately so user can see what they have
 }

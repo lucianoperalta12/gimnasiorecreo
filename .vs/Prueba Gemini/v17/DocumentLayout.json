@@ -114,10 +114,6 @@
             },
             {
               "$type": "Bookmark",
-              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
-            },
-            {
-              "$type": "Bookmark",
               "Name": "ST:133:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
             },
             {
@@ -141,6 +137,10 @@
               "Name": "ST:129:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
             },
             {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
               "$type": "Document",
               "DocumentIndex": 0,
               "Title": "Program.cs",
@@ -148,7 +148,7 @@
               "RelativeDocumentMoniker": "GymAdmin\\src\\GymAdmin.Api\\Program.cs",
               "ToolTip": "C:\\RepositoriosFront\\Prueba Gemini\\GymAdmin\\src\\GymAdmin.Api\\Program.cs",
               "RelativeToolTip": "GymAdmin\\src\\GymAdmin.Api\\Program.cs",
-              "ViewState": "AgIAAAkAAAAAAAAAAAAAABIAAAABAAAAAAAAAA==",
+              "ViewState": "AgIAAEIAAAAAAAAAAAAAABIAAAABAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-05-18T13:49:30.78Z",
               "EditorCaption": ""
@@ -163,8 +163,7 @@
               "RelativeToolTip": "gym-frontend\\src\\views\\DashboardView.vue",
               "ViewState": "AgIAAGUAAAAAAAAAAAAnwHYAAABNAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003491|",
-              "WhenOpened": "2026-05-09T18:33:13.191Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-05-09T18:33:13.191Z"
             }
           ]
         }
