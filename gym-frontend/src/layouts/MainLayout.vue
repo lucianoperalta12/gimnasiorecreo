@@ -147,7 +147,7 @@
     </main>
   </div>
 
-  <FloatingStopwatch />
+  <FloatingStopwatch v-if="!authStore.hasRole('Terminal')" />
 
   <AppModal v-model="showInitialPasswordModal" title="Cambiar contraseña inicial" size="sm">
     <form class="space-y-4" @submit.prevent="changeInitialPassword">
