@@ -1,129 +1,166 @@
-# 🏋️ Project Context: Gym Center Manager System
+# Project Context: Gym Center Manager System
 
-Este documento centraliza la información técnica y funcional del proyecto **Gym Center Manager**. Debe ser utilizado como contexto base por cualquier agente o desarrollador que trabaje en el repositorio para asegurar consistencia, seguir las reglas de negocio y mantener la calidad arquitectónica.
-
----
-
-## 🎯 Objetivos del Proyecto
-1.  **Administración Multi-Tenant**: Gestionar múltiples gimnasios de forma aislada en una única plataforma.
-2.  **Seguridad y Aislamiento**: Implementar un flujo de autenticación profesional con rotación de tokens y estricta separación de datos por `GymId`.
-3.  **Experiencia Premium Personalizable**: Ofrecer una interfaz moderna (Glassmorphism) con branding dinámico (colores y logos) según el gimnasio.
-4.  **Escalabilidad**: Mantener una arquitectura Clean Architecture que permita el crecimiento de la red de gimnasios.
+Este documento centraliza la informacion tecnica y funcional del proyecto **Gym Center Manager**. Debe utilizarse como contexto base por cualquier agente o desarrollador que trabaje en el repositorio para asegurar consistencia, respetar las reglas de negocio y mantener la calidad arquitectonica.
 
 ---
 
-## 💻 Stack Tecnológico
+## Objetivos del Proyecto
+1. **Administracion Multi-Tenant**: Gestionar multiples gimnasios de forma aislada en una unica plataforma.
+2. **Seguridad y Aislamiento**: Implementar un flujo de autenticacion profesional con rotacion de tokens y estricta separacion de datos por `GymId`.
+3. **Experiencia Premium Personalizable**: Ofrecer una interfaz moderna con branding dinamico por gimnasio.
+4. **Escalabilidad**: Mantener una arquitectura Clean Architecture que permita evolucionar modulos nuevos sin acoplamiento innecesario.
+5. **Control de Acceso Fisico**: Registrar ingresos de alumnos desde usuarios tipo terminal, respetando membresias y limites de uso.
+
+---
+
+## Stack Tecnologico
 ### Frontend
 - **Framework**: Vue 3 (Composition API)
 - **Estado**: Pinia
 - **Routing**: Vue Router
-- **Estilos**: TailwindCSS (Branding dinámico via CSS Variables: `--gym-primary`)
-- **UI**: Glassmorphism, animaciones suaves y modo oscuro persistente.
-- **HTTP**: Axios (con interceptores para Refresh Token)
+- **Estilos**: TailwindCSS con branding dinamico via CSS variables
+- **HTTP**: Axios con interceptores para Refresh Token
 
 ### Backend
 - **Framework**: ASP.NET Core 8 Web API
 - **ORM**: Entity Framework Core
-- **Base de Datos**: PostgreSQL (Producción) / SQLite (Desarrollo)
-- **Seguridad**: JWT + Refresh Tokens (Persistidos en DB)
+- **Base de Datos**: PostgreSQL (produccion) / SQLite (desarrollo)
+- **Seguridad**: JWT + Refresh Tokens persistidos en DB
 - **Hashing**: BCrypt.Net-Next
 
 ---
 
-## 🏛️ Arquitectura (Lightweight Clean Architecture)
-El proyecto se divide en 4 proyectos (capas) dentro de la solución `.sln`:
+## Arquitectura
+El proyecto se divide en 4 proyectos dentro de la solucion:
 
-1.  **GymAdmin.Domain**: Contiene las entidades base, enums e interfaces de dominio. Sin dependencias externas.
-2.  **GymAdmin.Application**: Lógica de negocio, DTOs, Mapeos e interfaces de servicios.
-3.  **GymAdmin.Infrastructure**: Implementación de persistencia (DbContext), configuraciones de EF Core, migraciones y seed de datos.
-4.  **GymAdmin.Api**: Controladores, configuración de DI, Middleware de excepciones y configuración de Auth.
+1. **GymAdmin.Domain**: Entidades base, enums e interfaces de dominio. Sin dependencias externas.
+2. **GymAdmin.Application**: Logica de negocio, DTOs, mapeos e interfaces de servicios.
+3. **GymAdmin.Infrastructure**: Persistencia, `DbContext`, configuraciones de EF Core, migraciones y seed.
+4. **GymAdmin.Api**: Controladores, configuracion de DI, middleware de excepciones y autenticacion/autorizacion.
 
 ---
 
-## 👥 Roles y Permisos
+## Roles y Permisos
 
 | Rol | Permisos |
 | :--- | :--- |
 | **Alumno** | Ver sus rutinas asignadas, editar su perfil, consultar su estado de acceso (`GET /api/memberships/me/access`). |
-| **Profesor** | Todo lo del Alumno + Crear/Editar Ejercicios y Rutinas, Asignar rutinas a alumnos (dentro de su gimnasio). Consulta de membresías y estado de acceso de alumnos (solo lectura). |
-| **Administrativo** | Gestión de Usuarios del gimnasio (Crear Alumnos/Profesores), Planes de membresía, Membresías, Pagos, ver estadísticas básicas. Hereda permisos de consulta de Profesor. |
-| **Superusuario** | Control total: Gestión de Gimnasios (CRUD, colores, logos), Gestión global de Usuarios, Roles, Planes, Membresías y Pagos de todo el sistema. |
+| **Profesor** | Todo lo del Alumno + Crear/Editar ejercicios y rutinas, asignar rutinas a alumnos dentro de su gimnasio, consultar membresias y estado de acceso de alumnos en modo lectura. |
+| **Administrativo** | Gestion de usuarios del gimnasio, planes de membresia, membresias, pagos e ingresos. Puede consultar y auditar movimientos operativos del gimnasio. |
+| **Superusuario** | Control total del sistema: gimnasios, usuarios, roles, planes, membresias, pagos e ingresos globales. |
+| **Terminal** | Registrar ingresos de alumnos en recepcion o molinete usando DNI. No administra usuarios, rutinas ni membresias. Solo puede operar sobre alumnos de su propio gimnasio. |
+
+### Alcance operativo del rol Terminal
+- Accede al endpoint `POST /api/ingresos/registrar`.
+- Debe estar autenticado como usuario con rol `Terminal`.
+- El ingreso registrado queda asociado al usuario terminal que lo ejecuto.
+- No tiene acceso al listado global de ingresos.
 
 ---
 
-## 📋 Reglas de Negocio Críticas
-- **Aislamiento**: Ningún usuario (excepto el Superusuario) puede ver o modificar datos de un gimnasio diferente al suyo.
-- **Asignaciones**: Un alumno no puede tener la misma rutina asignada más de una vez simultáneamente.
-- **Autoría**: Solo el profesor que creó una rutina puede editarla o eliminarla.
-- **Gimnasios**: El Superusuario es el único capaz de crear gimnasios y definir su branding (Logo y Color Hexadecimal).
-- **Auth**: Los Refresh Tokens tienen rotación; cada vez que se usa uno para obtener un nuevo Access Token, el Refresh Token viejo se invalida.
-- **Primer Login**: El DNI es la contraseña inicial, pero el sistema obliga a cambiarla en el primer acceso.
-- **Membresías**: Un alumno solo puede tener **una membresía activa** a la vez. Las renovaciones **no sobrescriben** el historial: la membresía anterior pasa a `Vencida` y se crea un registro nuevo.
-- **Estado de acceso**: Se deriva de la membresía vigente (`Activo`, `Vencido`, `Moroso`, `Suspendido`, `Sin membresía`). **No** se persiste en la entidad `User`. `Moroso` = membresía activa con pagos en estado `Pendiente`.
-- **Vencimiento automático**: Al consultar o modificar membresías, las activas con `FechaVencimiento` pasada se marcan como `Vencida`.
-- **Planes**: Solo `Administrativo` y `Superusuario` gestionan planes. Un plan con membresías asociadas no se elimina; se desactiva (`Activo = false`).
+## Reglas de Negocio Criticas
+- **Aislamiento**: Ningun usuario, excepto el `Superusuario`, puede ver o modificar datos de un gimnasio diferente al suyo.
+- **Asignaciones**: Un alumno no puede tener la misma rutina asignada mas de una vez simultaneamente.
+- **Autoria**: Solo el profesor que creo una rutina puede editarla o eliminarla.
+- **Gimnasios**: El `Superusuario` es el unico capaz de crear gimnasios y definir su branding.
+- **Auth**: Los Refresh Tokens tienen rotacion; cuando se usa uno para renovar sesion, el token anterior queda invalidado.
+- **Primer Login**: El DNI es la contrasena inicial, pero el sistema obliga a cambiarla en el primer acceso.
+- **Membresias**: Un alumno solo puede tener **una membresia activa** a la vez. Las renovaciones no sobrescriben historial: la anterior pasa a `Vencida` y se crea un nuevo registro.
+- **Estado de acceso**: Se deriva de la membresia vigente (`Activo`, `Vencido`, `Moroso`, `Suspendido`, `Sin membresia`). No se persiste en `User`.
+- **Vencimiento automatico**: Al consultar o modificar membresias, las activas con `FechaVencimiento` vencida se marcan como `Vencida`.
+- **Planes**: Un plan con membresias asociadas no se elimina; se desactiva.
+- **Ingresos**: Cada ingreso debe quedar asociado a un alumno, una membresia valida, un gimnasio y un usuario `Terminal`.
 
-### API de Membresías (Fase 2)
+### Validaciones de Ingresos
+- Solo un usuario con rol `Terminal` puede registrar ingresos.
+- El DNI ingresado es obligatorio.
+- El alumno debe existir, estar activo y tener rol `Alumno`.
+- La terminal solo puede registrar ingresos para alumnos de su mismo gimnasio.
+- El alumno debe tener una membresia activa en ese gimnasio.
+- Si la membresia esta vencida, el ingreso se rechaza.
+- Si el plan no es `PaseLibre`, el sistema valida ingresos disponibles antes de registrar.
+- Si el plan define `DiasPorSemana`, el sistema bloquea ingresos que superen el limite semanal.
+- Cuando el ingreso es valido, se incrementa `IngresosUtilizados` en membresias que no sean `PaseLibre`.
+
+### Validaciones de Gimnasio
+- `Nombre` es obligatorio.
+- `DuenoNombreApellido` es obligatorio.
+- `ColorPrincipalHex` debe tener formato `#RRGGBB`.
+- Si `Moneda` no se informa, el backend usa `ARS` por defecto.
+
+---
+
+## API Principal
+
+### Membresias
 | Recurso | Ruta base | Roles |
 | :--- | :--- | :--- |
 | Planes | `GET/POST/PUT/DELETE /api/membershipplans` | Administrativo, Superusuario |
-| Membresías | `GET/POST /api/memberships`, `POST .../renew`, `POST .../cancel` | Lectura: Profesor+. Escritura: Administrativo+ |
+| Membresias | `GET/POST /api/memberships`, `POST /api/memberships/{studentId}/renew`, `POST /api/memberships/{id}/cancel` | Lectura: Profesor+. Escritura: Administrativo+ |
 | Acceso alumno | `GET /api/memberships/me/access` | Alumno |
+| Acceso de alumno puntual | `GET /api/memberships/student/{studentId}/access` | Profesor, Administrativo, Superusuario |
 | Pagos | `GET/POST/PUT/DELETE /api/payments` | Administrativo, Superusuario |
 
+### Ingresos
+| Recurso | Ruta base | Roles |
+| :--- | :--- | :--- |
+| Listado de ingresos | `GET /api/ingresos` | Superusuario, Administrativo |
+| Registro de ingreso | `POST /api/ingresos/registrar` | Terminal |
+
 ---
 
-## 📂 Estructura de Archivos
+## Estructura de Archivos
 
 ### Backend
-- `src/GymAdmin.Api/Controllers/`: Endpoints organizados por recurso.
-- `src/GymAdmin.Application/Services/`: Implementación de la lógica (ej: `RoutineService`).
-- `src/GymAdmin.Infrastructure/Data/Configurations/`: Configuración Fluent API para cada entidad.
-- `src/GymAdmin.Infrastructure/Seed/`: `DbSeeder` para datos iniciales.
+- `GymAdmin/src/GymAdmin.Api/Controllers/`: Endpoints organizados por recurso.
+- `GymAdmin/src/GymAdmin.Application/Services/`: Implementacion de logica de negocio.
+- `GymAdmin/src/GymAdmin.Infrastructure/Data/Configurations/`: Configuracion Fluent API por entidad.
+- `GymAdmin/src/GymAdmin.Infrastructure/Seed/`: Seed de datos iniciales.
 
 ### Frontend
-- `src/api/`: Servicios de Axios espejo de los controladores del backend.
-  - Membresías: `membership-plans.api.js`, `memberships.api.js`, `payments.api.js`
-- `src/stores/`: Stores de Pinia (auth, routine, user, **membership**).
-- `src/views/`: Vistas de la aplicación organizadas por módulos.
-- `src/components/ui/`: Componentes atómicos (AppButton, AppInput, AppModal).
+- `GymAdmin/src/api/`: Servicios Axios espejo del backend.
+- `GymAdmin/src/stores/`: Stores de Pinia.
+- `GymAdmin/src/views/`: Vistas organizadas por modulo.
+- `GymAdmin/src/components/ui/`: Componentes atomicos reutilizables.
 
 ---
 
-## 🛠️ Convenciones y Buenas Prácticas
-- **Nomenclatura**: Backend en C# (PascalCase), Frontend en JS (camelCase), Componentes Vue (PascalCase).
-- **Manejo de Errores**: Centralizado en el backend mediante `GlobalExceptionMiddleware`. El frontend debe capturar errores y mostrarlos vía `useNotification`.
-- **Inyección de Dependencias**: Siempre usar interfaces para los servicios.
-- **Estilos**: No usar colores arbitrarios; usar las clases `primary` y `dark` definidas en `tailwind.config.js`.
+## Convenciones y Buenas Practicas
+- **Nomenclatura**: Backend en C# con PascalCase; frontend en JS con camelCase; componentes Vue en PascalCase.
+- **Errores**: El backend centraliza errores en `GlobalExceptionMiddleware`. El frontend debe mostrarlos via notificaciones.
+- **Dependencias**: Usar interfaces para servicios de aplicacion.
+- **Roles**: No duplicar validacion de permisos en componentes si ya existe en router, store o API.
+- **Estilos**: Reutilizar tokens y clases del sistema visual; evitar colores arbitrarios fuera del branding definido.
 
 ---
 
-## ⚠️ NO HACER
-- **No** duplicar lógica de validación de roles en los componentes si ya está en el router/api.
-- **No** guardar contraseñas en texto plano (usar siempre BCrypt).
-- **No** exponer entidades de dominio directamente en los controladores (usar DTOs).
-- **No** usar `Any` en tipos de TypeScript/JavaScript si se puede evitar.
-- **No** realizar peticiones API directamente desde los componentes; usar siempre los `stores` de Pinia o los módulos de `src/api/`.
+## No Hacer
+- No duplicar logica de negocio de membresias o ingresos en el frontend.
+- No guardar contrasenas en texto plano.
+- No exponer entidades de dominio directamente desde controladores.
+- No usar `any` si existe una alternativa tipada razonable.
+- No hacer llamadas API directas desde componentes si ya existe store o modulo `src/api/`.
+- No permitir que una terminal opere sobre alumnos de otro gimnasio.
 
 ---
 
-## 🚀 Futuras Mejoras
-- Implementar **Google OAuth** como alternativa de login.
-- Integración con **Cloudinary** para subir fotos de ejercicios reales.
-- Generación de **PDFs** automáticos con códigos QR para las rutinas.
-- Dashboard con **gráficos de evolución** física para alumnos.
-- Módulo de **Asistencia** (QR Check-in).
+## Futuras Mejoras
+- Google OAuth como alternativa de login.
+- Integracion con Cloudinary para fotos de ejercicios.
+- PDFs con QR para rutinas.
+- Dashboard con metricas fisicas para alumnos.
+- Modulo de asistencia extendido sobre ingresos y check-in.
 
 ---
 
-## 🏆 Criterios de Calidad
-1.  **DRY (Don't Repeat Yourself)**: Evitar código duplicado.
-2.  **KISS (Keep It Simple, Stupid)**: No sobre-diseñar; priorizar la claridad.
-3.  **Responsive**: La UI debe funcionar perfectamente en móviles.
-4.  **Performante**: Minimizar peticiones redundantes y optimizar el tamaño de los bundles.
-5.  **Seguro**: Cumplir con los principios de OWASP (protección contra XSS, CSRF, Inyección).
+## Criterios de Calidad
+1. **DRY**: Evitar codigo duplicado.
+2. **KISS**: Priorizar claridad sobre sobre-diseno.
+3. **Responsive**: La UI debe funcionar correctamente en moviles.
+4. **Performante**: Minimizar peticiones redundantes y peso innecesario.
+5. **Seguro**: Respetar principios OWASP.
 
 ---
 
-**Última actualización**: 2026-05-15
-**Estado del Proyecto**: Arquitectura Multi-tenant completa, Branding dinámico operativo, **módulo de membresías (backend Fase 1–2)**.
+**Ultima actualizacion**: 2026-05-19
+**Estado del Proyecto**: Arquitectura multi-tenant operativa, modulo de membresias activo, y modulo de ingresos con rol `Terminal` y validaciones de acceso/membresia implementadas.
