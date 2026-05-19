@@ -1,1 +1,0 @@
-import{E as g}from"./index-wYfHnf1D.js";const p={getAll:()=>g.get("/gyms"),create:t=>g.post("/gyms",t),update:(t,s)=>g.put(`/gyms/${t}`,s),toggleStatus:t=>g.patch(`/gyms/${t}/toggle-status`)};export{p as gymsApi};

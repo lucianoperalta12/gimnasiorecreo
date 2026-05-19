@@ -1,1 +1,0 @@
-import{e as a}from"./index-wYfHnf1D.js";const i=a([]);let l=0;function m(){function t(n,c="success",r=4e3){const e=l++;i.value.push({id:e,message:n,type:c}),setTimeout(()=>{i.value=i.value.filter(f=>f.id!==e)},r)}function o(n){t(n,"success")}function s(n){t(n,"error")}function u(n){t(n,"warning")}return{notifications:i,notify:t,success:o,error:s,warning:u}}export{m as u};

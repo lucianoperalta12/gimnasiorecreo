@@ -1,1 +1,0 @@
-const i=[{value:"calentamientoInicial",label:"Calentamiento"},{value:"parteMedia",label:"Bloque Central"},{value:"fuerza",label:"Movilidad"}];function t(a=[]){return i.map(e=>({...e,ejercicios:a.filter(l=>l.bloque===e.value)}))}export{i as R,t as g};
