@@ -3,6 +3,8 @@ gym-frontend/dist/
 gym-frontend/.env.local
 GymAdmin/src/**/bin/
 GymAdmin/src/**/obj/
+GymAdminLauncher/**/bin/
+GymAdminLauncher/**/obj/
 GymAdmin/build-check/
 GymAdmin/build-verify/
 GymAdmin/src/GymAdmin.Api/gymadmin.db
