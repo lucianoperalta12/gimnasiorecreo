@@ -9,6 +9,7 @@ public class Gym
     public string ColorPrincipalHex { get; set; } = "#ff6600";
     public bool Activo { get; set; } = true;
     public string Moneda { get; set; } = "ARS"; // ARS o USD
+    public bool VeRutinas { get; set; } = true;
     public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
 
     public ICollection<User> Users { get; set; } = new List<User>();

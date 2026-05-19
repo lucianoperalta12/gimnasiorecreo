@@ -200,9 +200,18 @@ const allNavItems = [
   { to: '/users', label: 'Usuarios', icon: IconUsers, roles: ['Superusuario', 'Administrativo'] },
 ]
 
-const navItems = computed(() =>
-  allNavItems.filter(item => !item.roles || authStore.hasRole(...item.roles))
-)
+const navItems = computed(() => {
+  const isSuper = authStore.hasRole('Superusuario')
+  const veRutinas = authStore.user?.gymVeRutinas !== false // default true
+
+  return allNavItems.filter(item => {
+    if (item.roles && !authStore.hasRole(...item.roles)) return false
+    if (!isSuper && !veRutinas && ['/exercises', '/routines', '/assignments'].includes(item.to)) {
+      return false
+    }
+    return true
+  })
+})
 
 watch(
   () => authStore.user?.debeCambiarPassword,

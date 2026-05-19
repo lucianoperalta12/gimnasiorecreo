@@ -114,7 +114,7 @@
           </router-link>
         </div>
       </div>
-      <div v-else-if="!loadingRoutines" class="card p-8 text-center border-amber-500/20 bg-amber-500/5">
+      <div v-else-if="!loadingRoutines && authStore.user?.gymVeRutinas !== false" class="card p-8 text-center border-amber-500/20 bg-amber-500/5">
         <div class="text-3xl mb-3">⚠️</div>
         <p class="text-white font-semibold">Por favor regular tu situación</p>
         <p class="text-sm text-dark-400 mt-1">Para ver tus rutinas necesitas tener una membresía activa.</p>

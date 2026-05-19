@@ -1,8 +1,7 @@
 {
   "ExpandedNodes": [
-    "",
-    "\\gym-frontend",
-    "\\gym-frontend\\src"
+    ""
   ],
+  "SelectedNode": "\\GymAdmin\\src\\GymAdmin.Api\\Program.cs",
   "PreviewInSolutionExplorer": false
 }

@@ -16,12 +16,12 @@ public class GymService : IGymService
 
     public async Task<List<GymDto>> GetAllAsync() =>
         await _context.Gyms.AsNoTracking().OrderBy(g => g.Nombre)
-            .Select(g => new GymDto(g.Id, g.Nombre, g.DuenoNombreApellido, g.LogoUrl, g.ColorPrincipalHex, g.Activo, g.Moneda))
+            .Select(g => new GymDto(g.Id, g.Nombre, g.DuenoNombreApellido, g.LogoUrl, g.ColorPrincipalHex, g.Activo, g.Moneda, g.VeRutinas))
             .ToListAsync();
 
     public async Task<GymDto?> GetByIdAsync(int id) =>
         await _context.Gyms.AsNoTracking().Where(g => g.Id == id)
-            .Select(g => new GymDto(g.Id, g.Nombre, g.DuenoNombreApellido, g.LogoUrl, g.ColorPrincipalHex, g.Activo, g.Moneda))
+            .Select(g => new GymDto(g.Id, g.Nombre, g.DuenoNombreApellido, g.LogoUrl, g.ColorPrincipalHex, g.Activo, g.Moneda, g.VeRutinas))
             .FirstOrDefaultAsync();
 
     public async Task<GymDto> CreateAsync(CreateGymRequest request)
@@ -34,12 +34,13 @@ public class GymService : IGymService
             LogoUrl = request.LogoUrl?.Trim(),
             ColorPrincipalHex = request.ColorPrincipalHex.Trim(),
             Moneda = string.IsNullOrWhiteSpace(request.Moneda) ? "ARS" : request.Moneda.Trim(),
+            VeRutinas = request.VeRutinas,
             Activo = true
         };
 
         _context.Gyms.Add(gym);
         await _context.SaveChangesAsync();
-        return new GymDto(gym.Id, gym.Nombre, gym.DuenoNombreApellido, gym.LogoUrl, gym.ColorPrincipalHex, gym.Activo, gym.Moneda);
+        return new GymDto(gym.Id, gym.Nombre, gym.DuenoNombreApellido, gym.LogoUrl, gym.ColorPrincipalHex, gym.Activo, gym.Moneda, gym.VeRutinas);
     }
 
     public async Task<GymDto> UpdateAsync(int id, UpdateGymRequest request)
@@ -51,8 +52,9 @@ public class GymService : IGymService
         gym.LogoUrl = request.LogoUrl?.Trim();
         gym.ColorPrincipalHex = request.ColorPrincipalHex.Trim();
         gym.Moneda = string.IsNullOrWhiteSpace(request.Moneda) ? "ARS" : request.Moneda.Trim();
+        gym.VeRutinas = request.VeRutinas;
         await _context.SaveChangesAsync();
-        return new GymDto(gym.Id, gym.Nombre, gym.DuenoNombreApellido, gym.LogoUrl, gym.ColorPrincipalHex, gym.Activo, gym.Moneda);
+        return new GymDto(gym.Id, gym.Nombre, gym.DuenoNombreApellido, gym.LogoUrl, gym.ColorPrincipalHex, gym.Activo, gym.Moneda, gym.VeRutinas);
     }
 
     public async Task<GymDto> ToggleStatusAsync(int id)
@@ -60,7 +62,7 @@ public class GymService : IGymService
         var gym = await _context.Gyms.FindAsync(id) ?? throw new KeyNotFoundException("Gimnasio no encontrado.");
         gym.Activo = !gym.Activo;
         await _context.SaveChangesAsync();
-        return new GymDto(gym.Id, gym.Nombre, gym.DuenoNombreApellido, gym.LogoUrl, gym.ColorPrincipalHex, gym.Activo, gym.Moneda);
+        return new GymDto(gym.Id, gym.Nombre, gym.DuenoNombreApellido, gym.LogoUrl, gym.ColorPrincipalHex, gym.Activo, gym.Moneda, gym.VeRutinas);
     }
 
     private static void Validate(string nombre, string dueno, string color)

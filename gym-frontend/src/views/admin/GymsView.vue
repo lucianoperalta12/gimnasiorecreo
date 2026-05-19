@@ -45,6 +45,7 @@
               <div class="flex items-center gap-2 mt-0.5">
                 <p class="text-[11px] text-dark-500 truncate">{{ gym.duenoNombreApellido }}</p>
                 <span class="text-[9px] px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-400 font-bold">{{ gym.moneda }}</span>
+                <span :class="gym.veRutinas ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'" class="text-[9px] px-1.5 py-0.5 rounded-md font-bold">{{ gym.veRutinas ? 'Ve Rutinas' : 'No Rutinas' }}</span>
               </div>
             </div>
             <span :class="gym.activo ? 'badge-success' : 'badge-danger'" class="text-[10px] shrink-0">{{ gym.activo ? 'Activo' : 'Inactivo' }}</span>
@@ -73,6 +74,7 @@
               <th class="px-4 py-3 text-xs font-semibold text-dark-400 uppercase tracking-wider">Dueño</th>
               <th class="px-4 py-3 text-xs font-semibold text-dark-400 uppercase tracking-wider">Moneda</th>
               <th class="px-4 py-3 text-xs font-semibold text-dark-400 uppercase tracking-wider">Color</th>
+              <th class="px-4 py-3 text-xs font-semibold text-dark-400 uppercase tracking-wider">Rutinas</th>
               <th class="px-4 py-3 text-xs font-semibold text-dark-400 uppercase tracking-wider">Estado</th>
               <th class="px-4 py-3 text-xs font-semibold text-dark-400 uppercase tracking-wider text-right">Acciones</th>
             </tr>
@@ -95,6 +97,9 @@
                   <span class="w-5 h-5 rounded border border-dark-700" :style="{ backgroundColor: gym.colorPrincipalHex }" />
                   <span class="text-dark-400">{{ gym.colorPrincipalHex }}</span>
                 </div>
+              </td>
+              <td class="px-4 py-3">
+                <span :class="gym.veRutinas ? 'badge-success' : 'badge-danger'">{{ gym.veRutinas ? 'Sí' : 'No' }}</span>
               </td>
               <td class="px-4 py-3">
                 <span :class="gym.activo ? 'badge-success' : 'badge-danger'">{{ gym.activo ? 'Activo' : 'Inactivo' }}</span>
@@ -132,6 +137,20 @@
             <option value="USD">Dólares (USD)</option>
           </select>
         </div>
+        <div class="sm:col-span-2 flex items-center justify-between p-3.5 rounded-xl bg-dark-900 border border-dark-800">
+          <div>
+            <label class="font-bold text-white text-sm">Ve Rutinas</label>
+            <p class="text-xs text-dark-500 mt-0.5">Permite a los usuarios acceder a Ejercicios, Rutinas y Asignaciones</p>
+          </div>
+          <button
+            type="button"
+            class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none"
+            :class="form.veRutinas ? 'bg-emerald-600' : 'bg-dark-700'"
+            @click="form.veRutinas = !form.veRutinas"
+          >
+            <span class="inline-block h-4 w-4 rounded-full bg-white transition-transform" :class="form.veRutinas ? 'translate-x-6' : 'translate-x-1'" />
+          </button>
+        </div>
         <p v-if="formError" class="sm:col-span-2 text-sm text-red-400">{{ formError }}</p>
         <div class="sm:col-span-2 flex justify-end gap-3">
           <button type="button" class="btn-secondary" @click="showModal = false">Cancelar</button>
@@ -160,7 +179,7 @@ const saving = ref(false)
 const showModal = ref(false)
 const editingGym = ref(null)
 const formError = ref('')
-const form = reactive({ nombre: '', duenoNombreApellido: '', logoUrl: '', colorPrincipalHex: '#ff6600', moneda: 'ARS' })
+const form = reactive({ nombre: '', duenoNombreApellido: '', logoUrl: '', colorPrincipalHex: '#ff6600', moneda: 'ARS', veRutinas: true })
 
 async function load() {
   loading.value = true
@@ -180,6 +199,7 @@ function resetForm() {
   form.logoUrl = ''
   form.colorPrincipalHex = '#ff6600'
   form.moneda = 'ARS'
+  form.veRutinas = true
   formError.value = ''
 }
 
@@ -196,6 +216,7 @@ function openEditModal(gym) {
   form.logoUrl = gym.logoUrl || ''
   form.colorPrincipalHex = gym.colorPrincipalHex
   form.moneda = gym.moneda || 'ARS'
+  form.veRutinas = gym.veRutinas !== false
   formError.value = ''
   showModal.value = true
 }

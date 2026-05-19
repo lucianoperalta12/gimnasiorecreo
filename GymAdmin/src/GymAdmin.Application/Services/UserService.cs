@@ -22,10 +22,12 @@ public class UserService : IUserService
                 u.Id, u.Nombre, u.Apellido, u.Email, u.Dni, Rol = u.Rol, u.Activo, u.DebeCambiarPassword, u.GymId, 
                 GymNombre = u.Gym != null ? u.Gym.Nombre : null, 
                 GymColor = u.Gym != null ? u.Gym.ColorPrincipalHex : null, 
-                GymLogo = u.Gym != null ? u.Gym.LogoUrl : null, u.FechaCreacion
+                GymLogo = u.Gym != null ? u.Gym.LogoUrl : null,
+                GymVeRutinas = u.Gym != null ? u.Gym.VeRutinas : true,
+                u.FechaCreacion
             }).ToListAsync();
 
-        return data.Select(u => new UserDto(u.Id, u.Nombre, u.Apellido, u.Email, u.Dni, u.Rol.ToString(), u.Activo, u.DebeCambiarPassword, u.GymId, u.GymNombre, u.GymColor, u.GymLogo, u.FechaCreacion)).ToList();
+        return data.Select(u => new UserDto(u.Id, u.Nombre, u.Apellido, u.Email, u.Dni, u.Rol.ToString(), u.Activo, u.DebeCambiarPassword, u.GymId, u.GymNombre, u.GymColor, u.GymLogo, u.GymVeRutinas, u.FechaCreacion)).ToList();
     }
 
     public async Task<UserDto?> GetUserByIdAsync(int requesterId, int id)
@@ -38,11 +40,13 @@ public class UserService : IUserService
                 u.Id, u.Nombre, u.Apellido, u.Email, u.Dni, Rol = u.Rol, u.Activo, u.DebeCambiarPassword, u.GymId, 
                 GymNombre = u.Gym != null ? u.Gym.Nombre : null, 
                 GymColor = u.Gym != null ? u.Gym.ColorPrincipalHex : null, 
-                GymLogo = u.Gym != null ? u.Gym.LogoUrl : null, u.FechaCreacion
+                GymLogo = u.Gym != null ? u.Gym.LogoUrl : null,
+                GymVeRutinas = u.Gym != null ? u.Gym.VeRutinas : true,
+                u.FechaCreacion
             }).FirstOrDefaultAsync();
 
         if (u == null) return null;
-        return new UserDto(u.Id, u.Nombre, u.Apellido, u.Email, u.Dni, u.Rol.ToString(), u.Activo, u.DebeCambiarPassword, u.GymId, u.GymNombre, u.GymColor, u.GymLogo, u.FechaCreacion);
+        return new UserDto(u.Id, u.Nombre, u.Apellido, u.Email, u.Dni, u.Rol.ToString(), u.Activo, u.DebeCambiarPassword, u.GymId, u.GymNombre, u.GymColor, u.GymLogo, u.GymVeRutinas, u.FechaCreacion);
     }
 
     public async Task<List<UserDto>> GetStudentsAsync(int requesterId)
@@ -56,10 +60,12 @@ public class UserService : IUserService
                 u.Id, u.Nombre, u.Apellido, u.Email, u.Dni, Rol = u.Rol, u.Activo, u.DebeCambiarPassword, u.GymId, 
                 GymNombre = u.Gym != null ? u.Gym.Nombre : null, 
                 GymColor = u.Gym != null ? u.Gym.ColorPrincipalHex : null, 
-                GymLogo = u.Gym != null ? u.Gym.LogoUrl : null, u.FechaCreacion
+                GymLogo = u.Gym != null ? u.Gym.LogoUrl : null,
+                GymVeRutinas = u.Gym != null ? u.Gym.VeRutinas : true,
+                u.FechaCreacion
             }).ToListAsync();
 
-        return data.Select(u => new UserDto(u.Id, u.Nombre, u.Apellido, u.Email, u.Dni, u.Rol.ToString(), u.Activo, u.DebeCambiarPassword, u.GymId, u.GymNombre, u.GymColor, u.GymLogo, u.FechaCreacion)).ToList();
+        return data.Select(u => new UserDto(u.Id, u.Nombre, u.Apellido, u.Email, u.Dni, u.Rol.ToString(), u.Activo, u.DebeCambiarPassword, u.GymId, u.GymNombre, u.GymColor, u.GymLogo, u.GymVeRutinas, u.FechaCreacion)).ToList();
     }
 
     public async Task<UserDto> CreateUserAsync(int requesterId, CreateUserRequest request)

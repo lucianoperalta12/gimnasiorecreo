@@ -13,6 +13,7 @@ public record UserDto(
     string? GymNombre,
     string? GymColorPrincipalHex,
     string? GymLogoUrl,
+    bool GymVeRutinas,
     DateTime FechaCreacion
 );
 

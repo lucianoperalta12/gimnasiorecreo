@@ -16,6 +16,7 @@ public class GymConfiguration : IEntityTypeConfiguration<Gym>
         builder.Property(g => g.LogoUrl).HasMaxLength(500);
         builder.Property(g => g.ColorPrincipalHex).IsRequired().HasMaxLength(7);
         builder.Property(g => g.Activo).HasDefaultValue(true);
+        builder.Property(g => g.VeRutinas).HasDefaultValue(true);
         builder.Property(g => g.FechaCreacion).HasDefaultValueSql("CURRENT_TIMESTAMP");
     }
 }

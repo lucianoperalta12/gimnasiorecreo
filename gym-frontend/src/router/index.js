@@ -142,6 +142,13 @@ router.beforeEach((to, from, next) => {
     }
   }
 
+  // Check if routines/exercises/assignments routes are requested but veRutinas is disabled
+  if (['exercises', 'routines', 'assignments'].some(path => to.path.includes(path))) {
+    if (authStore.user?.rol !== 'Superusuario' && authStore.user?.gymVeRutinas === false) {
+      return next('/')
+    }
+  }
+
   next()
 })
 
