@@ -1,6 +1,6 @@
 <template>
-  <div class="animate-fade-in">
-    <div v-if="authStore.hasRole('Terminal')" class="min-h-[calc(100vh-16rem)] flex flex-col items-center justify-center p-2 sm:p-4">
+  <div class="animate-fade-in flex-1 flex flex-col h-full">
+    <div v-if="authStore.hasRole('Terminal')" class="flex-1 flex flex-col items-center justify-center w-full">
       <div class="w-full max-w-3xl text-center mb-6 sm:mb-8">
         <h2 class="text-xs sm:text-base font-black tracking-[0.25em] text-dark-400 uppercase">
           Ingresá el DNI del Alumno

@@ -113,36 +113,36 @@
     </div>
   </div>
 
-  <div v-else class="min-h-screen bg-dark-950 flex flex-col">
-    <header class="h-[75px] bg-[#0c0c0c] border-b border-dark-900/60 flex items-center justify-between px-4 sm:px-10">
-      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+  <div v-else class="h-[100dvh] w-full overflow-hidden bg-dark-950 flex flex-col">
+    <header class="h-[65px] sm:h-[75px] bg-[#0c0c0c] border-b border-dark-900/60 flex items-center justify-between px-3 sm:px-8 shrink-0">
+      <div class="flex items-center gap-2 sm:gap-4 min-w-0">
         <img v-if="logoUrl" :src="logoUrl" alt="Logo" class="h-8 sm:h-10 w-auto object-contain opacity-90 flex-shrink-0" />
         <div class="min-w-0">
-          <p class="text-xs sm:text-base font-black text-white uppercase tracking-wider leading-none mb-1 truncate">{{ user?.gymNombre || 'Terminal' }}</p>
-          <p class="text-[8px] sm:text-[10px] text-dark-500 uppercase tracking-[0.15em] font-bold truncate">Terminal de asistencia</p>
+          <p class="text-sm sm:text-lg font-black text-white uppercase tracking-widest leading-none mb-1 truncate">{{ user?.gymNombre || 'Terminal' }}</p>
+          <p class="text-[9px] sm:text-[11px] text-dark-500 uppercase tracking-[0.2em] font-bold truncate">Terminal de asistencia</p>
         </div>
       </div>
 
-      <div class="flex items-center gap-3 sm:gap-6 flex-shrink-0 ml-2">
-        <div class="flex items-center gap-1.5 text-right">
-          <svg class="w-3.5 h-3.5 text-dark-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+      <div class="flex items-center gap-3 sm:gap-6 flex-shrink-0">
+        <div class="flex items-center gap-2 text-right">
+          <svg class="w-4 h-4 sm:w-5 sm:h-5 text-dark-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
           </svg>
           <div>
-            <p class="text-xs sm:text-sm font-bold text-white leading-none mb-0.5">{{ timeString }}</p>
-            <p class="text-[8px] sm:text-[9px] font-bold text-dark-500 tracking-wider">{{ dateString }}</p>
+            <p class="text-sm sm:text-base font-black text-white leading-none mb-0.5">{{ timeString }}</p>
+            <p class="text-[9px] sm:text-[10px] font-bold text-dark-500 tracking-widest">{{ dateString }}</p>
           </div>
         </div>
         
-        <button @click="handleLogout" class="p-1.5 sm:p-2 rounded-lg text-primary-600 hover:bg-primary-600/10 hover:text-primary-600 transition-all active:scale-90" title="Cerrar sesión">
-          <svg class="w-4.5 h-4.5 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <button @click="handleLogout" class="p-1.5 sm:p-2 rounded-lg text-primary-600 hover:bg-primary-600/10 transition-all active:scale-90" title="Cerrar sesión">
+          <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
           </svg>
         </button>
       </div>
     </header>
 
-    <main class="flex-1 flex flex-col p-6">
+    <main class="flex-1 flex flex-col p-4 sm:p-6 overflow-hidden">
       <router-view />
     </main>
   </div>
