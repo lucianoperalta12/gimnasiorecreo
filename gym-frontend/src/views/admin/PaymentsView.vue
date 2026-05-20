@@ -25,7 +25,7 @@
       </div>
     </div>
 
-    <div class="mb-4 flex flex-wrap gap-3 items-center">
+    <div class="mb-6 flex flex-wrap gap-3 items-center w-full">
       <input v-model="search" type="text" placeholder="Buscar alumno..." class="input max-w-sm" />
       <div class="flex items-center gap-2">
         <label class="text-xs text-dark-400 font-medium">Desde:</label>
@@ -43,44 +43,35 @@
         class="w-full max-w-xs"
         @update:model-value="loadData"
       />
+      <div v-if="filteredPayments.length" class="ml-auto text-xl font-black text-emerald-400 select-none tracking-tight">
+        {{ formatCurrency(totalAmount) }}
+      </div>
     </div>
 
     <LoadingSpinner v-if="store.loading" />
 
     <template v-else>
-      <!-- Resumen de Totales -->
-      <div v-if="filteredPayments.length" class="mb-4 flex items-center justify-between px-5 py-3 rounded-xl bg-dark-900/30 border border-dark-800/40 text-xs font-semibold text-dark-300 animate-fade-in">
-        <span>Total recaudado ({{ filteredPayments.length }} pagos)</span>
-        <span class="text-base font-black text-emerald-400 tracking-tight">{{ formatCurrency(totalAmount) }}</span>
-      </div>
 
       <!-- Mobile List (< md) -->
-      <div v-if="filteredPayments.length" class="md:hidden space-y-3">
-        <div v-for="p in paginatedPayments" :key="p.id" class="p-4 rounded-2xl bg-dark-900/40 border border-dark-800/50 flex flex-col gap-3">
-          <div class="flex items-center justify-between">
-            <h3 class="font-semibold text-white">{{ p.alumnoNombreCompleto }}</h3>
-            <span :class="membershipEstadoBadgeClass(p.estado)" class="text-[10px]">{{ p.estado }}</span>
-          </div>
-          <div class="space-y-1.5">
-            <div class="flex items-center justify-between text-xs">
-              <span class="text-dark-400">Monto:</span>
-              <span class="text-primary-400 font-bold">{{ formatCurrency(p.monto) }}</span>
+      <div v-if="filteredPayments.length" class="md:hidden space-y-2">
+        <div v-for="p in paginatedPayments" :key="p.id" class="p-3.5 rounded-xl bg-dark-900/30 border border-dark-800/40 flex flex-col gap-2">
+          <div class="flex items-start justify-between gap-2">
+            <div class="min-w-0">
+              <h3 class="font-bold text-sm text-white truncate">{{ p.alumnoNombreCompleto }}</h3>
+              <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1 text-[11px] text-dark-500">
+                <span>{{ formatDate(p.fechaPago) }}</span>
+                <span class="text-dark-700">•</span>
+                <span>{{ p.metodoPago || '—' }}</span>
+              </div>
             </div>
-            <div class="flex items-center justify-between text-xs">
-              <span class="text-dark-400">Fecha:</span>
-              <span class="text-dark-300">{{ formatDateTime(p.fechaPago) }}</span>
-            </div>
-            <div class="flex items-center justify-between text-xs">
-              <span class="text-dark-400">Método:</span>
-              <span class="text-dark-300">{{ p.metodoPago || '—' }}</span>
+            <div class="flex flex-col items-end gap-1 shrink-0">
+              <span class="text-sm font-black text-emerald-400">{{ formatCurrency(p.monto) }}</span>
+              <span :class="membershipEstadoBadgeClass(p.estado)" class="text-[9px] px-1.5 py-0.5 font-black uppercase tracking-wider rounded">{{ p.estado }}</span>
             </div>
           </div>
-          <div class="flex items-center gap-2 mt-1">
-            <button class="btn-secondary btn-sm flex-1 text-xs" @click="openEditModal(p)">Editar</button>
-            <button class="btn-secondary btn-sm flex-1 text-xs text-red-400 flex items-center justify-center gap-1" @click="confirmDelete(p)">
-              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-              Eliminar
-            </button>
+          <div class="border-t border-dark-900/50 pt-2 flex items-center justify-end gap-4">
+            <button class="text-xs font-bold text-dark-400 hover:text-white transition-colors" @click="openEditModal(p)">Editar</button>
+            <button class="text-xs font-bold text-red-500/80 hover:text-red-400 transition-colors" @click="confirmDelete(p)">Eliminar</button>
           </div>
         </div>
       </div>
