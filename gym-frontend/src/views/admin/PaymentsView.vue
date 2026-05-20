@@ -48,6 +48,24 @@
     <LoadingSpinner v-if="store.loading" />
 
     <template v-else>
+      <!-- Resumen de Totales -->
+      <div v-if="filteredPayments.length" class="mb-5 p-4 rounded-2xl bg-dark-900/40 border border-dark-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fade-in">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 shrink-0">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+          </div>
+          <div>
+            <p class="text-[10px] font-black text-dark-500 uppercase tracking-[0.15em] leading-none mb-1">Total Recaudado (Filtrado)</p>
+            <p class="text-[11px] text-dark-400">Suma de los {{ filteredPayments.length }} pagos que coinciden con los filtros</p>
+          </div>
+        </div>
+        <div class="text-left sm:text-right">
+          <span class="text-2xl font-black text-emerald-400 tracking-tight">{{ formatCurrency(totalAmount) }}</span>
+        </div>
+      </div>
+
       <!-- Mobile List (< md) -->
       <div v-if="filteredPayments.length" class="md:hidden space-y-3">
         <div v-for="p in paginatedPayments" :key="p.id" class="p-4 rounded-2xl bg-dark-900/40 border border-dark-800/50 flex flex-col gap-3">
@@ -262,6 +280,10 @@ const filteredPayments = computed(() => {
     const d = new Date(p.fechaPago).getTime()
     return d >= from && d <= to && p.alumnoNombreCompleto.toLowerCase().includes(q)
   })
+})
+
+const totalAmount = computed(() => {
+  return filteredPayments.value.reduce((sum, p) => sum + (p.monto || 0), 0)
 })
 
 const totalPages = computed(() => Math.ceil(filteredPayments.value.length / pageSize.value) || 1)
