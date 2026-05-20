@@ -203,7 +203,7 @@
           <AppInput v-model="paymentForm.planNombre" label="Plan" disabled />
         </div>
         <div class="grid grid-cols-2 gap-4">
-          <AppInput v-model.number="paymentForm.monto" label="Monto" type="number" min="0" step="0.01" />
+          <AppInput v-model="paymentForm.monto" label="Precio" type="text" @input="onMontoInput" />
           <AppInput v-model="paymentForm.fechaPago" label="Fecha de pago" type="datetime-local" />
         </div>
         <div class="grid grid-cols-2 gap-4">
@@ -265,7 +265,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMembershipStore } from '@/stores/membership.store'
 import { useUserStore } from '@/stores/user.store'
@@ -318,7 +318,7 @@ const paymentForm = reactive({
   membresiaId: 0,
   alumnoNombre: '',
   planNombre: '',
-  monto: 0,
+  monto: '',
   fechaPago: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16),
   metodoPago: 'Efectivo',
   estado: 'Completado',
@@ -472,7 +472,7 @@ async function handleCreate(andPay = false) {
       paymentForm.membresiaId = created.id
       paymentForm.alumnoNombre = `${created.alumnoNombre} ${created.alumnoApellido}`.trim()
       paymentForm.planNombre = created.planNombre
-      paymentForm.monto = created.planPrecio
+      paymentForm.monto = formatNumberWithDots(created.planPrecio)
       paymentForm.fechaPago = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)
       paymentForm.metodoPago = 'Efectivo'
       paymentForm.estado = 'Completado'
@@ -491,7 +491,7 @@ async function handlePaymentSubmit() {
   try {
     await store.createPayment({
       membresiaId: paymentForm.membresiaId,
-      monto: Number(paymentForm.monto),
+      monto: parseFormattedNumber(paymentForm.monto),
       fechaPago: paymentForm.fechaPago,
       metodoPago: paymentForm.metodoPago,
       estado: paymentForm.estado,
@@ -522,7 +522,7 @@ async function handleRenew(andPay = false) {
       paymentForm.membresiaId = renewed.id
       paymentForm.alumnoNombre = `${renewed.alumnoNombre} ${renewed.alumnoApellido}`.trim()
       paymentForm.planNombre = renewed.planNombre
-      paymentForm.monto = renewed.planPrecio
+      paymentForm.monto = formatNumberWithDots(renewed.planPrecio)
       paymentForm.fechaPago = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)
       paymentForm.metodoPago = 'Efectivo'
       paymentForm.estado = 'Completado'
@@ -560,4 +560,42 @@ onMounted(async () => {
     loadMemberships()
   ])
 })
+
+function formatNumberWithDots(val) {
+  if (val === null || val === undefined || val === '') return ''
+  let str = String(val).replace(/\./g, '')
+  str = str.replace(/[^0-9,]/g, '')
+  const parts = str.split(',')
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+  if (parts.length > 2) {
+    return parts[0] + ',' + parts.slice(1).join('')
+  }
+  return parts.join(',')
+}
+
+function parseFormattedNumber(val) {
+  if (val === null || val === undefined || val === '') return 0
+  const clean = String(val).replace(/\./g, '').replace(/,/g, '.')
+  const num = Number(clean)
+  return isNaN(num) ? 0 : num
+}
+
+function onMontoInput(event) {
+  const input = event.target
+  const value = input.value
+  const formatted = formatNumberWithDots(value)
+  
+  const selectionStart = input.selectionStart
+  const oldLength = value.length
+  
+  paymentForm.monto = formatted
+  input.value = formatted
+  
+  nextTick(() => {
+    const newLength = formatted.length
+    const diff = newLength - oldLength
+    const newCursorPos = selectionStart + diff
+    input.setSelectionRange(newCursorPos, newCursorPos)
+  })
+}
 </script>

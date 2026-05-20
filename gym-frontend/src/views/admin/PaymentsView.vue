@@ -159,7 +159,7 @@
         <AppSearchSelect v-model="form.membresiaId" label="Alumno (Membresía Activa)" placeholder="Buscar alumno..." :options="studentOptions" />
         
         <div class="grid grid-cols-2 gap-4">
-          <AppInput v-model.number="form.monto" label="Monto" type="number" min="0" step="0.01" />
+          <AppInput v-model="form.monto" label="Precio" type="text" @input="onMontoInput" />
           <AppInput v-model="form.fechaPago" label="Fecha de pago" type="datetime-local" />
         </div>
         
@@ -201,7 +201,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMembershipStore } from '@/stores/membership.store'
 import { useAuthStore } from '@/stores/auth.store'
@@ -236,7 +236,7 @@ const currentPage = ref(1)
 
 const form = reactive({
   membresiaId: null,
-  monto: 0,
+  monto: '',
   fechaPago: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16),
   metodoPago: 'Efectivo',
   estado: 'Completado',
@@ -310,7 +310,7 @@ watch(() => form.membresiaId, (newId) => {
     if (membership) {
       const plan = store.plans.find(p => p.nombre === membership.planNombre)
       if (plan) {
-        form.monto = plan.precio
+        form.monto = formatNumberWithDots(plan.precio)
       }
     }
   }
@@ -320,7 +320,7 @@ function openCreateModal() {
   editingPayment.value = null
   Object.assign(form, {
     membresiaId: null,
-    monto: 0,
+    monto: '',
     fechaPago: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16),
     metodoPago: 'Efectivo',
     estado: 'Completado',
@@ -333,7 +333,7 @@ function openEditModal(p) {
   editingPayment.value = p
   Object.assign(form, {
     membresiaId: p.membresiaId,
-    monto: p.monto,
+    monto: formatNumberWithDots(p.monto),
     fechaPago: p.fechaPago ? new Date(new Date(p.fechaPago).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : '',
     metodoPago: p.metodoPago || 'Efectivo',
     estado: p.estado,
@@ -350,7 +350,7 @@ function confirmDelete(p) {
 async function handleSubmit() {
   saving.value = true
   try {
-    const payload = { ...form, monto: Number(form.monto), membresiaId: Number(form.membresiaId) }
+    const payload = { ...form, monto: parseFormattedNumber(form.monto), membresiaId: Number(form.membresiaId) }
     if (editingPayment.value) {
       await store.updatePayment(editingPayment.value.id, payload)
       success('Pago actualizado')
@@ -395,4 +395,42 @@ onMounted(async () => {
   await store.fetchPlans()
   await loadData()
 })
+
+function formatNumberWithDots(val) {
+  if (val === null || val === undefined || val === '') return ''
+  let str = String(val).replace(/\./g, '')
+  str = str.replace(/[^0-9,]/g, '')
+  const parts = str.split(',')
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+  if (parts.length > 2) {
+    return parts[0] + ',' + parts.slice(1).join('')
+  }
+  return parts.join(',')
+}
+
+function parseFormattedNumber(val) {
+  if (val === null || val === undefined || val === '') return 0
+  const clean = String(val).replace(/\./g, '').replace(/,/g, '.')
+  const num = Number(clean)
+  return isNaN(num) ? 0 : num
+}
+
+function onMontoInput(event) {
+  const input = event.target
+  const value = input.value
+  const formatted = formatNumberWithDots(value)
+  
+  const selectionStart = input.selectionStart
+  const oldLength = value.length
+  
+  form.monto = formatted
+  input.value = formatted
+  
+  nextTick(() => {
+    const newLength = formatted.length
+    const diff = newLength - oldLength
+    const newCursorPos = selectionStart + diff
+    input.setSelectionRange(newCursorPos, newCursorPos)
+  })
+}
 </script>
