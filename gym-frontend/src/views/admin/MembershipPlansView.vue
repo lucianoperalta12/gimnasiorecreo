@@ -110,7 +110,7 @@
         <textarea v-model="form.descripcion" rows="2" class="input" placeholder="Descripción opcional" />
         <div class="grid grid-cols-2 gap-4">
           <AppInput v-model.number="form.duracionDias" label="Duración (días)" type="number" min="1" />
-          <AppInput v-model.number="form.precio" label="Precio" type="number" min="0" step="0.01" />
+          <AppInput v-model="form.precio" label="Precio" type="text" @input="onPrecioInput" />
         </div>
 
         <div class="flex items-center justify-between p-3 rounded-xl bg-dark-900/50 border border-dark-800">
@@ -165,7 +165,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMembershipStore } from '@/stores/membership.store'
 import { useAuthStore } from '@/stores/auth.store'
@@ -191,7 +191,7 @@ const saving = ref(false)
 const editingPlan = ref(null)
 const deletingPlan = ref(null)
 
-const form = reactive({ nombre: '', descripcion: '', duracionDias: 30, precio: 0, paseLibre: true, diasPorSemana: 3, activo: true, gymId: 0 })
+const form = reactive({ nombre: '', descripcion: '', duracionDias: 30, precio: '', paseLibre: true, diasPorSemana: 3, activo: true, gymId: 0 })
 
 const filteredPlans = computed(() => {
   const q = search.value.toLowerCase()
@@ -200,13 +200,13 @@ const filteredPlans = computed(() => {
 
 function openCreateModal() {
   editingPlan.value = null
-  Object.assign(form, { nombre: '', descripcion: '', duracionDias: 30, precio: 0, paseLibre: true, diasPorSemana: 3, activo: true, gymId: authStore.user?.gymId || 0 })
+  Object.assign(form, { nombre: '', descripcion: '', duracionDias: 30, precio: '', paseLibre: true, diasPorSemana: 3, activo: true, gymId: authStore.user?.gymId || 0 })
   showModal.value = true
 }
 
 function openEditModal(plan) {
   editingPlan.value = plan
-  Object.assign(form, { nombre: plan.nombre, descripcion: plan.descripcion || '', duracionDias: plan.duracionDias, precio: plan.precio, paseLibre: plan.paseLibre, diasPorSemana: plan.diasPorSemana || 3, activo: plan.activo, gymId: plan.gymId })
+  Object.assign(form, { nombre: plan.nombre, descripcion: plan.descripcion || '', duracionDias: plan.duracionDias, precio: formatNumberWithDots(plan.precio), paseLibre: plan.paseLibre, diasPorSemana: plan.diasPorSemana || 3, activo: plan.activo, gymId: plan.gymId })
   showModal.value = true
 }
 
@@ -226,7 +226,7 @@ async function handleSubmit() {
       nombre: form.nombre, 
       descripcion: form.descripcion || null, 
       duracionDias: Number(form.duracionDias), 
-      precio: Number(form.precio), 
+      precio: parseFormattedNumber(form.precio), 
       paseLibre: form.paseLibre,
       diasPorSemana: form.paseLibre ? null : Number(form.diasPorSemana),
       activo: form.activo 
@@ -266,4 +266,42 @@ onMounted(async () => {
   }
   await loadPlans()
 })
+
+function formatNumberWithDots(val) {
+  if (val === null || val === undefined || val === '') return ''
+  let str = String(val).replace(/\./g, '')
+  str = str.replace(/[^0-9,]/g, '')
+  const parts = str.split(',')
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+  if (parts.length > 2) {
+    return parts[0] + ',' + parts.slice(1).join('')
+  }
+  return parts.join(',')
+}
+
+function parseFormattedNumber(val) {
+  if (val === null || val === undefined || val === '') return 0
+  const clean = String(val).replace(/\./g, '').replace(/,/g, '.')
+  const num = Number(clean)
+  return isNaN(num) ? 0 : num
+}
+
+function onPrecioInput(event) {
+  const input = event.target
+  const value = input.value
+  const formatted = formatNumberWithDots(value)
+  
+  const selectionStart = input.selectionStart
+  const oldLength = value.length
+  
+  form.precio = formatted
+  input.value = formatted
+  
+  nextTick(() => {
+    const newLength = formatted.length
+    const diff = newLength - oldLength
+    const newCursorPos = selectionStart + diff
+    input.setSelectionRange(newCursorPos, newCursorPos)
+  })
+}
 </script>
