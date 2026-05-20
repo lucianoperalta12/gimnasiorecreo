@@ -13,20 +13,31 @@
       </div>
 
       <!-- Navigation -->
-      <nav class="flex-1 overflow-y-auto p-1 space-y-1 custom-scrollbar">
-        <router-link
-          v-for="item in navItems"
-          :key="item.to"
-          :to="item.to"
-          class="flex items-center gap-4 px-5 py-3.5 rounded-xl text-[15px] font-semibold transition-all duration-300 group"
-          :class="$route.path === item.to || $route.path.startsWith(item.to + '/')
-            ? 'bg-primary-600/10 text-primary-600'
-            : 'text-dark-400 hover:text-dark-200 hover:bg-dark-900/50'"
-          @click="sidebarOpen = false"
-        >
-          <component :is="item.icon" class="w-6 h-6 transition-colors" :class="$route.path === item.to ? 'text-primary-600' : 'text-dark-400 group-hover:text-dark-200'" />
-          {{ item.label }}
-        </router-link>
+      <nav class="flex-1 overflow-y-auto p-3 space-y-4 custom-scrollbar">
+        <div v-for="(group, idx) in menuGroups" :key="group.id" class="space-y-1.5">
+          <!-- Separator for groups after the first one -->
+          <div v-if="idx > 0" class="border-t border-dark-900/40 my-3 mx-2" />
+          
+          <!-- Group Title -->
+          <div v-if="group.title" class="px-4 pb-1 text-[10px] font-black uppercase tracking-[0.2em] text-dark-500">
+            {{ group.title }}
+          </div>
+
+          <!-- Group Items -->
+          <router-link
+            v-for="item in group.items"
+            :key="item.to"
+            :to="item.to"
+            class="flex items-center gap-4 px-4 py-3 rounded-xl text-[15px] font-semibold transition-all duration-300 group"
+            :class="$route.path === item.to || $route.path.startsWith(item.to + '/')
+              ? 'bg-primary-600/10 text-primary-600'
+              : 'text-dark-400 hover:text-dark-200 hover:bg-dark-900/50'"
+            @click="sidebarOpen = false"
+          >
+            <component :is="item.icon" class="w-6 h-6 transition-colors" :class="$route.path === item.to ? 'text-primary-600' : 'text-dark-400 group-hover:text-dark-200'" />
+            {{ item.label }}
+          </router-link>
+        </div>
       </nav>
 
       <!-- User info at bottom -->
@@ -243,31 +254,71 @@ const IconClock = (_, { attrs }) => h('svg', { ...attrs, fill: 'none', viewBox: 
   h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' })
 ])
 
-const allNavItems = [
-  { to: '/', label: 'Panel Principal', icon: IconDashboard, roles: null },
-  { to: '/memberships', label: 'Membresías', icon: IconMembership, roles: ['Superusuario', 'Administrativo'] },
-  { to: '/membership-plans', label: 'Planes', icon: IconPlan, roles: ['Superusuario', 'Administrativo'] },
-  { to: '/payments', label: 'Pagos', icon: IconPayment, roles: ['Superusuario', 'Administrativo'] },
-  { to: '/ingresos', label: 'Ingresos', icon: IconClock, roles: ['Superusuario', 'Administrativo'] },
-  { to: '/exercises', label: 'Ejercicios', icon: IconDumbbell, roles: ['Profesor', 'Superusuario', 'Administrativo'] },
-  { to: '/routines', label: 'Rutinas', icon: IconClipboard, roles: ['Profesor', 'Superusuario', 'Administrativo'] },
-  { to: '/assignments', label: 'Asignaciones', icon: IconLink, roles: ['Profesor', 'Superusuario', 'Administrativo'] },
-  { to: '/gyms', label: 'Gimnasios', icon: IconGym, roles: ['Superusuario'] },
-  { to: '/my-membership', label: 'Mi Membresía', icon: IconMembership, roles: ['Alumno'] },
-  { to: '/users', label: 'Usuarios', icon: IconUsers, roles: ['Superusuario', 'Administrativo'] },
-]
-
-const navItems = computed(() => {
+const menuGroups = computed(() => {
   const isSuper = authStore.hasRole('Superusuario')
-  const veRutinas = authStore.user?.gymVeRutinas !== false // default true
+  const veRutinas = authStore.user?.gymVeRutinas !== false
 
-  return allNavItems.filter(item => {
-    if (item.roles && !authStore.hasRole(...item.roles)) return false
-    if (!isSuper && !veRutinas && ['/exercises', '/routines', '/assignments'].includes(item.to)) {
-      return false
+  const groups = []
+
+  // 1. General/Inicio
+  const general = {
+    id: 'general',
+    title: null,
+    items: [
+      { to: '/', label: 'Panel Principal', icon: IconDashboard, roles: null },
+      { to: '/my-membership', label: 'Mi Membresía', icon: IconMembership, roles: ['Alumno'] }
+    ].filter(item => !item.roles || authStore.hasRole(...item.roles))
+  }
+  if (general.items.length > 0) groups.push(general)
+
+  // 2. Gestión Comercial
+  const comercial = {
+    id: 'comercial',
+    title: 'Gestión Comercial',
+    items: [
+      { to: '/memberships', label: 'Membresías', icon: IconMembership, roles: ['Superusuario', 'Administrativo'] },
+      { to: '/membership-plans', label: 'Planes', icon: IconPlan, roles: ['Superusuario', 'Administrativo'] },
+      { to: '/payments', label: 'Pagos', icon: IconPayment, roles: ['Superusuario', 'Administrativo'] },
+      { to: '/ingresos', label: 'Ingresos', icon: IconClock, roles: ['Superusuario', 'Administrativo'] }
+    ].filter(item => !item.roles || authStore.hasRole(...item.roles))
+  }
+  if (comercial.items.length > 0) groups.push(comercial)
+
+  // 3. Entrenamiento
+  if (isSuper || veRutinas) {
+    const entrenamiento = {
+      id: 'entrenamiento',
+      title: 'Entrenamiento',
+      items: [
+        { to: '/exercises', label: 'Ejercicios', icon: IconDumbbell, roles: ['Profesor', 'Superusuario', 'Administrativo'] },
+        { to: '/routines', label: 'Rutinas', icon: IconClipboard, roles: ['Profesor', 'Superusuario', 'Administrativo'] },
+        { to: '/assignments', label: 'Asignaciones', icon: IconLink, roles: ['Profesor', 'Superusuario', 'Administrativo'] }
+      ].filter(item => !item.roles || authStore.hasRole(...item.roles))
     }
-    return true
-  })
+    if (entrenamiento.items.length > 0) groups.push(entrenamiento)
+  }
+
+  // 4. Usuarios
+  const usuarios = {
+    id: 'usuarios',
+    title: 'Usuarios',
+    items: [
+      { to: '/users', label: 'Usuarios', icon: IconUsers, roles: ['Superusuario', 'Administrativo'] }
+    ].filter(item => !item.roles || authStore.hasRole(...item.roles))
+  }
+  if (usuarios.items.length > 0) groups.push(usuarios)
+
+  // 5. Configuración
+  const config = {
+    id: 'config',
+    title: 'Configuración',
+    items: [
+      { to: '/gyms', label: 'Gimnasios', icon: IconGym, roles: ['Superusuario'] }
+    ].filter(item => !item.roles || authStore.hasRole(...item.roles))
+  }
+  if (config.items.length > 0) groups.push(config)
+
+  return groups
 })
 
 watch(
