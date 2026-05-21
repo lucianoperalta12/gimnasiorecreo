@@ -195,8 +195,12 @@ async function buscar() {
   loading.value = true
   try {
     const params = {}
-    if (alumnoId.value) params.alumnoId = alumnoId.value
-    else params.fecha = fecha.value
+    if (alumnoId.value) {
+      params.alumnoId = alumnoId.value
+    } else {
+      params.fechaDesde = fecha.value
+      params.fechaHasta = fecha.value
+    }
     
     if (authStore.hasRole('Superusuario') && gymId.value) {
       params.gymId = gymId.value

@@ -97,7 +97,7 @@ public class IngresoService : IIngresoService
         );
     }
 
-    public async Task<List<IngresoListItemDto>> GetAllAsync(int requesterId, DateOnly? fecha = null, int? alumnoId = null, int? gymId = null)
+    public async Task<List<IngresoListItemDto>> GetAllAsync(int requesterId, DateOnly? fechaDesde = null, DateOnly? fechaHasta = null, int? alumnoId = null, int? gymId = null)
     {
         var requester = await _context.Users.FindAsync(requesterId)
             ?? throw new UnauthorizedAccessException("Usuario inválido.");
@@ -123,10 +123,19 @@ public class IngresoService : IIngresoService
         {
             query = query.Where(x => x.AlumnoId == alumnoId.Value);
         }
-        else
+
+        if (fechaDesde.HasValue || fechaHasta.HasValue)
         {
-            var fechaFiltro = fecha ?? DateOnly.FromDateTime(DateTime.UtcNow);
-            var inicio = DateTime.SpecifyKind(fechaFiltro.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
+            var desde = fechaDesde ?? DateOnly.FromDateTime(DateTime.UtcNow);
+            var hasta = fechaHasta ?? desde;
+            var inicio = DateTime.SpecifyKind(desde.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
+            var fin = DateTime.SpecifyKind(hasta.ToDateTime(TimeOnly.MaxValue), DateTimeKind.Utc);
+            query = query.Where(x => x.FechaHora >= inicio && x.FechaHora <= fin);
+        }
+        else if (!alumnoId.HasValue)
+        {
+            var hoy = DateOnly.FromDateTime(DateTime.UtcNow);
+            var inicio = DateTime.SpecifyKind(hoy.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
             var fin = inicio.AddDays(1);
             query = query.Where(x => x.FechaHora >= inicio && x.FechaHora < fin);
         }

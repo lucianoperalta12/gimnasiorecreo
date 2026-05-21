@@ -19,8 +19,12 @@ public class IngresosController : ControllerBase
 
     [HttpGet]
     [Authorize(Roles = "Superusuario,Administrativo")]
-    public async Task<ActionResult<List<IngresoListItemDto>>> GetAll([FromQuery] DateOnly? fecha, [FromQuery] int? alumnoId, [FromQuery] int? gymId) =>
-        Ok(await _ingresoService.GetAllAsync(GetUserId(), fecha, alumnoId, gymId));
+    public async Task<ActionResult<List<IngresoListItemDto>>> GetAll(
+        [FromQuery] DateOnly? fechaDesde, 
+        [FromQuery] DateOnly? fechaHasta, 
+        [FromQuery] int? alumnoId, 
+        [FromQuery] int? gymId) =>
+        Ok(await _ingresoService.GetAllAsync(GetUserId(), fechaDesde, fechaHasta, alumnoId, gymId));
 
     [HttpPost("registrar")]
     [Authorize(Roles = "Terminal")]

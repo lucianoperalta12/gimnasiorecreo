@@ -19,30 +19,92 @@
           <div v-if="idx > 0" class="border-t border-dark-900/40 my-3 mx-2" />
 
           <!-- Group Title -->
-          <div v-if="group.title" class="px-4 pb-1 text-[10px] font-black uppercase tracking-[0.2em] text-dark-500">
+          <button
+            v-if="group.title && group.collapsible"
+            @click="toggleGroup(group.id)"
+            class="w-full flex items-center justify-between px-4 pb-1 text-[10px] font-black uppercase tracking-[0.2em] text-dark-500 hover:text-dark-300 transition-colors cursor-pointer"
+          >
+            <span>{{ group.title }}</span>
+            <svg
+              class="w-3 h-3 transition-transform duration-200"
+              :class="{ 'rotate-180': openGroups[group.id] }"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="3"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+            </svg>
+          </button>
+          <div v-else-if="group.title" class="px-4 pb-1 text-[10px] font-black uppercase tracking-[0.2em] text-dark-500">
             {{ group.title }}
           </div>
 
           <!-- Group Items -->
-          <router-link
-            v-for="item in group.items"
-            :key="item.to"
-            :to="item.to"
-            class="flex items-center gap-4 px-4 py-3 rounded-xl text-[15px] font-semibold transition-all duration-300 group"
-            :class="
-              $route.path === item.to || $route.path.startsWith(item.to + '/')
-                ? 'bg-primary-600/10 text-primary-600'
-                : 'text-dark-400 hover:text-dark-200 hover:bg-dark-900/50'
-            "
-            @click="sidebarOpen = false"
-          >
-            <component
-              :is="item.icon"
-              class="w-6 h-6 transition-colors"
-              :class="$route.path === item.to ? 'text-primary-600' : 'text-dark-400 group-hover:text-dark-200'"
-            />
-            {{ item.label }}
-          </router-link>
+          <template v-for="item in !group.collapsible || openGroups[group.id] ? group.items : []" :key="item.to || item.label">
+            <!-- Item with submenus -->
+            <div v-if="item.children" class="space-y-1">
+              <button
+                @click="toggleMenu(item.label)"
+                class="w-full flex items-center justify-between px-4 py-3 rounded-xl text-[15px] font-semibold transition-all duration-300 text-dark-400 hover:text-dark-200 hover:bg-dark-900/50 group"
+                :class="{ 'text-primary-600 bg-primary-600/5': item.children.some((child) => $route.path === child.to) }"
+              >
+                <div class="flex items-center gap-4">
+                  <component
+                    :is="item.icon"
+                    class="w-6 h-6 transition-colors"
+                    :class="item.children.some((child) => $route.path === child.to) ? 'text-primary-600' : 'text-dark-400 group-hover:text-dark-200'"
+                  />
+                  <span>{{ item.label }}</span>
+                </div>
+                <svg
+                  class="w-4 h-4 transition-transform duration-200 text-dark-500 group-hover:text-dark-300"
+                  :class="{ 'rotate-180 text-primary-600': openMenus[item.label] }"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                </svg>
+              </button>
+
+              <!-- Submenu Items -->
+              <div v-show="openMenus[item.label]" class="pl-10 pr-2 py-1 space-y-1">
+                <router-link
+                  v-for="subitem in item.children"
+                  :key="subitem.to"
+                  :to="subitem.to"
+                  class="flex items-center gap-3 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-300"
+                  :class="$route.path === subitem.to ? 'bg-primary-600/10 text-primary-600' : 'text-dark-500 hover:text-dark-300 hover:bg-dark-900/30'"
+                  @click="sidebarOpen = false"
+                >
+                  <div class="w-1.5 h-1.5 rounded-full" :class="$route.path === subitem.to ? 'bg-primary-600' : 'bg-dark-700'" />
+                  {{ subitem.label }}
+                </router-link>
+              </div>
+            </div>
+
+            <!-- Single Item -->
+            <router-link
+              v-else
+              :to="item.to"
+              class="flex items-center gap-4 px-4 py-3 rounded-xl text-[15px] font-semibold transition-all duration-300 group"
+              :class="
+                $route.path === item.to || $route.path.startsWith(item.to + '/')
+                  ? 'bg-primary-600/10 text-primary-600'
+                  : 'text-dark-400 hover:text-dark-200 hover:bg-dark-900/50'
+              "
+              @click="sidebarOpen = false"
+            >
+              <component
+                :is="item.icon"
+                class="w-6 h-6 transition-colors"
+                :class="$route.path === item.to ? 'text-primary-600' : 'text-dark-400 group-hover:text-dark-200'"
+              />
+              {{ item.label }}
+            </router-link>
+          </template>
         </div>
       </nav>
 
@@ -306,6 +368,29 @@ const IconClock = (_, { attrs }) =>
   h('svg', { ...attrs, fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', 'stroke-width': '2' }, [
     h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' }),
   ]);
+const IconChart = (_, { attrs }) =>
+  h('svg', { ...attrs, fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', 'stroke-width': '2' }, [
+    h('path', {
+      'stroke-linecap': 'round',
+      'stroke-linejoin': 'round',
+      d: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z',
+    }),
+  ]);
+
+const openMenus = ref({
+  Estadísticas: false,
+  Entrenamiento: false,
+});
+
+const openGroups = ref({});
+
+function toggleGroup(id) {
+  openGroups.value[id] = !openGroups.value[id];
+}
+
+function toggleMenu(label) {
+  openMenus.value[label] = !openMenus.value[label];
+}
 
 const menuGroups = computed(() => {
   const isSuper = authStore.hasRole('Superusuario');
@@ -333,6 +418,15 @@ const menuGroups = computed(() => {
       { to: '/memberships', label: 'Membresías', icon: IconMembership, roles: ['Superusuario', 'Administrativo'] },
       { to: '/payments', label: 'Pagos', icon: IconPayment, roles: ['Superusuario', 'Administrativo'] },
       { to: '/ingresos', label: 'Ingresos', icon: IconClock, roles: ['Superusuario', 'Administrativo'] },
+      {
+        label: 'Estadísticas',
+        icon: IconChart,
+        roles: ['Superusuario', 'Administrativo'],
+        children: [
+          { to: '/estadisticas/asistencia', label: 'Asistencia' },
+          { to: '/estadisticas/ventas', label: 'Ventas y Membresías' },
+        ],
+      },
     ].filter((item) => !item.roles || authStore.hasRole(...item.roles)),
   };
   if (comercial.items.length > 0) groups.push(comercial);
@@ -341,11 +435,18 @@ const menuGroups = computed(() => {
   if (isSuper || veRutinas) {
     const entrenamiento = {
       id: 'entrenamiento',
-      title: 'Entrenamiento',
+      title: 'Gerstión deportiva',
       items: [
-        { to: '/exercises', label: 'Ejercicios', icon: IconDumbbell, roles: ['Profesor', 'Superusuario', 'Administrativo'] },
-        { to: '/routines', label: 'Rutinas', icon: IconClipboard, roles: ['Profesor', 'Superusuario', 'Administrativo'] },
-        { to: '/assignments', label: 'Asignaciones', icon: IconLink, roles: ['Profesor', 'Superusuario', 'Administrativo'] },
+        {
+          label: 'Entrenamiento',
+          icon: IconGym,
+          roles: ['Profesor', 'Superusuario', 'Administrativo'],
+          children: [
+            { to: '/exercises', label: 'Ejercicios' },
+            { to: '/routines', label: 'Rutinas' },
+            { to: '/assignments', label: 'Asignaciones' },
+          ],
+        },
       ].filter((item) => !item.roles || authStore.hasRole(...item.roles)),
     };
     if (entrenamiento.items.length > 0) groups.push(entrenamiento);
@@ -371,6 +472,20 @@ const menuGroups = computed(() => {
 
   return groups;
 });
+
+watch(
+  () => router.currentRoute.value.path,
+  (newPath) => {
+    menuGroups.value.forEach((group) => {
+      group.items.forEach((item) => {
+        if (item.children && item.children.some((child) => newPath === child.to)) {
+          openMenus.value[item.label] = true;
+        }
+      });
+    });
+  },
+  { immediate: true }
+);
 
 watch(
   () => authStore.user?.debeCambiarPassword,

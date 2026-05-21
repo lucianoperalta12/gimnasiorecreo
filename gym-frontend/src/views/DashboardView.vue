@@ -120,6 +120,90 @@
         </div>
       </div>
 
+      <!-- Monitoreo en Tiempo Real (Solo Administrador y Superusuario) -->
+      <div v-if="authStore.hasRole('Superusuario', 'Administrativo')" class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <!-- Col 1 y 2: Ingresos Recientes -->
+        <div class="card p-6 lg:col-span-2 flex flex-col h-[320px]">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-sm font-bold text-white uppercase tracking-wider">Asistencia de Hoy</h2>
+              <p class="text-xs text-dark-500">Ingresos recientes a través de la terminal</p>
+            </div>
+            <button @click="fetchIngresosHoy" class="p-2 rounded-lg text-dark-400 hover:text-white hover:bg-dark-900/60 transition-colors">
+              <svg class="w-4 h-4" :class="{ 'animate-spin': loadingIngresos }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+              </svg>
+            </button>
+          </div>
+          
+          <div class="flex-1 overflow-y-auto custom-scrollbar space-y-2.5">
+            <div
+              v-for="ingreso in ingresosHoy.slice(0, 5)"
+              :key="ingreso.id"
+              class="flex items-center justify-between p-3.5 rounded-2xl bg-dark-950/40 border border-dark-900/60 hover:border-primary-500/10 transition-all duration-300"
+            >
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-primary-500/10 text-primary-500 flex items-center justify-center text-xs font-black">
+                  {{ ingreso.alumno?.charAt(0)?.toUpperCase() }}
+                </div>
+                <div>
+                  <p class="text-xs font-black text-white leading-none mb-1">{{ ingreso.alumno }}</p>
+                  <p class="text-[10px] text-dark-500">Plan: {{ ingreso.tipoMembresia }}</p>
+                </div>
+              </div>
+              <div class="text-right">
+                <p class="text-xs font-black text-white">{{ formatTime(ingreso.fechaHora) }}</p>
+                <p class="text-[9px] text-dark-500 uppercase tracking-widest leading-none mt-0.5">{{ ingreso.terminal }}</p>
+              </div>
+            </div>
+            
+            <div v-if="!ingresosHoy.length" class="h-full flex flex-col items-center justify-center text-center py-6">
+              <svg class="w-8 h-8 text-dark-700 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+              <p class="text-xs text-dark-500 font-bold">Sin ingresos registrados hoy aún.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Col 3: Panel Comercial Rápido (Recaudación + Alertas por Vencer) -->
+        <div class="flex flex-col gap-4 h-[320px]">
+          <!-- Card Recaudación del Mes -->
+          <div class="p-5 rounded-[2rem] bg-dark-900/40 border border-dark-800/50 backdrop-blur-md relative overflow-hidden group shrink-0">
+            <div class="absolute -right-4 -bottom-4 w-20 h-20 bg-emerald-500/5 rounded-full blur-xl group-hover:bg-emerald-500/10 transition-all duration-500"></div>
+            <p class="text-[9px] text-dark-500 uppercase tracking-[0.2em] font-black">Recaudación este Mes</p>
+            <p class="text-2xl font-black text-emerald-400 mt-2 tracking-tight leading-none">
+              {{ formatMoneda(pagosMesVal) }}
+            </p>
+          </div>
+
+          <!-- Card Membresías por Vencer -->
+          <div class="flex-1 card p-5 flex flex-col overflow-hidden min-h-[170px]">
+            <h3 class="text-xs font-bold text-white uppercase tracking-wider mb-3">Expira en <span class="text-primary-500 font-black">7 días</span></h3>
+            
+            <div class="flex-1 overflow-y-auto custom-scrollbar space-y-2">
+              <div
+                v-for="membresia in membresiasPorVencer.slice(0, 3)"
+                :key="membresia.id"
+                class="flex items-center justify-between p-2 rounded-xl bg-dark-950/40 border border-dark-900/60"
+              >
+                <div class="min-w-0">
+                  <p class="text-[11px] font-black text-white truncate leading-none mb-1">{{ membresia.alumnoNombre }}</p>
+                  <p class="text-[9px] text-dark-500">Vence: {{ formatDate(membresia.fechaVencimiento) }}</p>
+                </div>
+                <router-link to="/memberships" class="text-[9px] font-black text-primary-500 hover:text-primary-400 uppercase tracking-widest flex-shrink-0">
+                  Renovar
+                </router-link>
+              </div>
+              
+              <div v-if="!membresiasPorVencer.length" class="h-full flex flex-col items-center justify-center text-center py-4">
+                <p class="text-[10px] text-dark-500 font-bold">No hay membresías por vencer próximamente.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div v-if="authStore.hasRole('Alumno')" class="space-y-8">
         <router-link v-if="myAccess" to="/my-membership" class="card p-5 max-w-2xl block hover:border-primary-500/30 transition-colors">
           <div class="flex items-start justify-between gap-4">
@@ -143,6 +227,7 @@ import { useUserStore } from '@/stores/user.store'
 import { useMembershipStore } from '@/stores/membership.store'
 import { accessStatusBadgeClass, formatDate } from '@/constants/membershipStatus'
 import { ingresosApi } from '@/api/ingresos.api'
+import { paymentsApi } from '@/api/payments.api'
 
 const authStore = useAuthStore()
 const routineStore = useRoutineStore()
@@ -158,6 +243,10 @@ const terminalMessage = ref('')
 const terminalDetail = ref('')
 const terminalSuccess = ref(false)
 const inputFocused = ref(false)
+
+const ingresosHoy = ref([])
+const loadingIngresos = ref(false)
+const pagosMesVal = ref(0)
 
 const greetingMessage = computed(() => {
   const role = user.value?.rol
@@ -199,6 +288,10 @@ async function registrarIngreso() {
     terminalMessage.value = `Ingreso registrado para ${data.alumnoNombreCompleto}`
     terminalDetail.value = `${data.tipoMembresia} · ${new Date(data.fechaHora).toLocaleString()}`
     terminalDni.value = ''
+    // Refrescar ingresos recientes tras ingreso exitoso en terminal
+    if (authStore.hasRole('Superusuario', 'Administrativo')) {
+      fetchIngresosHoy()
+    }
   } catch (err) {
     terminalSuccess.value = false
     terminalMessage.value = err.response?.data?.error || 'No se pudo registrar el ingreso'
@@ -207,6 +300,57 @@ async function registrarIngreso() {
     await nextTick()
     dniInput.value?.focus()
   }
+}
+
+async function fetchIngresosHoy() {
+  if (!authStore.hasRole('Superusuario', 'Administrativo')) return
+  loadingIngresos.value = true
+  try {
+    const hoy = new Date().toISOString().slice(0, 10)
+    const { data } = await ingresosApi.getAll({ fechaDesde: hoy, fechaHasta: hoy })
+    ingresosHoy.value = data || []
+  } catch (err) {
+    console.error(err)
+  } finally {
+    loadingIngresos.value = false
+  }
+}
+
+async function fetchPagosMes() {
+  if (!authStore.hasRole('Superusuario', 'Administrativo')) return
+  try {
+    const { data } = await paymentsApi.getAll()
+    const hoy = new Date()
+    const mes = hoy.getMonth()
+    const año = hoy.getFullYear()
+    const esteMes = (data || []).filter(p => {
+      const d = new Date(p.fechaPago)
+      return d.getMonth() === mes && d.getFullYear() === año
+    })
+    pagosMesVal.value = esteMes.reduce((acc, p) => acc + p.monto, 0)
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+const membresiasPorVencer = computed(() => {
+  if (!authStore.hasRole('Superusuario', 'Administrativo')) return []
+  const hoy = new Date()
+  const limite = new Date()
+  limite.setDate(hoy.getDate() + 7)
+  return membershipStore.memberships.filter(m => {
+    if (!m.fechaVencimiento || m.estado !== 'Activa') return false
+    const v = new Date(m.fechaVencimiento)
+    return v >= hoy && v <= limite
+  }).sort((a, b) => new Date(a.fechaVencimiento) - new Date(b.fechaVencimiento))
+})
+
+function formatMoneda(val) {
+  return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(val)
+}
+
+function formatTime(val) {
+  return new Date(val).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
 
 onMounted(async () => {
@@ -222,7 +366,16 @@ onMounted(async () => {
       routineStore.fetchRoutines(),
       routineStore.fetchAssignmentSummary(),
       userStore.fetchUsers(),
-      membershipStore.fetchMemberships({ estado: 'Activa' })
+      membershipStore.fetchMemberships({ estado: 'Activa' }),
+      fetchIngresosHoy(),
+      fetchPagosMes()
+    ])
+    updateDashboardStats()
+  } else if (authStore.hasRole('Profesor')) {
+    await Promise.allSettled([
+      routineStore.fetchExercises(),
+      routineStore.fetchRoutines(),
+      routineStore.fetchAssignmentSummary()
     ])
     updateDashboardStats()
   }

@@ -105,6 +105,18 @@ const routes = [
         name: 'Mi Membresía',
         component: () => import('@/views/students/MyMembershipView.vue'),
         meta: { roles: ['Alumno'] }
+      },
+      {
+        path: 'estadisticas/asistencia',
+        name: 'Flujo de Asistencia',
+        component: () => import('@/views/admin/estadisticas/AsistenciaEstadisticasView.vue'),
+        meta: { roles: ['Superusuario', 'Administrativo'] }
+      },
+      {
+        path: 'estadisticas/ventas',
+        name: 'Ventas y Membresías',
+        component: () => import('@/views/admin/estadisticas/VentasEstadisticasView.vue'),
+        meta: { roles: ['Superusuario', 'Administrativo'] }
       }
     ]
   },
