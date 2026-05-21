@@ -244,7 +244,7 @@
                 class="flex items-center justify-between p-2 rounded-xl bg-dark-950/40 border border-dark-900/60"
               >
                 <div class="min-w-0">
-                  <p class="text-[11px] font-black text-white truncate leading-none mb-1">{{ membresia.alumnoNombre }}</p>
+                  <p class="text-[11px] font-black text-white truncate leading-none mb-1">{{ membresia.alumnoNombreCompleto }}</p>
                   <p class="text-[9px] text-dark-500">Vence: {{ formatDate(membresia.fechaVencimiento) }}</p>
                 </div>
                 <router-link to="/memberships" class="text-[9px] font-black text-primary-500 hover:text-primary-400 uppercase tracking-widest flex-shrink-0">
