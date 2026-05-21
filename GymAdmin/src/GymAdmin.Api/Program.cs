@@ -93,6 +93,49 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
+    if (db.Database.ProviderName == "Npgsql.EntityFrameworkCore.PostgreSQL")
+    {
+        try
+        {
+            var conn = db.Database.GetDbConnection();
+            var wasClosed = conn.State == System.Data.ConnectionState.Closed;
+            if (wasClosed) await conn.OpenAsync();
+
+            using var cmdCheck = conn.CreateCommand();
+            cmdCheck.CommandText = "SELECT EXISTS (SELECT FROM pg_tables WHERE schemaname = 'public' AND tablename = 'Gyms');";
+            var gymsTableExists = (bool)(await cmdCheck.ExecuteScalarAsync() ?? false);
+
+            if (gymsTableExists)
+            {
+                using var cmdCreateHistory = conn.CreateCommand();
+                cmdCreateHistory.CommandText = @"
+                    CREATE TABLE IF NOT EXISTS ""__EFMigrationsHistory"" (
+                        ""MigrationId"" character varying(150) NOT NULL,
+                        ""ProductVersion"" character varying(32) NOT NULL,
+                        CONSTRAINT ""PK___EFMigrationsHistory"" PRIMARY KEY (""MigrationId"")
+                    );";
+                await cmdCreateHistory.ExecuteNonQueryAsync();
+
+                using var cmdCheckMigration = conn.CreateCommand();
+                cmdCheckMigration.CommandText = "SELECT EXISTS (SELECT 1 FROM \"__EFMigrationsHistory\" WHERE \"MigrationId\" = '20260521144311_InitialPostgres');";
+                var migrationExists = (bool)(await cmdCheckMigration.ExecuteScalarAsync() ?? false);
+
+                if (!migrationExists)
+                {
+                    using var cmdInsertMigration = conn.CreateCommand();
+                    cmdInsertMigration.CommandText = "INSERT INTO \"__EFMigrationsHistory\" (\"MigrationId\", \"ProductVersion\") VALUES ('20260521144311_InitialPostgres', '8.0.11');";
+                    await cmdInsertMigration.ExecuteNonQueryAsync();
+                }
+            }
+
+            if (wasClosed) await conn.CloseAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Warning: Could not align migration history: {ex.Message}");
+        }
+    }
+
     db.Database.Migrate();
 }
 
