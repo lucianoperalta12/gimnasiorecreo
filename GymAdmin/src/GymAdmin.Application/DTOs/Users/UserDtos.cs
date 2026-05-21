@@ -14,12 +14,16 @@ public record UserDto(
     string? GymColorPrincipalHex,
     string? GymLogoUrl,
     bool GymVeRutinas,
-    DateTime FechaCreacion
+    DateTime FechaCreacion,
+    DateTime? FechaNacimiento,
+    string? Domicilio,
+    string? Telefono,
+    string? Observaciones
 );
 
-public record CreateUserRequest(string Nombre, string Apellido, string Email, string Dni, string Rol, int? GymId);
+public record CreateUserRequest(string Nombre, string Apellido, string Email, string Dni, string Rol, int? GymId, DateTime? FechaNacimiento, string? Domicilio, string? Telefono, string? Observaciones);
 
-public record UpdateUserRequest(string Nombre, string Apellido);
+public record UpdateUserRequest(string Nombre, string Apellido, DateTime? FechaNacimiento, string? Domicilio, string? Telefono, string? Observaciones);
 
 public record ChangeRoleRequest(string Rol);
 public record ChangePasswordRequest(string Password);

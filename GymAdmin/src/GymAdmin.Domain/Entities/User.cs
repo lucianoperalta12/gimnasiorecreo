@@ -18,6 +18,10 @@ public class User
     public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
     public string? RefreshToken { get; set; }
     public DateTime? RefreshTokenExpiracion { get; set; }
+    public DateTime? FechaNacimiento { get; set; }
+    public string? Domicilio { get; set; }
+    public string? Telefono { get; set; }
+    public string? Observaciones { get; set; }
 
     // Navigation properties
     public Gym Gym { get; set; } = null!;

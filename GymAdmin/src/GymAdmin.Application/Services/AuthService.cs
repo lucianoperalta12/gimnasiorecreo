@@ -86,7 +86,7 @@ public class AuthService : IAuthService
         return new AuthResponse(
             accessToken,
             refreshToken,
-            new UserDto(user.Id, user.Nombre, user.Apellido, user.Email, user.Dni, user.Rol.ToString(), user.Activo, user.DebeCambiarPassword, user.GymId, user.Gym?.Nombre, user.Gym?.ColorPrincipalHex, user.Gym?.LogoUrl, user.Gym?.VeRutinas ?? true, user.FechaCreacion)
+            new UserDto(user.Id, user.Nombre, user.Apellido, user.Email, user.Dni, user.Rol.ToString(), user.Activo, user.DebeCambiarPassword, user.GymId, user.Gym?.Nombre, user.Gym?.ColorPrincipalHex, user.Gym?.LogoUrl, user.Gym?.VeRutinas ?? true, user.FechaCreacion, user.FechaNacimiento, user.Domicilio, user.Telefono, user.Observaciones)
         );
     }
 

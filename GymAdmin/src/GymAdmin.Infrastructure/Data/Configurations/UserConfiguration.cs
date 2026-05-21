@@ -51,6 +51,15 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.RefreshToken)
             .HasMaxLength(500);
 
+        builder.Property(u => u.Domicilio)
+            .HasMaxLength(255);
+            
+        builder.Property(u => u.Telefono)
+            .HasMaxLength(50);
+            
+        builder.Property(u => u.Observaciones)
+            .HasMaxLength(1000);
+
         builder.HasOne(u => u.Gym)
             .WithMany(g => g.Users)
             .HasForeignKey(u => u.GymId)

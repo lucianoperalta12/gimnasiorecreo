@@ -24,10 +24,10 @@ public class UserService : IUserService
                 GymColor = u.Gym != null ? u.Gym.ColorPrincipalHex : null, 
                 GymLogo = u.Gym != null ? u.Gym.LogoUrl : null,
                 GymVeRutinas = u.Gym != null ? u.Gym.VeRutinas : true,
-                u.FechaCreacion
+                u.FechaCreacion, u.FechaNacimiento, u.Domicilio, u.Telefono, u.Observaciones
             }).ToListAsync();
 
-        return data.Select(u => new UserDto(u.Id, u.Nombre, u.Apellido, u.Email, u.Dni, u.Rol.ToString(), u.Activo, u.DebeCambiarPassword, u.GymId, u.GymNombre, u.GymColor, u.GymLogo, u.GymVeRutinas, u.FechaCreacion)).ToList();
+        return data.Select(u => new UserDto(u.Id, u.Nombre, u.Apellido, u.Email, u.Dni, u.Rol.ToString(), u.Activo, u.DebeCambiarPassword, u.GymId, u.GymNombre, u.GymColor, u.GymLogo, u.GymVeRutinas, u.FechaCreacion, u.FechaNacimiento, u.Domicilio, u.Telefono, u.Observaciones)).ToList();
     }
 
     public async Task<UserDto?> GetUserByIdAsync(int requesterId, int id)
@@ -42,11 +42,11 @@ public class UserService : IUserService
                 GymColor = u.Gym != null ? u.Gym.ColorPrincipalHex : null, 
                 GymLogo = u.Gym != null ? u.Gym.LogoUrl : null,
                 GymVeRutinas = u.Gym != null ? u.Gym.VeRutinas : true,
-                u.FechaCreacion
+                u.FechaCreacion, u.FechaNacimiento, u.Domicilio, u.Telefono, u.Observaciones
             }).FirstOrDefaultAsync();
 
         if (u == null) return null;
-        return new UserDto(u.Id, u.Nombre, u.Apellido, u.Email, u.Dni, u.Rol.ToString(), u.Activo, u.DebeCambiarPassword, u.GymId, u.GymNombre, u.GymColor, u.GymLogo, u.GymVeRutinas, u.FechaCreacion);
+        return new UserDto(u.Id, u.Nombre, u.Apellido, u.Email, u.Dni, u.Rol.ToString(), u.Activo, u.DebeCambiarPassword, u.GymId, u.GymNombre, u.GymColor, u.GymLogo, u.GymVeRutinas, u.FechaCreacion, u.FechaNacimiento, u.Domicilio, u.Telefono, u.Observaciones);
     }
 
     public async Task<List<UserDto>> GetStudentsAsync(int requesterId)
@@ -62,10 +62,10 @@ public class UserService : IUserService
                 GymColor = u.Gym != null ? u.Gym.ColorPrincipalHex : null, 
                 GymLogo = u.Gym != null ? u.Gym.LogoUrl : null,
                 GymVeRutinas = u.Gym != null ? u.Gym.VeRutinas : true,
-                u.FechaCreacion
+                u.FechaCreacion, u.FechaNacimiento, u.Domicilio, u.Telefono, u.Observaciones
             }).ToListAsync();
 
-        return data.Select(u => new UserDto(u.Id, u.Nombre, u.Apellido, u.Email, u.Dni, u.Rol.ToString(), u.Activo, u.DebeCambiarPassword, u.GymId, u.GymNombre, u.GymColor, u.GymLogo, u.GymVeRutinas, u.FechaCreacion)).ToList();
+        return data.Select(u => new UserDto(u.Id, u.Nombre, u.Apellido, u.Email, u.Dni, u.Rol.ToString(), u.Activo, u.DebeCambiarPassword, u.GymId, u.GymNombre, u.GymColor, u.GymLogo, u.GymVeRutinas, u.FechaCreacion, u.FechaNacimiento, u.Domicilio, u.Telefono, u.Observaciones)).ToList();
     }
 
     public async Task<UserDto> CreateUserAsync(int requesterId, CreateUserRequest request)
@@ -88,6 +88,10 @@ public class UserService : IUserService
             Dni = request.Dni.Trim(),
             Rol = newRole,
             GymId = gymId,
+            FechaNacimiento = request.FechaNacimiento,
+            Domicilio = request.Domicilio,
+            Telefono = request.Telefono,
+            Observaciones = request.Observaciones,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Dni.Trim()),
             DebeCambiarPassword = true,
             Activo = true
@@ -116,6 +120,10 @@ public class UserService : IUserService
 
         user.Nombre = request.Nombre.Trim();
         user.Apellido = request.Apellido.Trim();
+        user.FechaNacimiento = request.FechaNacimiento;
+        user.Domicilio = request.Domicilio;
+        user.Telefono = request.Telefono;
+        user.Observaciones = request.Observaciones;
 
         await _context.SaveChangesAsync();
         return (await GetUserByIdAsync(requesterId, user.Id))!;

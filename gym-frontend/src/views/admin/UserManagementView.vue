@@ -92,12 +92,8 @@
               @click="openEditModal(u)"
             >
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
               </svg>
             </button>
             <button
@@ -196,12 +192,8 @@
                     @click="openEditModal(u)"
                   >
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                      />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                     </svg>
                   </button>
                   <button
@@ -282,6 +274,9 @@
         <AppInput v-model="createForm.apellido" label="Apellido" required />
         <AppInput v-model="createForm.email" label="Correo electrónico" type="email" required :disabled="!!userToEdit" />
         <AppInput v-model="createForm.dni" label="DNI" required :disabled="!!userToEdit" />
+        <AppInput v-model="createForm.fechaNacimiento" label="Fecha de Nacimiento" type="date" required />
+        <AppInput v-model="createForm.domicilio" label="Domicilio" />
+        <AppInput v-model="createForm.telefono" label="Teléfono" />
         <div>
           <label class="label">Rol</label>
           <AppSearchSelect v-model="createForm.rol" :options="createRoleOptions" placeholder="Seleccionar rol" :disabled="!!userToEdit" />
@@ -289,6 +284,10 @@
         <div v-if="authStore.hasRole('Superusuario')">
           <label class="label">Gimnasio</label>
           <AppSearchSelect v-model.number="createForm.gymId" :options="createGymOptions" placeholder="Seleccionar gimnasio" :disabled="!!userToEdit" />
+        </div>
+        <div class="sm:col-span-2">
+          <label class="label">Observaciones</label>
+          <textarea v-model="createForm.observaciones" class="input w-full min-h-[80px]" placeholder="Observaciones adicionales..."></textarea>
         </div>
         <p v-if="formError" class="sm:col-span-2 text-sm text-red-400">{{ formError }}</p>
         <div class="sm:col-span-2 flex justify-end gap-3">
@@ -372,7 +371,7 @@ const newPassword = ref('');
 const formError = ref('');
 const pageSize = ref(15);
 const currentPage = ref(1);
-const createForm = reactive({ nombre: '', apellido: '', email: '', dni: '', rol: 'Alumno', gymId: null });
+const createForm = reactive({ nombre: '', apellido: '', email: '', dni: '', rol: 'Alumno', gymId: null, fechaNacimiento: '', domicilio: '', telefono: '', observaciones: '' });
 
 // Removí el watcher que limpiaba el DNI para permitir texto alfanumérico (extranjeros, etc) como pidió el usuario.
 
@@ -481,6 +480,10 @@ function resetCreateForm() {
   createForm.apellido = '';
   createForm.email = '';
   createForm.dni = '';
+  createForm.fechaNacimiento = '';
+  createForm.domicilio = '';
+  createForm.telefono = '';
+  createForm.observaciones = '';
   createForm.rol = allowedCreateRoles.value[allowedCreateRoles.value.length - 1];
   createForm.gymId = null;
   formError.value = '';
@@ -505,6 +508,10 @@ async function openEditModal(user) {
   createForm.apellido = user.apellido;
   createForm.email = user.email;
   createForm.dni = user.dni;
+  createForm.fechaNacimiento = user.fechaNacimiento ? user.fechaNacimiento.split('T')[0] : '';
+  createForm.domicilio = user.domicilio || '';
+  createForm.telefono = user.telefono || '';
+  createForm.observaciones = user.observaciones || '';
   createForm.rol = user.rol;
   createForm.gymId = user.gymId;
   formError.value = '';
@@ -531,7 +538,10 @@ async function createUser() {
   formError.value = '';
   creating.value = true;
   try {
-    await userStore.createUser({ ...createForm });
+    await userStore.createUser({
+      ...createForm,
+      fechaNacimiento: createForm.fechaNacimiento || null
+    });
     success('Usuario creado. La contraseña inicial es el DNI.');
     showCreateModal.value = false;
   } catch (err) {
@@ -548,6 +558,10 @@ async function editUser() {
     await userStore.updateUser(userToEdit.value.id, {
       nombre: createForm.nombre,
       apellido: createForm.apellido,
+      fechaNacimiento: createForm.fechaNacimiento || null,
+      domicilio: createForm.domicilio,
+      telefono: createForm.telefono,
+      observaciones: createForm.observaciones
     });
     success('Usuario actualizado correctamente.');
     showCreateModal.value = false;
