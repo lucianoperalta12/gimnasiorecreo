@@ -37,33 +37,33 @@
 
     <template v-else>
       <!-- KPI Cards -->
-      <div class="grid grid-cols-3 gap-2 sm:gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         <!-- Card 1: Total -->
-        <div class="p-3 sm:p-6 rounded-2xl sm:rounded-[2rem] bg-dark-900/40 border border-dark-800/50 backdrop-blur-md relative overflow-hidden group">
+        <div class="p-4 sm:p-6 rounded-2xl sm:rounded-[2rem] bg-dark-900/40 border border-dark-800/50 backdrop-blur-md relative overflow-hidden group">
           <div
             class="absolute -right-4 -bottom-4 w-12 sm:w-24 h-12 sm:h-24 bg-primary-500/5 rounded-full blur-xl group-hover:bg-primary-500/10 transition-all duration-500"
           ></div>
-          <p class="text-[8px] sm:text-[10px] text-dark-500 uppercase tracking-[0.15em] sm:tracking-[0.2em] font-black">Total Accesos</p>
+          <p class="text-[10px] sm:text-[10px] text-dark-500 uppercase tracking-[0.15em] sm:tracking-[0.2em] font-black">Total Accesos</p>
           <p class="text-xl sm:text-4xl font-black text-white mt-1.5 sm:mt-3 tracking-tight leading-none">{{ totalVisitas }}</p>
           <p class="hidden sm:block text-xs text-dark-400 mt-2">Ingresos registrados en el período</p>
         </div>
 
         <!-- Card 2: Promedio diario -->
-        <div class="p-3 sm:p-6 rounded-2xl sm:rounded-[2rem] bg-dark-900/40 border border-dark-800/50 backdrop-blur-md relative overflow-hidden group">
+        <div class="p-4 sm:p-6 rounded-2xl sm:rounded-[2rem] bg-dark-900/40 border border-dark-800/50 backdrop-blur-md relative overflow-hidden group">
           <div
             class="absolute -right-4 -bottom-4 w-12 sm:w-24 h-12 sm:h-24 bg-emerald-500/5 rounded-full blur-xl group-hover:bg-emerald-500/10 transition-all duration-500"
           ></div>
-          <p class="text-[8px] sm:text-[10px] text-dark-500 uppercase tracking-[0.15em] sm:tracking-[0.2em] font-black">Promedio Diario</p>
+          <p class="text-[10px] sm:text-[10px] text-dark-500 uppercase tracking-[0.15em] sm:tracking-[0.2em] font-black">Promedio Diario</p>
           <p class="text-xl sm:text-4xl font-black text-white mt-1.5 sm:mt-3 tracking-tight leading-none">{{ promedioDiario.toFixed(1) }}</p>
           <p class="hidden sm:block text-xs text-dark-400 mt-2">Visitas promedio por día</p>
         </div>
 
         <!-- Card 3: Hora Pico -->
-        <div class="p-3 sm:p-6 rounded-2xl sm:rounded-[2rem] bg-dark-900/40 border border-dark-800/50 backdrop-blur-md relative overflow-hidden group">
+        <div class="p-4 sm:p-6 rounded-2xl sm:rounded-[2rem] bg-dark-900/40 border border-dark-800/50 backdrop-blur-md relative overflow-hidden group">
           <div
             class="absolute -right-4 -bottom-4 w-12 sm:w-24 h-12 sm:h-24 bg-blue-500/5 rounded-full blur-xl group-hover:bg-blue-500/10 transition-all duration-500"
           ></div>
-          <p class="text-[8px] sm:text-[10px] text-dark-500 uppercase tracking-[0.15em] sm:tracking-[0.2em] font-black">Hora Pico</p>
+          <p class="text-[10px] sm:text-[10px] text-dark-500 uppercase tracking-[0.15em] sm:tracking-[0.2em] font-black">Hora Pico</p>
           <p class="text-xl sm:text-4xl font-black text-white mt-1.5 sm:mt-3 tracking-tight leading-none">
             {{ horaPico }}<span class="text-[10px] sm:text-base font-bold text-dark-400 ml-0.5">hs</span>
           </p>
@@ -80,8 +80,8 @@
             <p class="text-xs text-dark-500">Distribución de ingresos por rango horario (24 hs)</p>
           </div>
 
-          <div class="flex-1 flex items-end gap-1.5 sm:gap-2.5 pt-4 pb-2 border-b border-dark-800/50 overflow-x-auto custom-scrollbar">
-            <div v-for="h in histogramaHoras" :key="h.hora" class="flex-1 flex flex-col items-center group h-full justify-end min-w-[14px]">
+          <div class="flex-1 flex items-end gap-2 pt-4 pb-2 border-b border-dark-800/50 overflow-x-auto custom-scrollbar">
+            <div v-for="h in histogramaHoras" :key="h.hora" class="flex-1 flex flex-col items-center group h-full justify-end min-w-[18px] sm:min-w-0">
               <!-- Tooltip flotante -->
               <div
                 class="absolute mb-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black border border-dark-800 text-[10px] text-white px-2 py-1 rounded-md pointer-events-none transform -translate-y-12 z-20 whitespace-nowrap shadow-xl"

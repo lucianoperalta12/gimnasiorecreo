@@ -147,7 +147,7 @@
     <div v-if="sidebarOpen" class="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm" @click="sidebarOpen = false" />
 
     <!-- Main content -->
-    <div class="flex-1 lg:ml-72">
+    <div class="flex-1 lg:ml-72 min-w-0">
       <!-- Top bar (Optimized for Mobile) -->
       <header class="h-[70px] bg-dark-950/80 backdrop-blur-xl border-b border-dark-800/50 flex items-center px-4 sm:px-6 sticky top-0 z-40">
         <button
