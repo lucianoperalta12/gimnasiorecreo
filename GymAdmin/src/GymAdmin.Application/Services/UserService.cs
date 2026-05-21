@@ -34,7 +34,7 @@ public class UserService : IUserService
     {
         var requester = await GetRequester(requesterId);
         var query = _context.Users.AsNoTracking().Include(u => u.Gym).Where(u => u.Id == id);
-        if (requester.Rol == UserRole.Administrativo) query = query.Where(u => u.GymId == requester.GymId);
+        if (requester.Rol == UserRole.Administrativo) query = query.Where(u => u.GymId == requester.GymId && (u.Rol == UserRole.Alumno || u.Rol == UserRole.Profesor));
         
         var u = await query.Select(u => new {
                 u.Id, u.Nombre, u.Apellido, u.Email, u.Dni, Rol = u.Rol, u.Activo, u.DebeCambiarPassword, u.GymId, 
@@ -73,7 +73,8 @@ public class UserService : IUserService
         var requester = await GetRequester(requesterId);
         if (!Enum.TryParse<UserRole>(request.Rol, true, out var newRole)) throw new ArgumentException("Rol inválido.");
         if (requester.Rol == UserRole.Superusuario && newRole == UserRole.Superusuario) throw new ArgumentException("No se puede crear Superusuario desde panel.");
-        if (requester.Rol == UserRole.Administrativo && (newRole == UserRole.Administrativo || newRole == UserRole.Superusuario)) throw new UnauthorizedAccessException("No autorizado.");
+        if (requester.Rol != UserRole.Superusuario && newRole == UserRole.Terminal) throw new UnauthorizedAccessException("No autorizado.");
+        if (requester.Rol == UserRole.Administrativo && (newRole == UserRole.Administrativo || newRole == UserRole.Superusuario || newRole == UserRole.Terminal)) throw new UnauthorizedAccessException("No autorizado.");
         if (await _context.Users.AnyAsync(u => u.Email == request.Email || u.Dni == request.Dni)) throw new InvalidOperationException("Email o DNI ya existe.");
 
         var gymId = requester.Rol == UserRole.Superusuario ? request.GymId ?? 0 : requester.GymId;
@@ -108,7 +109,7 @@ public class UserService : IUserService
         else if (requester.Rol == UserRole.Administrativo)
         {
             if (user.GymId != requester.GymId) throw new UnauthorizedAccessException("No autorizado para este gimnasio.");
-            if (newRole == UserRole.Superusuario || newRole == UserRole.Administrativo)
+            if (newRole == UserRole.Superusuario || newRole == UserRole.Administrativo || newRole == UserRole.Terminal)
                 throw new UnauthorizedAccessException("No autorizado para asignar este rol.");
             
             if (user.Rol != UserRole.Alumno && user.Rol != UserRole.Profesor)

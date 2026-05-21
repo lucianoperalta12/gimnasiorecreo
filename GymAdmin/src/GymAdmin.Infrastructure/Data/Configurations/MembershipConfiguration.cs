@@ -21,6 +21,9 @@ public class MembershipConfiguration : IEntityTypeConfiguration<Membership>
         builder.Property(m => m.Notas)
             .HasMaxLength(1000);
 
+        builder.Property(m => m.IngresosUtilizados)
+            .HasDefaultValue(0);
+
         builder.Property(m => m.FechaCreacion)
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
 

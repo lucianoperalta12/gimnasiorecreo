@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen flex">
+  <div v-if="!authStore.hasRole('Terminal')" class="min-h-screen flex">
     <!-- Sidebar -->
     <aside
       class="fixed inset-y-0 left-0 z-50 w-72 bg-[#080808] border-r border-dark-900 transform transition-transform duration-300 lg:translate-x-0 shadow-2xl flex flex-col"
@@ -113,6 +113,40 @@
     </div>
   </div>
 
+  <div v-else class="min-h-screen bg-dark-950 flex flex-col">
+    <header class="h-[75px] bg-[#0c0c0c] border-b border-dark-900/60 flex items-center justify-between px-4 sm:px-10">
+      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+        <img v-if="logoUrl" :src="logoUrl" alt="Logo" class="h-8 sm:h-10 w-auto object-contain opacity-90 flex-shrink-0" />
+        <div class="min-w-0">
+          <p class="text-xs sm:text-base font-black text-white uppercase tracking-wider leading-none mb-1 truncate">{{ user?.gymNombre || 'Terminal' }}</p>
+          <p class="text-[8px] sm:text-[10px] text-dark-500 uppercase tracking-[0.15em] font-bold truncate">Terminal de asistencia</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 sm:gap-6 flex-shrink-0 ml-2">
+        <div class="flex items-center gap-1.5 text-right">
+          <svg class="w-3.5 h-3.5 text-dark-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+          <div>
+            <p class="text-xs sm:text-sm font-bold text-white leading-none mb-0.5">{{ timeString }}</p>
+            <p class="text-[8px] sm:text-[9px] font-bold text-dark-500 tracking-wider">{{ dateString }}</p>
+          </div>
+        </div>
+        
+        <button @click="handleLogout" class="p-1.5 sm:p-2 rounded-lg text-primary-600 hover:bg-primary-600/10 hover:text-primary-600 transition-all active:scale-90" title="Cerrar sesión">
+          <svg class="w-4.5 h-4.5 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="flex-1 flex flex-col p-6">
+      <router-view />
+    </main>
+  </div>
+
   <FloatingStopwatch />
 
   <AppModal v-model="showInitialPasswordModal" title="Cambiar contraseña inicial" size="sm">
@@ -136,7 +170,7 @@
 </template>
 
 <script setup>
-import { ref, computed, h, watch } from 'vue'
+import { ref, computed, h, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
 import { useNotification } from '@/composables/useNotification'
@@ -159,6 +193,25 @@ const initialPasswordError = ref('')
 const changingInitialPassword = ref(false)
 
 const user = computed(() => authStore.user)
+
+const timeString = ref('')
+const dateString = ref('')
+
+function updateClock() {
+  const now = new Date()
+  timeString.value = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  dateString.value = now.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+}
+
+let clockInterval = null
+onMounted(() => {
+  updateClock()
+  clockInterval = setInterval(updateClock, 1000)
+})
+
+onUnmounted(() => {
+  if (clockInterval) clearInterval(clockInterval)
+})
 
 // SVG icon components
 const IconDashboard = (_, { attrs }) => h('svg', { ...attrs, fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', 'stroke-width': '2' }, [
@@ -186,12 +239,16 @@ const IconPlan = (_, { attrs }) => h('svg', { ...attrs, fill: 'none', viewBox: '
 const IconPayment = (_, { attrs }) => h('svg', { ...attrs, fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', 'stroke-width': '2' }, [
   h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75m0 1.5v.75m0 1.5v.75m0 1.5V15m1.5 1.5h15m-15-1.5v-1.5m0-1.5v-1.5m0-1.5v-.75m0-1.5v-.75m0-1.5V4.5m15 0v1.5m0 1.5v.75m0 1.5v.75m0 1.5V15m0 1.5h-15m15-1.5v-1.5m0-1.5v-1.5m0-1.5v-.75m0-1.5v-.75m0-1.5V4.5m-13.5 0h12m-12 0v1.5m0 1.5v.75m0 1.5v.75m0 1.5v1.5m12-1.5V4.5m0 1.5v.75m0 1.5v.75m0 1.5v1.5m-6 4.5a3 3 0 110-6 3 3 0 010 6z' })
 ])
+const IconClock = (_, { attrs }) => h('svg', { ...attrs, fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', 'stroke-width': '2' }, [
+  h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' })
+])
 
 const allNavItems = [
   { to: '/', label: 'Panel Principal', icon: IconDashboard, roles: null },
   { to: '/memberships', label: 'Membresías', icon: IconMembership, roles: ['Superusuario', 'Administrativo'] },
   { to: '/membership-plans', label: 'Planes', icon: IconPlan, roles: ['Superusuario', 'Administrativo'] },
   { to: '/payments', label: 'Pagos', icon: IconPayment, roles: ['Superusuario', 'Administrativo'] },
+  { to: '/ingresos', label: 'Ingresos', icon: IconClock, roles: ['Superusuario', 'Administrativo'] },
   { to: '/exercises', label: 'Ejercicios', icon: IconDumbbell, roles: ['Profesor', 'Superusuario', 'Administrativo'] },
   { to: '/routines', label: 'Rutinas', icon: IconClipboard, roles: ['Profesor', 'Superusuario', 'Administrativo'] },
   { to: '/assignments', label: 'Asignaciones', icon: IconLink, roles: ['Profesor', 'Superusuario', 'Administrativo'] },

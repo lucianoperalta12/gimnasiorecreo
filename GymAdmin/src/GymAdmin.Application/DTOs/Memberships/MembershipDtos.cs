@@ -33,6 +33,7 @@ public record MembershipListDto(
     string Estado,
     string EstadoAcceso,
     int DiasRestantes,
+    int IngresosUtilizados,
     bool PaseLibre = true,
     int? DiasPorSemana = null
 );

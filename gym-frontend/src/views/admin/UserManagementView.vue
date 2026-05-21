@@ -325,7 +325,7 @@ const createForm = reactive({ nombre: '', apellido: '', email: '', dni: '', rol:
 
 
 const allowedCreateRoles = computed(() =>
-  authStore.hasRole('Superusuario') ? ['Administrativo', 'Profesor', 'Alumno'] : ['Profesor', 'Alumno']
+  authStore.hasRole('Superusuario') ? ['Administrativo', 'Profesor', 'Alumno', 'Terminal'] : ['Profesor', 'Alumno']
 )
 
 const roleOptions = computed(() => {
@@ -336,6 +336,7 @@ const roleOptions = computed(() => {
     { id: 'Alumno', label: 'Alumno' }
   ]
   if (authStore.hasRole('Superusuario')) {
+    list.push({ id: 'Terminal', label: 'Terminal' })
     list.push({ id: 'Superusuario', label: 'Superusuario' })
   }
   return list
@@ -394,7 +395,7 @@ function fullName(user) {
 }
 
 function roleBadge(rol) {
-  const map = { Alumno: 'badge-primary', Profesor: 'badge-warning', Administrativo: 'badge-success', Superusuario: 'badge-danger' }
+  const map = { Alumno: 'badge-primary', Profesor: 'badge-warning', Administrativo: 'badge-success', Superusuario: 'badge-danger', Terminal: 'badge-warning' }
   return map[rol] || 'badge-primary'
 }
 
@@ -413,7 +414,7 @@ function canChangeRole(user) {
 
 function getAvailableRoles(user) {
   if (authStore.hasRole('Superusuario')) {
-    return ['Administrativo', 'Profesor', 'Alumno']
+    return ['Administrativo', 'Profesor', 'Alumno', 'Terminal']
   }
   if (authStore.hasRole('Administrativo')) {
     return ['Profesor', 'Alumno']

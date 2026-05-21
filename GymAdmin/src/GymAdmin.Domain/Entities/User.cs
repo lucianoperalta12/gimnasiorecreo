@@ -24,4 +24,6 @@ public class User
     public ICollection<Routine> RutinasCreadas { get; set; } = new List<Routine>();
     public ICollection<StudentRoutine> RutinasAsignadas { get; set; } = new List<StudentRoutine>();
     public ICollection<Membership> Membresias { get; set; } = new List<Membership>();
+    public ICollection<Ingreso> IngresosRegistrados { get; set; } = new List<Ingreso>();
+    public ICollection<Ingreso> IngresosComoAlumno { get; set; } = new List<Ingreso>();
 }

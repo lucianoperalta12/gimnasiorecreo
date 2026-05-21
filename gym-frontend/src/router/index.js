@@ -18,6 +18,12 @@ const routes = [
         name: 'Panel Principal',
         component: () => import('@/views/DashboardView.vue')
       },
+      {
+        path: 'ingresos',
+        name: 'Ingresos',
+        component: () => import('@/views/admin/IngresosView.vue'),
+        meta: { roles: ['Superusuario', 'Administrativo'] }
+      },
       // Exercises
       {
         path: 'exercises',
@@ -140,6 +146,10 @@ router.beforeEach((to, from, next) => {
     if (!authStore.hasRole(...to.meta.roles)) {
       return next('/')
     }
+  }
+
+  if (authStore.hasRole('Terminal') && to.path !== '/') {
+    return next('/')
   }
 
   // Check if routines/exercises/assignments routes are requested but veRutinas is disabled

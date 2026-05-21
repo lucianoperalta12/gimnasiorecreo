@@ -250,6 +250,7 @@ public class MembershipService : IMembershipService
                 m.Estado.ToString(),
                 AccessStatusHelper.ToDisplayString(access),
                 AccessStatusHelper.DiasRestantes(m),
+                m.IngresosUtilizados,
                 m.Plan.PaseLibre,
                 m.Plan.DiasPorSemana
             ));
