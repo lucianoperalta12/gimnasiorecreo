@@ -270,6 +270,48 @@
             </div>
           </div>
         </router-link>
+
+        <!-- Sección de Rutinas (Solo si el gimnasio lo permite) -->
+        <div v-if="veRutinas" class="max-w-2xl space-y-4">
+          <h2 class="text-sm font-bold text-dark-500 uppercase tracking-[0.2em] ml-1">Tus Rutinas de Entrenamiento</h2>
+          
+          <!-- Si tiene membresía activa y tiene rutinas asignadas -->
+          <div v-if="myAccess?.estadoAcceso === 'Activo' && myRoutines.length > 0" class="grid grid-cols-1 gap-3">
+            <router-link
+              v-for="rutina in myRoutines"
+              :key="rutina.id"
+              to="/my-routines"
+              class="group flex items-center justify-between p-5 rounded-2xl bg-dark-900/40 border border-dark-800/50 hover:bg-dark-800/60 hover:border-primary-500/30 transition-all duration-300"
+            >
+              <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-primary-500/10 text-primary-500 flex items-center justify-center text-xl">
+                  🏋️
+                </div>
+                <div>
+                  <h3 class="text-sm font-bold text-white group-hover:text-primary-500 transition-colors">{{ rutina.nombre }}</h3>
+                  <p class="text-xs text-dark-500 mt-1">Prof: {{ rutina.profesorNombre }}</p>
+                </div>
+              </div>
+              <svg class="w-5 h-5 text-dark-500 group-hover:text-primary-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+            </router-link>
+          </div>
+
+          <!-- Si tiene membresía activa pero no tiene rutinas asignadas -->
+          <div
+            v-else-if="myAccess?.estadoAcceso === 'Activo' && myRoutines.length === 0"
+            class="p-5 rounded-2xl border border-amber-500/20 bg-amber-500/5 text-amber-400 flex flex-col sm:flex-row items-center gap-4"
+          >
+            <div class="w-10 h-10 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center text-lg flex-shrink-0">
+              ⚠️
+            </div>
+            <div>
+              <p class="text-sm font-bold">No tenés rutinas de entrenamiento asignadas</p>
+              <p class="text-xs text-dark-400 mt-0.5">Pedile a tu profesor que te asigne una rutina para comenzar.</p>
+            </div>
+          </div>
+        </div>
       </div>
     </template>
   </div>
@@ -292,6 +334,8 @@ const membershipStore = useMembershipStore();
 const myAccess = computed(() => membershipStore.myAccess);
 const user = computed(() => authStore.user);
 const assignmentSummary = computed(() => routineStore.assignmentSummary);
+const myRoutines = computed(() => routineStore.myRoutines);
+const veRutinas = computed(() => authStore.user?.gymVeRutinas !== false);
 const dniInput = ref(null);
 const terminalDni = ref('');
 const terminalLoading = ref(false);
@@ -432,6 +476,11 @@ onMounted(async () => {
   } else if (authStore.hasRole('Profesor')) {
     await Promise.allSettled([routineStore.fetchExercises(), routineStore.fetchRoutines(), routineStore.fetchAssignmentSummary()]);
     updateDashboardStats();
+  } else if (authStore.hasRole('Alumno')) {
+    await membershipStore.fetchMyAccess();
+    if (veRutinas.value) {
+      await routineStore.fetchMyRoutines();
+    }
   }
 });
 </script>

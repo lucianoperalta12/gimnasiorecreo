@@ -399,13 +399,18 @@ const menuGroups = computed(() => {
   const groups = [];
 
   // 1. General/Inicio
+  const generalItems = [
+    { to: '/', label: 'Panel Principal', icon: IconDashboard, roles: null },
+    { to: '/my-membership', label: 'Mi Membresía', icon: IconMembership, roles: ['Alumno'] }
+  ];
+  if (veRutinas) {
+    generalItems.push({ to: '/my-routines', label: 'Mis Rutinas', icon: IconClipboard, roles: ['Alumno'] });
+  }
+
   const general = {
     id: 'general',
     title: null,
-    items: [
-      { to: '/', label: 'Panel Principal', icon: IconDashboard, roles: null },
-      { to: '/my-membership', label: 'Mi Membresía', icon: IconMembership, roles: ['Alumno'] },
-    ].filter((item) => !item.roles || authStore.hasRole(...item.roles)),
+    items: generalItems.filter((item) => !item.roles || authStore.hasRole(...item.roles)),
   };
   if (general.items.length > 0) groups.push(general);
 
