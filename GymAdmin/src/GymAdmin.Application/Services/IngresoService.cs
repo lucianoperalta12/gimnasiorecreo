@@ -19,7 +19,7 @@ public class IngresoService : IIngresoService
             .FirstOrDefaultAsync(x => x.Id == terminalUserId)
             ?? throw new UnauthorizedAccessException("Usuario inválido.");
 
-        if (terminal.Rol != UserRole.Terminal)
+        if (terminal.Rol is not (UserRole.Terminal or UserRole.Administrativo or UserRole.Superusuario))
             throw new UnauthorizedAccessException("No autorizado.");
 
         var dni = request.Dni.Trim();

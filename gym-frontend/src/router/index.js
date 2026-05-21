@@ -24,6 +24,12 @@ const routes = [
         component: () => import('@/views/admin/IngresosView.vue'),
         meta: { roles: ['Superusuario', 'Administrativo'] }
       },
+      {
+        path: 'terminal',
+        name: 'Terminal',
+        component: () => import('@/views/DashboardView.vue'),
+        meta: { roles: ['Superusuario', 'Administrativo', 'Terminal'] }
+      },
       // Exercises
       {
         path: 'exercises',

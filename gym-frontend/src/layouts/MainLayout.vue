@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!authStore.hasRole('Terminal')" class="min-h-screen flex">
+  <div v-if="!authStore.hasRole('Terminal') && !isTerminalRoute" class="min-h-screen flex">
     <!-- Sidebar -->
     <aside
       class="fixed inset-y-0 left-0 z-50 w-72 bg-[#080808] border-r border-dark-900 transform transition-transform duration-300 lg:translate-x-0 shadow-2xl flex flex-col"
@@ -239,7 +239,7 @@
     </main>
   </div>
 
-  <FloatingStopwatch v-if="!authStore.hasRole('Terminal')" />
+  <FloatingStopwatch v-if="!authStore.hasRole('Terminal') && !isTerminalRoute" />
 
   <AppModal v-model="showInitialPasswordModal" title="Cambiar contraseña inicial" size="sm">
     <form class="space-y-4" @submit.prevent="changeInitialPassword">
@@ -256,7 +256,7 @@
 
 <script setup>
 import { ref, computed, h, watch, onMounted, onUnmounted } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/auth.store';
 import { useNotification } from '@/composables/useNotification';
 import FloatingStopwatch from '@/components/ui/FloatingStopwatch.vue';
@@ -265,6 +265,8 @@ import AppInput from '@/components/ui/AppInput.vue';
 import { usersApi } from '@/api/users.api';
 
 const router = useRouter();
+const route = useRoute();
+const isTerminalRoute = computed(() => route.path === '/terminal');
 const authStore = useAuthStore();
 const { notifications } = useNotification();
 const sidebarOpen = ref(false);

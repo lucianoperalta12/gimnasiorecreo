@@ -1,6 +1,6 @@
 <template>
   <div class="animate-fade-in flex-1 flex flex-col h-full">
-    <div v-if="authStore.hasRole('Terminal')" class="flex-1 flex flex-col items-center justify-center w-full">
+    <div v-if="authStore.hasRole('Terminal') || isTerminalRoute" class="flex-1 flex flex-col items-center justify-center w-full">
       <div class="w-full max-w-3xl text-center mb-6 sm:mb-8">
         <h2 class="text-xs sm:text-base font-black tracking-[0.25em] text-dark-400 uppercase">Ingresá el DNI del Alumno</h2>
         <div class="w-12 h-1 bg-primary-500 mx-auto mt-3 sm:mt-4 rounded-full"></div>
@@ -61,9 +61,17 @@
     </div>
 
     <template v-else>
-      <div class="mb-8">
-        <h1 class="page-title">Bienvenido, {{ user?.nombre }}</h1>
-        <p class="page-subtitle">{{ greetingMessage }}</p>
+      <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 class="page-title">Bienvenido, {{ user?.nombre }}</h1>
+          <p class="page-subtitle">{{ greetingMessage }}</p>
+        </div>
+        <div v-if="authStore.hasRole('Administrativo', 'Superusuario')">
+          <a href="/terminal" target="_blank" class="px-4 py-2 rounded-xl border border-dark-800 text-xs font-black text-dark-400 uppercase hover:text-white hover:border-dark-600 transition-colors flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+            Abrir Terminal
+          </a>
+        </div>
       </div>
       <!-- 
       <div v-if="authStore.hasRole('Profesor', 'Superusuario', 'Administrativo')" class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
@@ -319,6 +327,7 @@
 
 <script setup>
 import { computed, nextTick, onMounted, ref } from 'vue';
+import { useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/auth.store';
 import { useRoutineStore } from '@/stores/routine.store';
 import { useUserStore } from '@/stores/user.store';
@@ -327,6 +336,8 @@ import { accessStatusBadgeClass, formatDate } from '@/constants/membershipStatus
 import { ingresosApi } from '@/api/ingresos.api';
 import { paymentsApi } from '@/api/payments.api';
 
+const route = useRoute();
+const isTerminalRoute = computed(() => route.path === '/terminal');
 const authStore = useAuthStore();
 const routineStore = useRoutineStore();
 const userStore = useUserStore();
@@ -486,7 +497,7 @@ function formatTime(val) {
 }
 
 onMounted(async () => {
-  if (authStore.hasRole('Terminal')) {
+  if (authStore.hasRole('Terminal') || isTerminalRoute.value) {
     await nextTick();
     dniInput.value?.focus();
     return;

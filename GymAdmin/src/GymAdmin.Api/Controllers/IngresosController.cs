@@ -27,7 +27,7 @@ public class IngresosController : ControllerBase
         Ok(await _ingresoService.GetAllAsync(GetUserId(), fechaDesde, fechaHasta, alumnoId, gymId));
 
     [HttpPost("registrar")]
-    [Authorize(Roles = "Terminal")]
+    [Authorize(Roles = "Terminal,Administrativo,Superusuario")]
     public async Task<ActionResult<RegistrarIngresoResponse>> Registrar([FromBody] RegistrarIngresoRequest request) =>
         Ok(await _ingresoService.RegistrarAsync(GetUserId(), request));
 }
