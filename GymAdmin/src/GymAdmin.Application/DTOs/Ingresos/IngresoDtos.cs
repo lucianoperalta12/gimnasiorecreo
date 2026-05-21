@@ -12,7 +12,8 @@ public record RegistrarIngresoResponse(
     string TerminalNombreCompleto,
     string TipoMembresia,
     bool PaseLibre,
-    int IngresosUtilizados
+    int IngresosUtilizados,
+    DateTime FechaVencimiento
 );
 
 public record IngresoListItemDto(

@@ -155,10 +155,11 @@
                       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                   </div>
-                  <select v-model="form.ejercicios[ej.originalIndex].ejercicioId" class="input !py-2 text-sm font-bold">
-                    <option :value="0" disabled>Seleccionar...</option>
-                    <option v-for="ex in exercises" :key="ex.id" :value="ex.id">{{ ex.nombre }} ({{ ex.grupoMuscular }})</option>
-                  </select>
+                  <AppSearchSelect
+                    v-model="form.ejercicios[ej.originalIndex].ejercicioId"
+                    :options="formattedExercises"
+                    placeholder="Buscar ejercicio..."
+                  />
                 </div>
 
                 <!-- Specs Grid -->
@@ -201,6 +202,7 @@ import { useRoutineStore } from '@/stores/routine.store'
 import { useNotification } from '@/composables/useNotification'
 import AppInput from '@/components/ui/AppInput.vue'
 import AppButton from '@/components/ui/AppButton.vue'
+import AppSearchSelect from '@/components/ui/AppSearchSelect.vue'
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
 import { ROUTINE_SECTIONS } from '@/constants/routineSections'
 import { useAuthStore } from '@/stores/auth.store'
@@ -221,6 +223,14 @@ const exercises = computed(() => {
   if (!authStore.hasRole('Superusuario')) return store.exercises
   if (!form.gymId) return []
   return store.exercises.filter(e => e.gymId === form.gymId)
+})
+
+const formattedExercises = computed(() => {
+  return exercises.value.map(ex => ({
+    id: ex.id,
+    label: ex.nombre,
+    subLabel: ex.grupoMuscular
+  }))
 })
 
 const routineSections = ROUTINE_SECTIONS

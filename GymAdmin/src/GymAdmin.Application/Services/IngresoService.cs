@@ -93,7 +93,8 @@ public class IngresoService : IIngresoService
             $"{terminal.Nombre} {terminal.Apellido}".Trim(),
             membership.Plan.Nombre,
             membership.Plan.PaseLibre,
-            membership.IngresosUtilizados
+            membership.IngresosUtilizados,
+            membership.FechaVencimiento
         );
     }
 

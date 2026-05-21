@@ -51,7 +51,7 @@
           <div
             v-if="terminalMessage"
             class="mt-6 sm:mt-8 rounded-[1.5rem] sm:rounded-[2rem] border p-4 sm:p-6 text-center backdrop-blur-md shadow-lg animate-fade-in"
-            :class="terminalSuccess ? 'border-emerald-500/25 bg-emerald-500/5 text-emerald-400' : 'border-red-500/25 bg-red-500/5 text-red-400'"
+            :class="terminalMessageColor"
           >
             <p class="text-sm sm:text-lg font-black tracking-wide uppercase leading-snug">{{ terminalMessage }}</p>
             <p v-if="terminalDetail" class="text-xs sm:text-sm mt-1.5 sm:mt-2 text-dark-400 font-medium leading-relaxed">{{ terminalDetail }}</p>
@@ -342,6 +342,8 @@ const terminalLoading = ref(false);
 const terminalMessage = ref('');
 const terminalDetail = ref('');
 const terminalSuccess = ref(false);
+const terminalMessageColor = ref('');
+let terminalTimeout = null;
 const inputFocused = ref(false);
 
 const ingresosHoy = ref([]);
@@ -382,23 +384,51 @@ async function registrarIngreso() {
   terminalLoading.value = true;
   terminalMessage.value = '';
   terminalDetail.value = '';
+  if (terminalTimeout) clearTimeout(terminalTimeout);
+
   try {
     const { data } = await ingresosApi.registrar(terminalDni.value);
     terminalSuccess.value = true;
+    
+    const today = new Date();
+    const vencimiento = new Date(data.fechaVencimiento);
+    const timeDiff = vencimiento - today;
+    const daysRemaining = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+    let daysMessage = '';
+    if (daysRemaining > 0) {
+      daysMessage = `· Faltan ${daysRemaining} Días para Renovar su membresía`;
+    } else if (daysRemaining === 0) {
+      daysMessage = `· Vence hoy`;
+    }
+
     terminalMessage.value = `Ingreso registrado para ${data.alumnoNombreCompleto}`;
-    terminalDetail.value = `${data.tipoMembresia} · ${new Date(data.fechaHora).toLocaleString()}`;
+    terminalDetail.value = `${data.tipoMembresia} · Ingreso: ${new Date(data.fechaHora).toLocaleString()} ${daysMessage}`;
     terminalDni.value = '';
+
+    if (daysRemaining <= 7) {
+      terminalMessageColor.value = 'border-amber-500/50 bg-amber-500/10 text-amber-400';
+    } else {
+      terminalMessageColor.value = 'border-emerald-500/25 bg-emerald-500/5 text-emerald-400';
+    }
+
     // Refrescar ingresos recientes tras ingreso exitoso en terminal
     if (authStore.hasRole('Superusuario', 'Administrativo')) {
       fetchIngresosHoy();
     }
   } catch (err) {
     terminalSuccess.value = false;
+    terminalMessageColor.value = 'border-red-500/25 bg-red-500/5 text-red-400';
     terminalMessage.value = err.response?.data?.error || 'No se pudo registrar el ingreso';
   } finally {
     terminalLoading.value = false;
     await nextTick();
     dniInput.value?.focus();
+
+    terminalTimeout = setTimeout(() => {
+      terminalMessage.value = '';
+      terminalDetail.value = '';
+    }, 10000);
   }
 }
 
