@@ -8,7 +8,7 @@
       </div>
       <div class="flex items-center gap-3 self-start md:self-auto w-full md:w-auto">
         <!-- Gym Selector (Solo Superusuario) -->
-        <div v-if="authStore.hasRole('Superusuario')" class="w-64">
+        <div v-if="authStore.hasRole('Superusuario')" class="flex-1 md:w-64 md:flex-initial">
           <AppSearchSelect v-model="gymId" :options="gymOptions" placeholder="Todos los gimnasios" />
         </div>
 
@@ -32,48 +32,43 @@
 
     <template v-else>
       <!-- KPI Cards -->
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="grid grid-cols-3 gap-2 sm:gap-4">
         <!-- KPI 1: Recaudación Mes Actual -->
-        <div class="p-6 rounded-[2rem] bg-dark-900/40 border border-dark-800/50 backdrop-blur-md relative overflow-hidden group">
-          <div
-            class="absolute -right-4 -bottom-4 w-24 h-24 bg-emerald-500/5 rounded-full blur-xl group-hover:bg-emerald-500/10 transition-all duration-500"
-          ></div>
-          <p class="text-[10px] text-dark-500 uppercase tracking-[0.2em] font-black">Recaudación este Mes</p>
-
-          <p class="text-2xl font-black text-emerald-400 mt-2 tracking-tight leading-none">
+        <div class="p-3 sm:p-6 rounded-2xl sm:rounded-[2rem] bg-dark-900/40 border border-dark-800/50 backdrop-blur-md relative overflow-hidden group">
+          <div class="absolute -right-4 -bottom-4 w-12 sm:w-24 h-12 sm:h-24 bg-emerald-500/5 rounded-full blur-xl group-hover:bg-emerald-500/10 transition-all duration-500"></div>
+          <p class="text-[8px] sm:text-[10px] text-dark-500 uppercase tracking-[0.15em] sm:tracking-[0.2em] font-black">Recaudación</p>
+          <p class="text-xs sm:text-2xl font-black text-emerald-400 mt-1.5 sm:mt-2 tracking-tight leading-none">
             {{ formatMoneda(recaudacionMesActual) }}
           </p>
-          <div class="flex items-center gap-1.5 mt-2.5">
+          <div class="flex items-center gap-1 sm:gap-1.5 mt-1 sm:mt-2.5">
             <span
-              class="text-[10px] font-black px-1.5 py-0.5 rounded-md"
+              class="text-[7px] sm:text-[10px] font-black px-1 sm:px-1.5 py-0.5 rounded-md"
               :class="tendenciaVentas >= 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'"
             >
-              {{ tendenciaVentas >= 0 ? '+' : '' }}{{ tendenciaVentas.toFixed(1) }}%
+              {{ tendenciaVentas >= 0 ? '+' : '' }}{{ tendenciaVentas.toFixed(0) }}%
             </span>
-            <span class="text-[11px] text-dark-500">vs. mes anterior</span>
+            <span class="text-[8px] sm:text-[11px] text-dark-500">vs. mes ant.</span>
           </div>
         </div>
 
         <!-- KPI 2: Membresías Activas -->
-        <div class="p-6 rounded-[2rem] bg-dark-900/40 border border-dark-800/50 backdrop-blur-md relative overflow-hidden group">
-          <div
-            class="absolute -right-4 -bottom-4 w-24 h-24 bg-primary-500/5 rounded-full blur-xl group-hover:bg-primary-500/10 transition-all duration-500"
-          ></div>
-          <p class="text-[10px] text-dark-500 uppercase tracking-[0.2em] font-black">Membresías Activas</p>
-          <p class="text-4xl font-black text-white mt-3 tracking-tight leading-none">
+        <div class="p-3 sm:p-6 rounded-2xl sm:rounded-[2rem] bg-dark-900/40 border border-dark-800/50 backdrop-blur-md relative overflow-hidden group">
+          <div class="absolute -right-4 -bottom-4 w-12 sm:w-24 h-12 sm:h-24 bg-primary-500/5 rounded-full blur-xl group-hover:bg-primary-500/10 transition-all duration-500"></div>
+          <p class="text-[8px] sm:text-[10px] text-dark-500 uppercase tracking-[0.15em] sm:tracking-[0.2em] font-black">Activas</p>
+          <p class="text-xl sm:text-4xl font-black text-white mt-1.5 sm:mt-3 tracking-tight leading-none">
             {{ membershipsActivasCount }}
           </p>
-          <p class="text-xs text-dark-400 mt-2">Alumnos habilitados para ingresar</p>
+          <p class="hidden sm:block text-xs text-dark-400 mt-2">Alumnos habilitados para ingresar</p>
         </div>
 
         <!-- KPI 3: Ticket Promedio -->
-        <div class="p-6 rounded-[2rem] bg-dark-900/40 border border-dark-800/50 backdrop-blur-md relative overflow-hidden group">
-          <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-blue-500/5 rounded-full blur-xl group-hover:bg-blue-500/10 transition-all duration-500"></div>
-          <p class="text-[10px] text-dark-500 uppercase tracking-[0.2em] font-black">Cobro Promedio</p>
-          <p class="text-4xl font-black text-white mt-3 tracking-tight leading-none">
+        <div class="p-3 sm:p-6 rounded-2xl sm:rounded-[2rem] bg-dark-900/40 border border-dark-800/50 backdrop-blur-md relative overflow-hidden group">
+          <div class="absolute -right-4 -bottom-4 w-12 sm:w-24 h-12 sm:h-24 bg-blue-500/5 rounded-full blur-xl group-hover:bg-blue-500/10 transition-all duration-500"></div>
+          <p class="text-[8px] sm:text-[10px] text-dark-500 uppercase tracking-[0.15em] sm:tracking-[0.2em] font-black">Cobro Prom.</p>
+          <p class="text-xl sm:text-4xl font-black text-white mt-1.5 sm:mt-3 tracking-tight leading-none">
             {{ formatMoneda(ticketPromedio) }}
           </p>
-          <p class="text-xs text-dark-400 mt-2">Valor medio por pago procesado</p>
+          <p class="hidden sm:block text-xs text-dark-400 mt-2">Valor medio por pago procesado</p>
         </div>
       </div>
 
@@ -88,9 +83,9 @@
 
           <div class="flex-1 flex flex-col justify-center space-y-4">
             <div v-for="plan in planesDistribucion" :key="plan.nombre" class="group">
-              <div class="flex items-center justify-between text-xs font-bold mb-1">
-                <span class="text-dark-200 uppercase tracking-wide">{{ plan.nombre }}</span>
-                <span class="text-white">{{ plan.cantidad }} alumnos ({{ plan.porcentaje.toFixed(0) }}%)</span>
+              <div class="flex items-center justify-between text-[10px] sm:text-xs font-bold mb-1">
+                <span class="text-dark-200 uppercase tracking-wide truncate max-w-[150px] sm:max-w-none">{{ plan.nombre }}</span>
+                <span class="text-white shrink-0">{{ plan.cantidad }} alumnos ({{ plan.porcentaje.toFixed(0) }}%)</span>
               </div>
               <div class="w-full h-3 bg-dark-950 rounded-full overflow-hidden border border-dark-900/50">
                 <div
@@ -165,7 +160,7 @@
             <thead>
               <tr>
                 <th>Alumno</th>
-                <th>Fecha de Pago</th>
+                <th class="hidden sm:table-cell">Fecha de Pago</th>
                 <th>Concepto / Plan</th>
                 <th>Monto</th>
               </tr>
@@ -173,7 +168,7 @@
             <tbody>
               <tr v-for="item in pagosRecientes.slice(0, 50)" :key="item.id" class="hover:bg-dark-900/20">
                 <td class="font-medium text-white">{{ item.alumnoNombreCompleto }}</td>
-                <td>{{ formatDateTime(item.fechaPago) }}</td>
+                <td class="hidden sm:table-cell">{{ formatDateTime(item.fechaPago) }}</td>
                 <td>{{ item.planNombre }}</td>
                 <td class="font-black text-emerald-400">{{ formatMoneda(item.monto) }}</td>
               </tr>
