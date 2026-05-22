@@ -13,8 +13,8 @@
               </span>
             </div>
           </div>
-          <AppButton 
-            variant="secondary" 
+          <AppButton
+            variant="secondary"
             @click="goBack"
             class="md:px-4 px-2.5 !rounded-xl md:!rounded-lg"
           >
@@ -27,7 +27,6 @@
         <p class="text-dark-400 text-sm leading-relaxed">{{ routine.descripcion || 'Sin descripción' }}</p>
       </div>
 
-      <!-- Quick Info Grid -->
       <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-8">
         <div class="p-3 rounded-2xl bg-dark-900/50 border border-dark-800/50 flex flex-col gap-1">
           <span class="text-[9px] text-dark-500 uppercase tracking-widest font-black">Profesor</span>
@@ -43,30 +42,28 @@
         </div>
       </div>
 
-      <!-- Day Selector Navigation -->
       <div v-if="routine.isByDays" class="flex p-1.5 gap-1.5 bg-dark-950/80 backdrop-blur-md border border-dark-800 rounded-2xl mb-4 overflow-x-auto no-scrollbar">
         <button
           v-for="day in routine.daysCount"
           :key="day"
           @click="currentDay = day"
           class="flex-1 min-w-[80px] py-2 text-xs font-black rounded-xl transition-all duration-300"
-          :class="currentDay === day 
-            ? 'bg-primary-600/20 text-primary-400 border border-primary-500/30' 
+          :class="currentDay === day
+            ? 'bg-primary-600/20 text-primary-400 border border-primary-500/30'
             : 'text-dark-400 hover:text-dark-200 hover:bg-dark-900'"
         >
           Día {{ day }}
         </button>
       </div>
 
-      <!-- Tabs Navigation (Optimized for Mobile) -->
       <div class="flex p-1.5 gap-1.5 bg-dark-950/80 backdrop-blur-md border border-dark-800 rounded-2xl mb-8 sticky top-[72px] z-20 shadow-xl overflow-x-auto no-scrollbar">
         <button
           v-for="section in groupedSections"
           :key="section.value"
           @click="activeTab = section.value"
           class="flex-1 min-w-[100px] py-3 text-xs font-black rounded-xl transition-all duration-300 flex flex-col items-center justify-center gap-1.5 relative group"
-          :class="activeTab === section.value 
-            ? 'bg-primary-600 text-white' 
+          :class="activeTab === section.value
+            ? 'bg-primary-600 text-white'
             : 'text-dark-400 hover:text-dark-200 hover:bg-dark-900'"
         >
           <span class="text-lg transition-transform duration-300 group-active:scale-125">
@@ -75,7 +72,7 @@
             <span v-else-if="section.value === 'fuerza'">🤸</span>
           </span>
           <span class="uppercase tracking-tighter">{{ section.label }}</span>
-          <span 
+          <span
             v-if="section.ejercicios.length > 0"
             class="absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black border-2 border-dark-950"
             :class="activeTab === section.value ? 'bg-white text-primary-600' : 'bg-dark-700 text-dark-300'"
@@ -85,7 +82,6 @@
         </button>
       </div>
 
-      <!-- Active Tab Content -->
       <div v-if="currentSection" class="animate-scale-in">
         <div class="card space-y-4">
           <div class="flex items-center justify-between mb-2">
@@ -100,7 +96,6 @@
           </div>
 
           <div v-else>
-            <!-- Desktop Table -->
             <div class="hidden md:block table-container">
               <table class="table">
                 <thead>
@@ -143,23 +138,21 @@
                       <span v-if="ej.descansoSegundos" class="text-dark-300">{{ ej.descansoSegundos }}<small class="text-dark-500">s</small></span>
                       <span v-else class="text-dark-600">—</span>
                     </td>
-                    <td class="text-dark-400 text-sm max-w-xs truncate" :title="ej.observaciones">{{ ej.observaciones || '—' }}</td>
+                    <td class="text-dark-400 text-sm max-w-xs truncate" :title="ej.ejercicioDescripcion">{{ ej.ejercicioDescripcion || '—' }}</td>
                   </tr>
                 </tbody>
               </table>
             </div>
 
-            <!-- Mobile Cards (Enhanced) -->
-            <div class="md:hidden space-y-4">
-              <div v-for="ej in currentSection.ejercicios" :key="ej.id" class="p-5 rounded-[2rem] bg-dark-900/60 border border-dark-800/50 shadow-lg space-y-5 relative overflow-hidden group">
-                <!-- Background Decoration -->
+            <div class="md:hidden space-y-2.5">
+              <div v-for="ej in currentSection.ejercicios" :key="ej.id" class="p-3.5 rounded-2xl bg-dark-900/60 border border-dark-800/50 shadow-lg space-y-3.5 relative overflow-hidden group">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-primary-600/5 rounded-full blur-2xl group-hover:bg-primary-600/10 transition-colors" />
-                
+
                 <div class="flex items-start justify-between relative z-10">
-                  <div class="flex items-center gap-4">
+                  <div class="flex items-center gap-2.5">
                     <div>
-                      <h3 class="font-black text-base text-white leading-none">{{ ej.ejercicioNombre }}</h3>
-                      <div class="flex items-center gap-2 mt-2">
+                      <h3 class="font-black text-sm text-white leading-tight">{{ ej.ejercicioNombre }}</h3>
+                      <div class="flex items-center gap-2 mt-1.5">
                         <span class="px-2 py-0.5 rounded-md bg-primary-600/10 text-primary-400 text-[9px] font-black uppercase tracking-wider">{{ ej.grupoMuscular }}</span>
                         <span v-if="ej.videoUrl" class="w-1 h-1 rounded-full bg-dark-600"></span>
                         <span v-if="ej.videoUrl" class="text-[9px] text-dark-500 font-bold">Video disponible</span>
@@ -170,30 +163,30 @@
                     v-if="ej.videoUrl"
                     :href="ej.videoUrl"
                     target="_blank"
-                    class="w-10 h-10 rounded-2xl bg-primary-600 text-white flex items-center justify-center  active:scale-90 transition-transform"
+                    class="w-8 h-8 rounded-xl bg-primary-600 text-white flex items-center justify-center active:scale-90 transition-transform"
                   >
-                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347c-.75.412-1.667-.13-1.667-.986V5.653z" />
                     </svg>
                   </a>
                 </div>
 
-                <div class="grid grid-cols-3 gap-3 relative z-10">
-                  <div class="bg-dark-950/50 p-3 rounded-2xl border border-dark-800/50 flex flex-col items-center justify-center gap-1">
+                <div class="grid grid-cols-3 gap-2 relative z-10">
+                  <div class="bg-dark-950/50 p-2 rounded-xl border border-dark-800/50 flex flex-col items-center justify-center gap-0.5">
                     <span class="text-[8px] uppercase font-black text-dark-500 tracking-tighter">Series</span>
-                    <span class="text-base font-black text-white">{{ ej.series }}</span>
+                    <span class="text-sm font-black text-white">{{ ej.series }}</span>
                   </div>
-                  <div class="bg-dark-950/50 p-3 rounded-2xl border border-dark-800/50 flex flex-col items-center justify-center gap-1">
+                  <div class="bg-dark-950/50 p-2 rounded-xl border border-dark-800/50 flex flex-col items-center justify-center gap-0.5">
                     <span class="text-[8px] uppercase font-black text-dark-500 tracking-tighter">Reps</span>
-                    <span class="text-base font-black text-white">{{ ej.repeticiones }}</span>
+                    <span class="text-sm font-black text-white">{{ ej.repeticiones }}</span>
                   </div>
-                  <div class="bg-dark-950/50 p-3 rounded-2xl border border-dark-800/50 flex flex-col items-center justify-center gap-1">
+                  <div class="bg-dark-950/50 p-2 rounded-xl border border-dark-800/50 flex flex-col items-center justify-center gap-0.5">
                     <span class="text-[8px] uppercase font-black text-dark-500 tracking-tighter">Peso</span>
-                    <span class="text-base font-black text-primary-400">{{ ej.peso || '—' }}<small v-if="ej.peso" class="ml-0.5 font-bold text-[10px]">kg</small></span>
+                    <span class="text-sm font-black text-primary-400">{{ ej.peso || '—' }}<small v-if="ej.peso" class="ml-0.5 font-bold text-[10px]">kg</small></span>
                   </div>
                 </div>
 
-                <div v-if="ej.descansoSegundos || ej.observaciones" class="pt-4 border-t border-dark-800/50 flex flex-col gap-3 relative z-10">
+                <div v-if="ej.descansoSegundos || ej.ejercicioDescripcion" class="pt-2.5 border-t border-dark-800/50 flex flex-col gap-2 relative z-10">
                   <div v-if="ej.descansoSegundos" class="flex items-center justify-between">
                     <div class="flex items-center gap-2 text-[10px] font-bold text-dark-400 uppercase tracking-wide">
                       <svg class="w-4 h-4 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -203,14 +196,14 @@
                     </div>
                     <span class="text-sm font-black text-dark-200 bg-dark-800 px-3 py-1 rounded-full border border-dark-700">{{ ej.descansoSegundos }}s</span>
                   </div>
-                  <div v-if="ej.observaciones" class="bg-primary-600/5 p-4 rounded-2xl border border-primary-600/10">
+                  <div v-if="ej.ejercicioDescripcion" class="bg-primary-600/5 p-2.5 rounded-xl border border-primary-600/10">
                     <div class="flex items-center gap-2 mb-2">
                       <svg class="w-3.5 h-3.5 text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
                       </svg>
-                      <span class="text-[10px] uppercase font-black text-primary-400 tracking-wider">Notas del Profesor</span>
+                      <span class="text-[10px] uppercase font-black text-primary-400 tracking-wider">Observaciones</span>
                     </div>
-                    <p class="text-xs text-dark-300 leading-relaxed italic">{{ ej.observaciones }}</p>
+                    <p class="text-xs text-dark-300 leading-relaxed italic break-words">{{ ej.ejercicioDescripcion }}</p>
                   </div>
                 </div>
               </div>
@@ -264,8 +257,7 @@ function formatDate(dateStr) {
 onMounted(async () => {
   try {
     routine.value = await store.fetchRoutine(route.params.id)
-    
-    // Set default active tab to the first section that has exercises, if any
+
     const firstWithExercises = groupedSections.value.find(s => s.ejercicios.length > 0)
     if (firstWithExercises) {
       activeTab.value = firstWithExercises.value
@@ -275,4 +267,3 @@ onMounted(async () => {
   }
 })
 </script>
-

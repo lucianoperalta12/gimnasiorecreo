@@ -221,6 +221,7 @@ public class RoutineService : IRoutineService
             re.Id,
             re.EjercicioId,
             re.Ejercicio.Nombre,
+            re.Ejercicio.Descripcion,
             re.Ejercicio.GrupoMuscular,
             re.Ejercicio.VideoUrl,
             re.Bloque,

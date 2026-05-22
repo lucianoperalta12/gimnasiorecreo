@@ -31,6 +31,7 @@ public record RoutineExerciseDto(
     int Id,
     int EjercicioId,
     string EjercicioNombre,
+    string? EjercicioDescripcion,
     string GrupoMuscular,
     string? VideoUrl,
     string Bloque,

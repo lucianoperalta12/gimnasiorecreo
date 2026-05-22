@@ -1,15 +1,15 @@
-<template>
+﻿<template>
   <div class="animate-fade-in">
     <LoadingSpinner v-if="loading" />
 
     <div v-else-if="routines.length === 0" class="card text-center py-16">
-      <div class="text-5xl mb-4">🏋️</div>
-      <p class="text-dark-300 text-lg">No tenés rutinas asignadas</p>
-      <p class="text-dark-500 text-sm mt-2">Tu profesor te asignará rutinas pronto.</p>
+      <div class="text-5xl mb-4">ðŸ‹ï¸</div>
+      <p class="text-dark-300 text-lg">No tenÃ©s rutinas asignadas</p>
+      <p class="text-dark-500 text-sm mt-2">Tu profesor te asignarÃ¡ rutinas pronto.</p>
     </div>
 
     <div v-else class="space-y-6">
-      <!-- Selector de Rutinas (Solo si tiene más de una) -->
+      <!-- Selector de Rutinas (Solo si tiene mÃ¡s de una) -->
       <div v-if="routines.length > 1" class="flex p-1.5 gap-1.5 bg-dark-950/80 border border-dark-800 rounded-2xl mb-6 overflow-x-auto no-scrollbar">
         <button
           v-for="(r, idx) in routines"
@@ -41,13 +41,13 @@
               @click="goBack"
               class="md:px-4 px-2.5 !rounded-xl md:!rounded-lg"
             >
-              <svg class="w-5 h-5 md:w-3 md:h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+              <svg class="w-4 h-4 md:w-3 md:h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
               </svg>
               <span class="hidden md:inline ml-1 text-[10px] font-black uppercase tracking-[0.2em]">Volver</span>
             </AppButton>
           </div>
-          <p class="text-dark-400 text-sm leading-relaxed">{{ routine.descripcion || 'Sin descripción' }}</p>
+          <p class="text-dark-400 text-sm leading-relaxed">{{ routine.descripcion || 'Sin descripciÃ³n' }}</p>
         </div>
 
         <!-- Quick Info Grid -->
@@ -77,7 +77,7 @@
               ? 'bg-primary-600/20 text-primary-400 border border-primary-500/30' 
               : 'text-dark-400 hover:text-dark-200 hover:bg-dark-900'"
           >
-            Día {{ day }}
+            DÃ­a {{ day }}
           </button>
         </div>
 
@@ -93,14 +93,14 @@
               : 'text-dark-400 hover:text-dark-200 hover:bg-dark-900'"
           >
             <span class="text-lg transition-transform duration-300 group-active:scale-125">
-              <span v-if="section.value === 'calentamientoInicial'">🔥</span>
-              <span v-else-if="section.value === 'parteMedia'">⚙️</span>
-              <span v-else-if="section.value === 'fuerza'">🤸</span>
+              <span v-if="section.value === 'calentamientoInicial'">ðŸ”¥</span>
+              <span v-else-if="section.value === 'parteMedia'">âš™ï¸</span>
+              <span v-else-if="section.value === 'fuerza'">ðŸ¤¸</span>
             </span>
             <span class="uppercase tracking-tighter">{{ section.label }}</span>
             <span 
               v-if="section.ejercicios.length > 0"
-              class="absolute -top-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-black border-2 border-dark-950"
+              class="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black border-2 border-dark-950"
               :class="activeTab === section.value ? 'bg-white text-primary-600' : 'bg-dark-700 text-dark-300'"
             >
               {{ section.ejercicios.length }}
@@ -119,7 +119,7 @@
             </div>
 
             <div v-if="currentSection.ejercicios.length === 0" class="rounded-xl border border-dashed border-dark-700 px-4 py-12 text-center text-dark-500">
-              <p>Todavía no hay ejercicios cargados en esta parte de la rutina.</p>
+              <p>TodavÃ­a no hay ejercicios cargados en esta parte de la rutina.</p>
             </div>
 
             <div v-else>
@@ -160,29 +160,29 @@
                       <td>{{ ej.repeticiones }}</td>
                       <td>
                         <span v-if="ej.peso" class="text-white font-semibold">{{ ej.peso }} <small class="text-dark-500 font-normal">kg</small></span>
-                        <span v-else class="text-dark-600">—</span>
+                        <span v-else class="text-dark-600">â€”</span>
                       </td>
                       <td>
                         <span v-if="ej.descansoSegundos" class="text-dark-300">{{ ej.descansoSegundos }}<small class="text-dark-500">s</small></span>
-                        <span v-else class="text-dark-600">—</span>
+                        <span v-else class="text-dark-600">â€”</span>
                       </td>
-                      <td class="text-dark-400 text-sm max-w-xs truncate" :title="ej.observaciones">{{ ej.observaciones || '—' }}</td>
+                      <td class="text-dark-400 text-sm max-w-xs truncate" :title="ej.ejercicioDescripcion">{{ ej.ejercicioDescripcion || 'â€”' }}</td>
                     </tr>
                   </tbody>
                 </table>
               </div>
 
               <!-- Mobile Cards (Enhanced) -->
-              <div class="md:hidden space-y-4">
-                <div v-for="ej in currentSection.ejercicios" :key="ej.id" class="p-5 rounded-[2rem] bg-dark-900/60 border border-dark-800/50 shadow-lg space-y-5 relative overflow-hidden group">
+              <div class="md:hidden space-y-2.5">
+                <div v-for="ej in currentSection.ejercicios" :key="ej.id" class="p-3.5 rounded-2xl bg-dark-900/60 border border-dark-800/50 shadow-lg space-y-3.5 relative overflow-hidden group">
                   <!-- Background Decoration -->
                   <div class="absolute -right-4 -top-4 w-24 h-24 bg-primary-600/5 rounded-full blur-2xl group-hover:bg-primary-600/10 transition-colors" />
                   
                   <div class="flex items-start justify-between relative z-10">
-                    <div class="flex items-center gap-4">
+                    <div class="flex items-center gap-2.5">
                       <div>
-                        <h3 class="font-black text-base text-white leading-none">{{ ej.ejercicioNombre }}</h3>
-                        <div class="flex items-center gap-2 mt-2">
+                        <h3 class="font-black text-sm text-white leading-tight">{{ ej.ejercicioNombre }}</h3>
+                        <div class="flex items-center gap-2 mt-1.5">
                           <span class="px-2 py-0.5 rounded-md bg-primary-600/10 text-primary-400 text-[9px] font-black uppercase tracking-wider">{{ ej.grupoMuscular }}</span>
                           <span v-if="ej.videoUrl" class="w-1 h-1 rounded-full bg-dark-600"></span>
                           <span v-if="ej.videoUrl" class="text-[9px] text-dark-500 font-bold">Video disponible</span>
@@ -193,30 +193,30 @@
                       v-if="ej.videoUrl"
                       :href="ej.videoUrl"
                       target="_blank"
-                      class="w-10 h-10 rounded-2xl bg-primary-600 text-white flex items-center justify-center active:scale-90 transition-transform"
+                      class="w-8 h-8 rounded-xl bg-primary-600 text-white flex items-center justify-center active:scale-90 transition-transform"
                     >
-                      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347c-.75.412-1.667-.13-1.667-.986V5.653z" />
                       </svg>
                     </a>
                   </div>
 
-                  <div class="grid grid-cols-3 gap-3 relative z-10">
-                    <div class="bg-dark-950/50 p-3 rounded-2xl border border-dark-800/50 flex flex-col items-center justify-center gap-1">
+                  <div class="grid grid-cols-3 gap-2 relative z-10">
+                    <div class="bg-dark-950/50 p-2 rounded-xl border border-dark-800/50 flex flex-col items-center justify-center gap-0.5">
                       <span class="text-[8px] uppercase font-black text-dark-500 tracking-tighter">Series</span>
-                      <span class="text-base font-black text-white">{{ ej.series }}</span>
+                      <span class="text-sm font-black text-white">{{ ej.series }}</span>
                     </div>
-                    <div class="bg-dark-950/50 p-3 rounded-2xl border border-dark-800/50 flex flex-col items-center justify-center gap-1">
+                    <div class="bg-dark-950/50 p-2 rounded-xl border border-dark-800/50 flex flex-col items-center justify-center gap-0.5">
                       <span class="text-[8px] uppercase font-black text-dark-500 tracking-tighter">Reps</span>
-                      <span class="text-base font-black text-white">{{ ej.repeticiones }}</span>
+                      <span class="text-sm font-black text-white">{{ ej.repeticiones }}</span>
                     </div>
-                    <div class="bg-dark-950/50 p-3 rounded-2xl border border-dark-800/50 flex flex-col items-center justify-center gap-1">
+                    <div class="bg-dark-950/50 p-2 rounded-xl border border-dark-800/50 flex flex-col items-center justify-center gap-0.5">
                       <span class="text-[8px] uppercase font-black text-dark-500 tracking-tighter">Peso</span>
-                      <span class="text-base font-black text-primary-400">{{ ej.peso || '—' }}<small v-if="ej.peso" class="ml-0.5 font-bold text-[10px]">kg</small></span>
+                      <span class="text-sm font-black text-primary-400">{{ ej.peso || 'â€”' }}<small v-if="ej.peso" class="ml-0.5 font-bold text-[10px]">kg</small></span>
                     </div>
                   </div>
 
-                  <div v-if="ej.descansoSegundos || ej.observaciones" class="pt-4 border-t border-dark-800/50 flex flex-col gap-3 relative z-10">
+                  <div class="pt-2.5 border-t border-dark-800/50 flex flex-col gap-2 relative z-10">
                     <div v-if="ej.descansoSegundos" class="flex items-center justify-between">
                       <div class="flex items-center gap-2 text-[10px] font-bold text-dark-400 uppercase tracking-wide">
                         <svg class="w-4 h-4 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -226,14 +226,14 @@
                       </div>
                       <span class="text-sm font-black text-dark-200 bg-dark-800 px-3 py-1 rounded-full border border-dark-700">{{ ej.descansoSegundos }}s</span>
                     </div>
-                    <div v-if="ej.observaciones" class="bg-primary-600/5 p-4 rounded-2xl border border-primary-600/10">
+                    <div v-if="ej.ejercicioDescripcion" class="bg-primary-600/5 p-2.5 rounded-xl border border-primary-600/10">
                       <div class="flex items-center gap-2 mb-2">
                         <svg class="w-3.5 h-3.5 text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                           <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 01.865-.501 48.172 48.172 0 003.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
                         </svg>
-                        <span class="text-[10px] uppercase font-black text-primary-400 tracking-wider">Notas del Profesor</span>
+                        <span class="text-[10px] uppercase font-black text-primary-400 tracking-wider">Observaciones</span>
                       </div>
-                      <p class="text-xs text-dark-300 leading-relaxed italic">{{ ej.observaciones }}</p>
+                      <p class="text-xs text-dark-300 leading-relaxed italic break-words">{{ ej.ejercicioDescripcion || 'Sin observaciones' }}</p>
                     </div>
                   </div>
                 </div>
@@ -299,3 +299,4 @@ onMounted(async () => {
   }
 })
 </script>
+

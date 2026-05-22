@@ -183,10 +183,6 @@
                 </div>
               </div>
 
-              <!-- Observations (Compact) -->
-              <div class="mt-3 pt-3 border-t border-dark-800/50">
-                <input v-model="form.ejercicios[ej.originalIndex].observaciones" class="bg-transparent border-none text-[11px] text-dark-400 w-full focus:ring-0 placeholder-dark-600 font-medium" placeholder="Añadir observaciones..." />
-              </div>
             </div>
           </div>
         </div>
