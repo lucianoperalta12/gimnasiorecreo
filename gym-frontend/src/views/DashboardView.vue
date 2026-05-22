@@ -1,10 +1,11 @@
 <template>
   <div class="animate-fade-in flex-1 flex flex-col h-full">
-    <div v-if="authStore.hasRole('Terminal') || isTerminalRoute" class="flex-1 flex flex-col items-center justify-center w-full relative">
+    <div v-if="authStore.hasRole('Terminal') || isTerminalRoute" class="flex-1 flex flex-col items-center w-full relative">
+      <div class="flex-1"></div>
       <!-- Header -->
       <div class="w-full max-w-3xl text-center mb-6 sm:mb-8">
         <div class="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-4 rounded-2xl bg-dark-900/60 border border-dark-800/50 flex items-center justify-center">
-          <svg class="w-6 h-6 sm:w-7 sm:h-7 text-dark-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <svg class="w-6 h-6 sm:w-7 sm:h-7 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
           </svg>
         </div>
@@ -44,6 +45,8 @@
           Presioná <span class="font-black text-primary-500 mx-0.5">ENTER</span> para validar
         </div>
 
+      </div>
+      <div class="flex-1 w-full max-w-3xl">
         <!-- Result Card -->
         <Transition name="fade-slide">
           <div v-if="terminalMessage" :key="terminalMessage" class="mt-6 sm:mt-8 animate-fade-in">
