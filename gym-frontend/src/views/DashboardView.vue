@@ -1,27 +1,27 @@
 <template>
   <div class="animate-fade-in flex-1 flex flex-col h-full">
-    <div v-if="authStore.hasRole('Terminal') || isTerminalRoute" class="flex-1 flex flex-col items-center justify-center w-full">
+    <div v-if="authStore.hasRole('Terminal') || isTerminalRoute" class="flex-1 flex flex-col items-center justify-center w-full relative">
+      <!-- Header -->
       <div class="w-full max-w-3xl text-center mb-6 sm:mb-8">
-        <h2 class="text-xs sm:text-base font-black tracking-[0.25em] text-dark-400 uppercase">Ingresá el DNI del Alumno</h2>
-        <div class="w-12 h-1 bg-primary-500 mx-auto mt-3 sm:mt-4 rounded-full"></div>
+        <div class="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-4 rounded-2xl bg-dark-900/60 border border-dark-800/50 flex items-center justify-center">
+          <svg class="w-6 h-6 sm:w-7 sm:h-7 text-dark-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
+          </svg>
+        </div>
+        <h2 class="text-base sm:text-lg font-black tracking-wide text-white">Ingresá tu DNI</h2>
+        <p class="text-xs sm:text-sm text-dark-500 mt-1.5">Escaneá o escribí y presioná <span class="font-black text-white">ENTER</span></p>
       </div>
 
+      <!-- Input -->
       <div class="w-full max-w-3xl">
         <form @submit.prevent="registrarIngreso" class="space-y-4">
           <div
-            class="flex items-center gap-3 sm:gap-4 px-4 py-3.5 sm:px-6 sm:py-6 rounded-[1.5rem] sm:rounded-[2rem] border-2 bg-[#090909]/45 backdrop-blur-md transition-all duration-300"
-            :class="inputFocused ? 'border-primary-500/80 shadow-[0_0_25px_rgba(255,102,0,0.15)]' : 'border-dark-800/80'"
+            class="flex items-center gap-3 sm:gap-4 px-4 py-3.5 sm:px-6 sm:py-5 rounded-2xl border-2 bg-[#0a0a0a]/70 backdrop-blur-md transition-all duration-300"
+            :class="inputFocused ? 'border-primary-500/80 shadow-[0_0_30px_rgba(255,102,0,0.12)]' : 'border-dark-800/60'"
           >
-            <!-- ID Card Icon -->
-            <svg class="w-7 h-7 sm:w-10 sm:h-10 text-dark-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z"
-              />
+            <svg class="w-7 h-7 sm:w-9 sm:h-9 text-dark-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
             </svg>
-
-            <!-- Huge Input Field -->
             <input
               ref="dniInput"
               v-model="terminalDni"
@@ -33,30 +33,91 @@
               @blur="inputFocused = false"
             />
           </div>
-
-          <!-- Hidden Submit Button (keeps form submission working) -->
           <button type="submit" class="hidden" :disabled="terminalLoading || !terminalDni.trim()"></button>
         </form>
 
-        <!-- Under Input Message / Tip -->
-        <div class="flex items-center justify-center gap-2 text-[10px] sm:text-xs text-dark-500 mt-4 sm:mt-6 tracking-wide uppercase">
+        <!-- Tip -->
+        <div class="flex items-center justify-center gap-1.5 text-[10px] sm:text-xs text-dark-500 mt-4 sm:mt-5 tracking-wide">
           <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-dark-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
           </svg>
-          Presioná <span class="font-black text-primary-500">ENTER</span> para validar
+          Presioná <span class="font-black text-primary-500 mx-0.5">ENTER</span> para validar
         </div>
 
-        <!-- Alert messages in matching minimalist style -->
+        <!-- Result Card -->
         <Transition name="fade-slide">
-          <div
-            v-if="terminalMessage"
-            class="mt-6 sm:mt-8 rounded-[1.5rem] sm:rounded-[2rem] border p-4 sm:p-6 text-center backdrop-blur-md shadow-lg animate-fade-in"
-            :class="terminalMessageColor"
-          >
-            <p class="text-sm sm:text-lg font-black tracking-wide uppercase leading-snug">{{ terminalMessage }}</p>
-            <p v-if="terminalDetail" class="text-xs sm:text-sm mt-1.5 sm:mt-2 text-dark-400 font-medium leading-relaxed">{{ terminalDetail }}</p>
+          <div v-if="terminalMessage" :key="terminalMessage" class="mt-6 sm:mt-8 animate-fade-in">
+            <!-- Success Card -->
+            <div
+              v-if="terminalSuccess && terminalData"
+              class="rounded-2xl overflow-hidden border backdrop-blur-md"
+              :class="terminalData.diasRestantes <= 7 ? 'border-amber-500/25 bg-[#1a1400]/60' : 'border-emerald-500/20 bg-[#0a1a0f]/60'"
+            >
+              <div class="p-5 sm:p-6">
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                  <!-- Left: Status + Name + Plan -->
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2.5 mb-3">
+                      <div class="w-7 h-7 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                      <span class="text-xs sm:text-sm font-black uppercase tracking-[0.15em] text-emerald-400">ACCESO AUTORIZADO</span>
+                    </div>
+                    <h3 class="text-lg sm:text-xl font-black text-white mb-2.5 ml-0.5 truncate">{{ terminalData.nombre }}</h3>
+                    <div class="space-y-1.5 ml-0.5">
+                      <div class="flex items-center gap-2 text-xs text-dark-400">
+                        <span class="text-amber-500">🔥</span>
+                        <span>{{ terminalData.tipoMembresia }}</span>
+                      </div>
+                      <div v-if="terminalData.paseLibre" class="flex items-center gap-2 text-xs text-dark-500">
+                        <span>↳</span>
+                        <span>Pase Libre</span>
+                      </div>
+                    </div>
+                  </div>
+                  <!-- Right: Time / Date / Days -->
+                  <div class="flex flex-row sm:flex-col gap-5 sm:gap-3 sm:text-right sm:items-end flex-shrink-0">
+                    <div>
+                      <p class="text-[10px] text-dark-500 uppercase tracking-wider font-bold mb-0.5">Ingreso</p>
+                      <p class="text-sm sm:text-base font-black text-primary-500">{{ terminalData.hora }}</p>
+                    </div>
+                    <div>
+                      <p class="text-[10px] text-dark-500 uppercase tracking-wider font-bold mb-0.5">Fecha</p>
+                      <p class="text-sm sm:text-base font-black text-white">{{ terminalData.fecha }}</p>
+                    </div>
+                    <div>
+                      <p class="text-[10px] text-dark-500 uppercase tracking-wider font-bold mb-0.5">Vence en</p>
+                      <p class="text-sm sm:text-base font-black" :class="terminalData.diasRestantes <= 7 ? 'text-amber-400' : 'text-emerald-400'">{{ terminalData.diasRestantes }} días</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Error Card -->
+            <div
+              v-else
+              class="rounded-2xl border border-red-500/25 bg-red-500/5 backdrop-blur-md p-5 sm:p-6"
+            >
+              <div class="flex items-center gap-2.5">
+                <div class="w-7 h-7 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0">
+                  <svg class="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </div>
+                <span class="text-sm font-black text-red-400 uppercase tracking-wide">{{ terminalMessage }}</span>
+              </div>
+            </div>
           </div>
         </Transition>
+      </div>
+
+      <!-- Footer Status Bar -->
+      <div class="absolute bottom-4 left-0 right-0 flex items-center justify-center gap-2 text-[10px] text-dark-600 tracking-wider">
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+        Sistema en línea &bull; {{ terminalName }}
       </div>
     </div>
 
@@ -351,11 +412,14 @@ const dniInput = ref(null);
 const terminalDni = ref('');
 const terminalLoading = ref(false);
 const terminalMessage = ref('');
-const terminalDetail = ref('');
 const terminalSuccess = ref(false);
-const terminalMessageColor = ref('');
+const terminalData = ref(null);
 let terminalTimeout = null;
 const inputFocused = ref(false);
+const terminalName = computed(() => {
+  if (authStore.hasRole('Terminal')) return `Terminal · ${authStore.user?.nombre || 'Terminal'}`;
+  return 'Terminal 01';
+});
 
 const ingresosHoy = ref([]);
 const loadingIngresos = ref(false);
@@ -394,34 +458,28 @@ function updateDashboardStats() {
 async function registrarIngreso() {
   terminalLoading.value = true;
   terminalMessage.value = '';
-  terminalDetail.value = '';
+  terminalData.value = null;
   if (terminalTimeout) clearTimeout(terminalTimeout);
 
   try {
     const { data } = await ingresosApi.registrar(terminalDni.value);
     terminalSuccess.value = true;
-    
-    const today = new Date();
+
+    const fechaHora = new Date(data.fechaHora);
     const vencimiento = new Date(data.fechaVencimiento);
-    const timeDiff = vencimiento - today;
-    const daysRemaining = Math.ceil(timeDiff / (1000 * 3600 * 24));
+    const diasRestantes = Math.max(0, Math.ceil((vencimiento - new Date()) / (1000 * 3600 * 24)));
 
-    let daysMessage = '';
-    if (daysRemaining > 0) {
-      daysMessage = `· Faltan ${daysRemaining} Días para Renovar su membresía`;
-    } else if (daysRemaining === 0) {
-      daysMessage = `· Vence hoy`;
-    }
+    terminalData.value = {
+      nombre: data.alumnoNombreCompleto,
+      tipoMembresia: data.tipoMembresia,
+      paseLibre: data.paseLibre,
+      hora: fechaHora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+      fecha: fechaHora.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+      diasRestantes,
+    };
 
-    terminalMessage.value = `Ingreso registrado para ${data.alumnoNombreCompleto}`;
-    terminalDetail.value = `${data.tipoMembresia} · Ingreso: ${new Date(data.fechaHora).toLocaleString()} ${daysMessage}`;
+    terminalMessage.value = 'ACCESO AUTORIZADO';
     terminalDni.value = '';
-
-    if (daysRemaining <= 7) {
-      terminalMessageColor.value = 'border-amber-500/50 bg-amber-500/10 text-amber-400';
-    } else {
-      terminalMessageColor.value = 'border-emerald-500/25 bg-emerald-500/5 text-emerald-400';
-    }
 
     // Refrescar ingresos recientes tras ingreso exitoso en terminal
     if (authStore.hasRole('Superusuario', 'Administrativo')) {
@@ -429,7 +487,7 @@ async function registrarIngreso() {
     }
   } catch (err) {
     terminalSuccess.value = false;
-    terminalMessageColor.value = 'border-red-500/25 bg-red-500/5 text-red-400';
+    terminalData.value = null;
     terminalMessage.value = err.response?.data?.error || 'No se pudo registrar el ingreso';
   } finally {
     terminalLoading.value = false;
@@ -438,7 +496,7 @@ async function registrarIngreso() {
 
     terminalTimeout = setTimeout(() => {
       terminalMessage.value = '';
-      terminalDetail.value = '';
+      terminalData.value = null;
     }, 10000);
   }
 }
