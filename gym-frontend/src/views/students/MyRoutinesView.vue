@@ -160,13 +160,11 @@
                       <td>{{ ej.repeticiones }}</td>
                       <td>
                         <span v-if="ej.peso" class="text-white font-semibold">{{ ej.peso }} <small class="text-dark-500 font-normal">kg</small></span>
-                        <span v-else class="text-dark-600">â€”</span>
                       </td>
                       <td>
                         <span v-if="ej.descansoSegundos" class="text-dark-300">{{ ej.descansoSegundos }}<small class="text-dark-500">s</small></span>
-                        <span v-else class="text-dark-600">â€”</span>
                       </td>
-                      <td class="text-dark-400 text-sm max-w-xs truncate" :title="ej.ejercicioDescripcion">{{ ej.ejercicioDescripcion || 'â€”' }}</td>
+                      <td class="text-dark-400 text-sm max-w-xs truncate" :title="ej.ejercicioDescripcion">{{ ej.ejercicioDescripcion || '' }}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -212,7 +210,7 @@
                     </div>
                     <div class="bg-dark-950/50 p-2 rounded-xl border border-dark-800/50 flex flex-col items-center justify-center gap-0.5">
                       <span class="text-[8px] uppercase font-black text-dark-500 tracking-tighter">Peso</span>
-                      <span class="text-sm font-black text-primary-400">{{ ej.peso || 'â€”' }}<small v-if="ej.peso" class="ml-0.5 font-bold text-[10px]">kg</small></span>
+                      <span class="text-sm font-black text-primary-400">{{ ej.peso || '' }}<small v-if="ej.peso" class="ml-0.5 font-bold text-[10px]">kg</small></span>
                     </div>
                   </div>
 
@@ -233,7 +231,7 @@
                         </svg>
                         <span class="text-[10px] uppercase font-black text-primary-400 tracking-wider">Observaciones</span>
                       </div>
-                      <p class="text-xs text-dark-300 leading-relaxed italic break-words">{{ ej.ejercicioDescripcion || 'Sin observaciones' }}</p>
+                      <p class="text-xs text-dark-300 leading-relaxed italic break-words">{{ ej.ejercicioDescripcion || '' }}</p>
                     </div>
                   </div>
                 </div>
