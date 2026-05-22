@@ -3,7 +3,7 @@
     <LoadingSpinner v-if="loading" />
 
     <div v-else-if="routines.length === 0" class="card text-center py-16">
-      <div class="text-5xl mb-4">ðŸ‹ï¸</div>
+      <div class="text-5xl mb-4">🏋️</div>
       <p class="text-dark-300 text-lg">No tenÃ©s rutinas asignadas</p>
       <p class="text-dark-500 text-sm mt-2">Tu profesor te asignarÃ¡ rutinas pronto.</p>
     </div>
@@ -93,9 +93,9 @@
               : 'text-dark-400 hover:text-dark-200 hover:bg-dark-900'"
           >
             <span class="text-lg transition-transform duration-300 group-active:scale-125">
-              <span v-if="section.value === 'calentamientoInicial'">ðŸ”¥</span>
-              <span v-else-if="section.value === 'parteMedia'">âš™ï¸</span>
-              <span v-else-if="section.value === 'fuerza'">ðŸ¤¸</span>
+              <span v-if="section.value === 'calentamientoInicial'">🔥</span>
+              <span v-else-if="section.value === 'parteMedia'">⚙️</span>
+              <span v-else-if="section.value === 'fuerza'">🤸</span>
             </span>
             <span class="uppercase tracking-tighter">{{ section.label }}</span>
             <span 
