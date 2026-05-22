@@ -77,12 +77,7 @@
                     <h3 class="text-lg sm:text-xl font-black text-white mb-2.5 ml-0.5 truncate">{{ terminalData.nombre }}</h3>
                     <div class="space-y-1.5 ml-0.5">
                       <div class="flex items-center gap-2 text-xs text-dark-400">
-                        <span class="text-amber-500">🔥</span>
                         <span>{{ terminalData.tipoMembresia }}</span>
-                      </div>
-                      <div v-if="terminalData.paseLibre" class="flex items-center gap-2 text-xs text-dark-500">
-                        <span>↳</span>
-                        <span>Pase Libre</span>
                       </div>
                     </div>
                   </div>
