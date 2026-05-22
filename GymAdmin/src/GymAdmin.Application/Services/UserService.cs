@@ -88,7 +88,7 @@ public class UserService : IUserService
             Dni = request.Dni.Trim(),
             Rol = newRole,
             GymId = gymId,
-            FechaNacimiento = request.FechaNacimiento,
+            FechaNacimiento = request.FechaNacimiento.HasValue ? DateTime.SpecifyKind(request.FechaNacimiento.Value, DateTimeKind.Utc) : null,
             Domicilio = request.Domicilio,
             Telefono = request.Telefono,
             Observaciones = request.Observaciones,
@@ -120,7 +120,7 @@ public class UserService : IUserService
 
         user.Nombre = request.Nombre.Trim();
         user.Apellido = request.Apellido.Trim();
-        user.FechaNacimiento = request.FechaNacimiento;
+        user.FechaNacimiento = request.FechaNacimiento.HasValue ? DateTime.SpecifyKind(request.FechaNacimiento.Value, DateTimeKind.Utc) : null;
         user.Domicilio = request.Domicilio;
         user.Telefono = request.Telefono;
         user.Observaciones = request.Observaciones;
