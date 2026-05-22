@@ -1,12 +1,15 @@
 <template>
   <div class="animate-fade-in flex-1 flex flex-col h-full">
     <div v-if="authStore.hasRole('Terminal') || isTerminalRoute" class="flex-1 flex flex-col items-center w-full relative">
-      <div class="flex-1"></div>
       <!-- Header -->
       <div class="w-full max-w-3xl text-center mb-6 sm:mb-8">
         <div class="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-4 rounded-2xl bg-dark-900/60 border border-dark-800/50 flex items-center justify-center">
           <svg class="w-6 h-6 sm:w-7 sm:h-7 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z"
+            />
           </svg>
         </div>
         <h2 class="text-base sm:text-lg font-black tracking-wide text-white">Ingresá tu DNI</h2>
@@ -21,7 +24,11 @@
             :class="inputFocused ? 'border-primary-500/80 shadow-[0_0_30px_rgba(255,102,0,0.12)]' : 'border-dark-800/60'"
           >
             <svg class="w-7 h-7 sm:w-9 sm:h-9 text-dark-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z"
+              />
             </svg>
             <input
               ref="dniInput"
@@ -44,7 +51,6 @@
           </svg>
           Presioná <span class="font-black text-primary-500 mx-0.5">ENTER</span> para validar
         </div>
-
       </div>
       <div class="flex-1 w-full max-w-3xl">
         <!-- Result Card -->
@@ -92,7 +98,9 @@
                     </div>
                     <div>
                       <p class="text-[10px] text-dark-500 uppercase tracking-wider font-bold mb-0.5">Vence en</p>
-                      <p class="text-sm sm:text-base font-black" :class="terminalData.diasRestantes <= 7 ? 'text-amber-400' : 'text-emerald-400'">{{ terminalData.diasRestantes }} días</p>
+                      <p class="text-sm sm:text-base font-black" :class="terminalData.diasRestantes <= 7 ? 'text-amber-400' : 'text-emerald-400'">
+                        {{ terminalData.diasRestantes }} días
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -100,10 +108,7 @@
             </div>
 
             <!-- Error Card -->
-            <div
-              v-else
-              class="rounded-2xl border border-red-500/25 bg-red-500/5 backdrop-blur-md p-5 sm:p-6"
-            >
+            <div v-else class="rounded-2xl border border-red-500/25 bg-red-500/5 backdrop-blur-md p-5 sm:p-6">
               <div class="flex items-center gap-2.5">
                 <div class="w-7 h-7 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0">
                   <svg class="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
@@ -131,8 +136,19 @@
           <p class="page-subtitle">{{ greetingMessage }}</p>
         </div>
         <div v-if="authStore.hasRole('Administrativo', 'Superusuario')">
-          <a href="/terminal" target="_blank" class="px-4 py-2 rounded-xl border border-dark-800 text-xs font-black text-dark-400 uppercase hover:text-white hover:border-dark-600 transition-colors flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+          <a
+            href="/terminal"
+            target="_blank"
+            class="px-4 py-2 rounded-xl border border-dark-800 text-xs font-black text-dark-400 uppercase hover:text-white hover:border-dark-600 transition-colors flex items-center gap-2"
+          >
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+              />
+            </svg>
             Abrir Terminal
           </a>
         </div>
@@ -346,7 +362,7 @@
         <!-- Sección de Rutinas (Solo si el gimnasio lo permite) -->
         <div v-if="veRutinas" class="max-w-2xl space-y-4">
           <h2 class="text-sm font-bold text-dark-500 uppercase tracking-[0.2em] ml-1">Tus Rutinas de Entrenamiento</h2>
-          
+
           <!-- Si tiene membresía activa y tiene rutinas asignadas -->
           <div v-if="myAccess?.estadoAcceso === 'Activo' && myRoutines.length > 0" class="grid grid-cols-1 gap-3">
             <router-link
@@ -356,15 +372,19 @@
               class="group flex items-center justify-between p-5 rounded-2xl bg-dark-900/40 border border-dark-800/50 hover:bg-dark-800/60 hover:border-primary-500/30 transition-all duration-300"
             >
               <div class="flex items-center gap-4">
-                <div class="w-12 h-12 rounded-xl bg-primary-500/10 text-primary-500 flex items-center justify-center text-xl">
-                  🏋️
-                </div>
+                <div class="w-12 h-12 rounded-xl bg-primary-500/10 text-primary-500 flex items-center justify-center text-xl">🏋️</div>
                 <div>
                   <h3 class="text-sm font-bold text-white group-hover:text-primary-500 transition-colors">{{ rutina.nombre }}</h3>
                   <p class="text-xs text-dark-500 mt-1">Prof: {{ rutina.profesorNombre }}</p>
                 </div>
               </div>
-              <svg class="w-5 h-5 text-dark-500 group-hover:text-primary-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <svg
+                class="w-5 h-5 text-dark-500 group-hover:text-primary-500 transition-colors"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
               </svg>
             </router-link>
@@ -375,9 +395,7 @@
             v-else-if="myAccess?.estadoAcceso === 'Activo' && myRoutines.length === 0"
             class="p-5 rounded-2xl border border-amber-500/20 bg-amber-500/5 text-amber-400 flex flex-col sm:flex-row items-center gap-4"
           >
-            <div class="w-10 h-10 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center text-lg flex-shrink-0">
-              ⚠️
-            </div>
+            <div class="w-10 h-10 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center text-lg flex-shrink-0">⚠️</div>
             <div>
               <p class="text-sm font-bold">No tenés rutinas de entrenamiento asignadas</p>
               <p class="text-xs text-dark-400 mt-0.5">Pedile a tu profesor que te asigne una rutina para comenzar.</p>
