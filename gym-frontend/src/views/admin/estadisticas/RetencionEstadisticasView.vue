@@ -4,7 +4,7 @@
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div>
         <h1 class="page-title">Retención y Deserción</h1>
-        <p class="page-subtitle">Análisis de churn rate, retención y evolución de alumnos</p>
+        <p class="page-subtitle">Análisis de deserción, retención y evolución de alumnos</p>
       </div>
 
       <div class="flex flex-wrap items-center gap-2 sm:gap-3 self-start md:self-auto w-full md:w-auto">
@@ -58,7 +58,7 @@
         <!-- Churn Rate -->
         <div class="p-4 sm:p-6 rounded-2xl sm:rounded-[2rem] bg-dark-900/40 border border-dark-800/50 backdrop-blur-md relative overflow-hidden group">
           <div class="absolute -right-4 -bottom-4 w-12 sm:w-24 h-12 sm:h-24 bg-rose-500/5 rounded-full blur-xl group-hover:bg-rose-500/10 transition-all duration-500"></div>
-          <p class="text-[10px] text-dark-500 uppercase tracking-[0.15em] sm:tracking-[0.2em] font-black">Churn Rate</p>
+          <p class="text-[10px] text-dark-500 uppercase tracking-[0.15em] sm:tracking-[0.2em] font-black">Deserción</p>
           <p class="text-xl sm:text-4xl font-black mt-1.5 sm:mt-3 tracking-tight leading-none" :class="kpiChurn <= 10 ? 'text-emerald-400' : kpiChurn <= 25 ? 'text-amber-400' : 'text-rose-400'">
             {{ kpiChurn.toFixed(1) }}<span class="text-[10px] sm:text-base font-bold text-dark-400 ml-0.5">%</span>
           </p>
@@ -124,7 +124,7 @@
                   <p class="font-black text-emerald-400">{{ mes.activosFin }} activos</p>
                   <p class="text-blue-400">+{{ mes.nuevos }} nuevos</p>
                   <p class="text-rose-400">-{{ mes.bajas }} bajas</p>
-                  <p class="text-dark-300 mt-1 border-t border-dark-800 pt-1">Ret: {{ mes.retencion.toFixed(1) }}% · Churn: {{ mes.churn.toFixed(1) }}%</p>
+                  <p class="text-dark-300 mt-1 border-t border-dark-800 pt-1">Ret: {{ mes.retencion.toFixed(1) }}% · Deserción: {{ mes.churn.toFixed(1) }}%</p>
                 </div>
 
                 <!-- Barras apiladas -->
@@ -155,7 +155,7 @@
         <!-- Chart 2: Retención vs Churn mensual -->
         <div class="card p-6 flex flex-col min-h-[380px]">
           <div class="mb-4">
-            <h3 class="text-sm font-bold text-white uppercase tracking-wider">Retención vs Churn</h3>
+            <h3 class="text-sm font-bold text-white uppercase tracking-wider">Retención vs Deserción</h3>
             <p class="text-xs text-dark-500">Porcentajes mensuales de retención y deserción</p>
           </div>
 
@@ -168,7 +168,7 @@
               </div>
               <div class="flex items-center gap-1.5">
                 <div class="w-3 h-3 rounded-sm bg-rose-500"></div>
-                <span class="text-[10px] font-bold text-dark-400 uppercase tracking-wider">Churn %</span>
+                <span class="text-[10px] font-bold text-dark-400 uppercase tracking-wider">Deserción %</span>
               </div>
             </div>
 
@@ -228,7 +228,7 @@
                 <th class="text-center">Bajas</th>
                 <th class="text-center">Fin</th>
                 <th class="text-center">Retención</th>
-                <th class="text-center">Churn</th>
+                <th class="text-center">Deserción</th>
                 <th class="text-center hidden sm:table-cell">Tendencia</th>
               </tr>
             </thead>
@@ -358,21 +358,7 @@ const dataMensual = computed(() => {
     const inicioMes = mesInfo.inicio;
     const finMes = mesInfo.fin;
 
-    // Activos al inicio del mes: membresías cuya fechaInicio <= inicioMes y fechaVencimiento > inicioMes
-    // y que no estuvieran canceladas antes del inicio del mes
-    const activosInicio = new Set();
-    memberships.forEach((m) => {
-      const fi = new Date(m.fechaInicio);
-      const fv = new Date(m.fechaVencimiento);
-      // La membresía estaba activa al inicio del mes si empezó antes y vence después
-      if (fi < inicioMes && fv >= inicioMes) {
-        // Excluir canceladas que se cancelaron antes del mes (si estado es Cancelada y venció antes)
-        if (m.estado === 'Cancelada' && fv < inicioMes) return;
-        activosInicio.add(m.alumnoId);
-      }
-    });
-
-    // Nuevos: alumnos cuya primera membresía comienza en este mes
+    // 1. Nuevos: alumnos cuya primera membresía comienza en este mes
     const nuevosSet = new Set();
     memberships.forEach((m) => {
       const fi = new Date(m.fechaInicio);
@@ -387,7 +373,22 @@ const dataMensual = computed(() => {
       }
     });
 
-    // Bajas: alumnos que tenían membresía activa al inicio o durante el mes,
+    // 2. Activos al inicio del mes: alumnos con membresía activa al inicio de este mes
+    // que NO sean nuevos este mes (para evitar contarlos por duplicado)
+    const activosInicio = new Set();
+    memberships.forEach((m) => {
+      const fi = new Date(m.fechaInicio);
+      const fv = new Date(m.fechaVencimiento);
+      if (fi <= inicioMes && fv >= inicioMes) {
+        // Excluir canceladas que se cancelaron antes del inicio del mes
+        if (m.estado === 'Cancelada' && fv < inicioMes) return;
+        if (!nuevosSet.has(m.alumnoId)) {
+          activosInicio.add(m.alumnoId);
+        }
+      }
+    });
+
+    // 3. Bajas: alumnos que tenían membresía activa al inicio o durante el mes,
     // y su membresía venció o se canceló durante el mes, sin renovación posterior
     const bajasSet = new Set();
     memberships.forEach((m) => {
@@ -398,9 +399,12 @@ const dataMensual = computed(() => {
       const vencioDuranteMes = fv >= inicioMes && fv <= finMes && (m.estado === 'Vencida' || m.estado === 'Cancelada');
 
       if (vencioDuranteMes && fi < finMes) {
-        // Verificar si el alumno tiene otra membresía activa después
+        // Verificar si el alumno tiene otra membresía activa después (dentro de este mes o iniciando en el siguiente)
         const tieneRenovacion = memberships.some((other) => {
-          return other.alumnoId === m.alumnoId && other.id !== m.id && new Date(other.fechaInicio) >= inicioMes && new Date(other.fechaInicio) <= finMes && (other.estado === 'Activa' || new Date(other.fechaVencimiento) > finMes);
+          return other.alumnoId === m.alumnoId && 
+                 other.id !== m.id && 
+                 new Date(other.fechaInicio) >= new Date(m.fechaInicio) && 
+                 new Date(other.fechaInicio) <= new Date(finMes.getTime() + 2 * 24 * 60 * 60 * 1000); // 2 días de gracia
         });
         if (!tieneRenovacion) {
           bajasSet.add(m.alumnoId);
@@ -408,8 +412,6 @@ const dataMensual = computed(() => {
       }
     });
 
-    // Remover de bajas los que son nuevos y se dieron de baja en el mismo mes
-    // para no contar doble
     const bajas = bajasSet.size;
 
     const activosInicioCount = activosInicio.size;
