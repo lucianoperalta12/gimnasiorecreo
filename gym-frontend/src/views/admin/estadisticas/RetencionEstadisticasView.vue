@@ -418,8 +418,11 @@ const dataMensual = computed(() => {
     const nuevos = nuevosSet.size;
     const activosFinCount = Math.max(0, activosInicioCount + nuevos - bajas);
 
-    const retencion = activosInicioCount > 0 ? ((activosInicioCount - bajas) / activosInicioCount) * 100 : nuevos > 0 ? 100 : 0;
-    const churn = activosInicioCount > 0 ? (bajas / activosInicioCount) * 100 : 0;
+    // Calcular bajas pertenecientes al grupo inicial (cohorte) para evitar sesgos con altas del mes
+    const bajasInicioCount = [...bajasSet].filter((id) => activosInicio.has(id)).length;
+
+    const retencion = activosInicioCount > 0 ? ((activosInicioCount - bajasInicioCount) / activosInicioCount) * 100 : nuevos > 0 ? 100 : 0;
+    const churn = activosInicioCount > 0 ? (bajasInicioCount / activosInicioCount) * 100 : 0;
 
     return {
       label: nombresMeses[mesInfo.mes],
