@@ -12,7 +12,12 @@ namespace GymAdmin.Api.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
-    public UsersController(IUserService userService) { _userService = userService; }
+    private readonly ILogger<UsersController> _logger;
+    public UsersController(IUserService userService, ILogger<UsersController> logger)
+    {
+        _userService = userService;
+        _logger = logger;
+    }
     private int GetUserId() => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
     [HttpGet]
@@ -36,8 +41,23 @@ public class UsersController : ControllerBase
     public async Task<ActionResult<UserDto>> Create([FromBody] CreateUserRequest request) => Ok(await _userService.CreateUserAsync(GetUserId(), request));
 
     [HttpPut("{id}")]
-    [Authorize(Roles = "Superusuario,Administrativo")]
-    public async Task<ActionResult<UserDto>> Update(int id, [FromBody] UpdateUserRequest request) => Ok(await _userService.UpdateUserAsync(GetUserId(), id, request));
+    [Authorize]
+    public async Task<ActionResult<UserDto>> Update(int id, [FromBody] UpdateUserRequest request)
+    {
+        var requesterId = GetUserId();
+        var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        try
+        {
+            var result = await _userService.UpdateUserAsync(requesterId, id, request);
+            _logger.LogInformation("Security Audit: User {RequesterId} updated user {TargetId} from IP {IP}. Status: 200 OK", requesterId, id, ip);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Security Audit: Unauthorized or failed update attempt by User {RequesterId} on user {TargetId} from IP {IP}. Error: {Message}", requesterId, id, ip, ex.Message);
+            throw;
+        }
+    }
 
     [HttpPut("{id}/role")]
     [Authorize(Roles = "Superusuario,Administrativo")]

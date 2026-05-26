@@ -13,16 +13,31 @@
               </span>
             </div>
           </div>
-          <AppButton
-            variant="secondary"
-            @click="goBack"
-            class="md:px-4 px-2.5 !rounded-xl md:!rounded-lg"
-          >
-            <svg class="w-5 h-5 md:w-3 md:h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-            </svg>
-            <span class="hidden md:inline ml-1 text-[10px] font-black uppercase tracking-[0.2em]">Volver</span>
-          </AppButton>
+          <div class="flex items-center gap-2 shrink-0">
+            <AppButton
+              v-if="authStore.hasRole('Superusuario', 'Administrativo', 'Profesor')"
+              variant="secondary"
+              @click="downloadWord"
+              class="md:px-4 px-2.5 !rounded-xl md:!rounded-lg"
+              title="Descargar en Word"
+            >
+              <svg class="w-5 h-5 md:w-3 md:h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0a2.25 2.25 0 01-2.24 2.156H8.58a2.25 2.25 0 01-2.24-2.156M15 11.25v5.25M9 11.25v5.25M4.785 14c-.621 0-1.098-.57-1.002-1.185.019-.121.039-.242.06-.362.245-1.464 1.341-2.656 2.766-3.003A48.293 48.293 0 0112 9c2.197 0 4.298.145 6.353.424 1.425.347 2.52 1.54 2.766 3.003.02.12.04.24.06.362.096.614-.38 1.185-1.002 1.185H4.785z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 13.5V9c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125v4.5m-3-1.125h.008v.008H12v-.008z" />
+              </svg>
+              <span class="hidden md:inline ml-1 text-[10px] font-black uppercase tracking-[0.2em]">Imprimir</span>
+            </AppButton>
+            <AppButton
+              variant="secondary"
+              @click="goBack"
+              class="md:px-4 px-2.5 !rounded-xl md:!rounded-lg"
+            >
+              <svg class="w-5 h-5 md:w-3 md:h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+              </svg>
+              <span class="hidden md:inline ml-1 text-[10px] font-black uppercase tracking-[0.2em]">Volver</span>
+            </AppButton>
+          </div>
         </div>
         <p class="text-dark-400 text-sm leading-relaxed">{{ routine.descripcion || 'Sin descripción' }}</p>
       </div>
@@ -252,6 +267,105 @@ const currentSection = computed(() => groupedSections.value.find(s => s.value ==
 
 function formatDate(dateStr) {
   return new Date(dateStr).toLocaleDateString('es-AR', { day: '2-digit', month: 'short', year: 'numeric' })
+}
+
+function downloadWord() {
+  if (!routine.value) return
+
+  let html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">`
+  html += `<head><meta charset="utf-8"><title>${routine.value.nombre}</title>`
+  html += `<style>
+    body { font-family: 'Segoe UI', Helvetica, Arial, sans-serif; color: #1a202c; line-height: 1.5; padding: 20px; }
+    .header-title { font-size: 28px; font-weight: bold; margin: 0 0 5px 0; color: #1a202c; }
+    .header-desc { font-size: 14px; color: #4a5568; margin: 0 0 20px 0; font-style: italic; }
+    .meta-box { margin-bottom: 25px; font-size: 13px; color: #4a5568; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; }
+    .meta-item { margin-bottom: 4px; }
+    .meta-label { font-weight: bold; color: #2d3748; }
+    .day-title { font-size: 22px; color: #2b6cb0; font-weight: bold; margin-top: 35px; margin-bottom: 15px; border-bottom: 2px solid #ebf8ff; padding-bottom: 6px; text-transform: uppercase; }
+    .section-title { font-size: 16px; color: #2b6cb0; font-weight: bold; text-transform: uppercase; margin-top: 30px; margin-bottom: 10px; border-bottom: 2px solid #2b6cb0; padding-bottom: 4px; }
+    table.exercise-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+    table.exercise-table th { background-color: #f7fafc; color: #2d3748; font-weight: bold; text-align: left; padding: 10px 12px; border-bottom: 2px solid #cbd5e0; font-size: 12px; text-transform: uppercase; }
+    table.exercise-table td { padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 13px; vertical-align: top; }
+    .exercise-name { font-weight: bold; color: #1a202c; font-size: 14px; }
+    .muscle-badge { font-size: 10px; font-weight: bold; color: #4a5568; display: inline-block; margin-top: 3px; }
+    .obs-text { font-size: 12px; color: #4a5568; }
+    .num-value { font-weight: bold; color: #1a202c; text-align: center; font-size: 14px; }
+  </style>`
+  html += `</head><body>`
+
+  html += `<h1 class="header-title">${routine.value.nombre}</h1>`
+  html += `<p class="header-desc">${routine.value.descripcion || 'Sin descripción'}</p>`
+
+  html += `<div class="meta-box">`
+  html += `<div class="meta-item"><span class="meta-label">Profesor:</span> ${routine.value.profesorNombre}</div>`
+  if (routine.value.fechaAsignacion) {
+    html += `<div class="meta-item"><span class="meta-label">Fecha de Asignación:</span> ${formatDate(routine.value.fechaAsignacion)}</div>`
+  }
+  html += `<div class="meta-item"><span class="meta-label">Ejercicios:</span> ${routine.value.ejercicios.length} total</div>`
+  html += `</div>`
+
+  const renderTable = (exercises) => {
+    let tableHtml = `<table class="exercise-table"><thead><tr>`
+    tableHtml += `<th>Ejercicio</th>`
+    tableHtml += `<th style="width: 65px; text-align: center;">Series</th>`
+    tableHtml += `<th style="width: 65px; text-align: center;">Reps</th>`
+    tableHtml += `<th style="width: 80px; text-align: center;">Peso</th>`
+    tableHtml += `<th style="width: 85px; text-align: center;">Descanso</th>`
+    tableHtml += `<th>Observaciones</th>`
+    tableHtml += `</tr></thead><tbody>`
+
+    exercises.forEach(ej => {
+      tableHtml += `<tr>`
+      tableHtml += `<td>`
+      tableHtml += `<div class="exercise-name">${ej.ejercicioNombre}</div>`
+      tableHtml += `<div class="muscle-badge">${ej.grupoMuscular}</div>`
+      tableHtml += `</td>`
+      tableHtml += `<td class="num-value">${ej.series}</td>`
+      tableHtml += `<td class="num-value">${ej.repeticiones}</td>`
+      tableHtml += `<td class="num-value">${ej.peso ? ej.peso + ' kg' : '—'}</td>`
+      tableHtml += `<td class="num-value">${ej.descansoSegundos ? ej.descansoSegundos + 's' : '—'}</td>`
+      tableHtml += `<td class="obs-text">${ej.ejercicioDescripcion || '—'}</td>`
+      tableHtml += `</tr>`
+    })
+
+    tableHtml += `</tbody></table>`
+    return tableHtml
+  }
+
+  if (routine.value.isByDays) {
+    for (let day = 1; day <= routine.value.daysCount; day++) {
+      const dayExercises = routine.value.ejercicios.filter(e => e.dayNumber === day)
+      if (dayExercises.length === 0) continue
+
+      html += `<div class="day-title">Día ${day}</div>`
+      
+      const sections = groupRoutineExercises(dayExercises)
+      sections.forEach(sec => {
+        if (sec.ejercicios.length === 0) return
+        html += `<div class="section-title">${sec.label}</div>`
+        html += renderTable(sec.ejercicios)
+      })
+    }
+  } else {
+    const sections = groupRoutineExercises(routine.value.ejercicios)
+    sections.forEach(sec => {
+      if (sec.ejercicios.length === 0) return
+      html += `<div class="section-title">${sec.label}</div>`
+      html += renderTable(sec.ejercicios)
+    })
+  }
+
+  html += `</body></html>`
+
+  const blob = new Blob(['\ufeff' + html], { type: 'application/msword' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${routine.value.nombre.replace(/\s+/g, '_')}.doc`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
 }
 
 onMounted(async () => {

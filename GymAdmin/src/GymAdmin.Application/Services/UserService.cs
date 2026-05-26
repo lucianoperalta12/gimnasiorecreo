@@ -108,6 +108,7 @@ public class UserService : IUserService
             ?? throw new KeyNotFoundException("Usuario no encontrado.");
 
         if (requester.Rol == UserRole.Superusuario) { /* OK */ }
+        else if (userId == requesterId) { /* Ownership OK */ }
         else if (requester.Rol == UserRole.Administrativo)
         {
             if (user.GymId != requester.GymId || (user.Rol != UserRole.Alumno && user.Rol != UserRole.Profesor))
@@ -117,6 +118,9 @@ public class UserService : IUserService
 
         if (string.IsNullOrWhiteSpace(request.Nombre) || string.IsNullOrWhiteSpace(request.Apellido))
             throw new ArgumentException("Nombre y Apellido son requeridos.");
+
+        if (request.FechaNacimiento.HasValue && request.FechaNacimiento.Value > DateTime.UtcNow)
+            throw new ArgumentException("La fecha de nacimiento no puede ser una fecha futura.");
 
         user.Nombre = request.Nombre.Trim();
         user.Apellido = request.Apellido.Trim();
