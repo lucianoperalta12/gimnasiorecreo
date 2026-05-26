@@ -123,6 +123,12 @@ const routes = [
         name: 'Ventas y Membresías',
         component: () => import('@/views/admin/estadisticas/VentasEstadisticasView.vue'),
         meta: { roles: ['Superusuario', 'Administrativo'] }
+      },
+      {
+        path: 'estadisticas/retencion',
+        name: 'Retención y Deserción',
+        component: () => import('@/views/admin/estadisticas/RetencionEstadisticasView.vue'),
+        meta: { roles: ['Superusuario', 'Administrativo'] }
       }
     ]
   },

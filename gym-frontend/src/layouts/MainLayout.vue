@@ -432,6 +432,7 @@ const menuGroups = computed(() => {
         children: [
           { to: '/estadisticas/asistencia', label: 'Asistencia' },
           { to: '/estadisticas/ventas', label: 'Ventas y Membresías' },
+          { to: '/estadisticas/retencion', label: 'Retención y Deserción' },
         ],
       },
     ].filter((item) => !item.roles || authStore.hasRole(...item.roles)),

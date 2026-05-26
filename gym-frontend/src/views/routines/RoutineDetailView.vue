@@ -275,50 +275,53 @@ function downloadWord() {
   let html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">`
   html += `<head><meta charset="utf-8"><title>${routine.value.nombre}</title>`
   html += `<style>
-    body { font-family: 'Segoe UI', Helvetica, Arial, sans-serif; color: #1a202c; line-height: 1.5; padding: 20px; }
-    .header-title { font-size: 28px; font-weight: bold; margin: 0 0 5px 0; color: #1a202c; }
-    .header-desc { font-size: 14px; color: #4a5568; margin: 0 0 20px 0; font-style: italic; }
-    .meta-box { margin-bottom: 25px; font-size: 13px; color: #4a5568; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; }
-    .meta-item { margin-bottom: 4px; }
-    .meta-label { font-weight: bold; color: #2d3748; }
-    .day-title { font-size: 22px; color: #2b6cb0; font-weight: bold; margin-top: 35px; margin-bottom: 15px; border-bottom: 2px solid #ebf8ff; padding-bottom: 6px; text-transform: uppercase; }
-    .section-title { font-size: 16px; color: #2b6cb0; font-weight: bold; text-transform: uppercase; margin-top: 30px; margin-bottom: 10px; border-bottom: 2px solid #2b6cb0; padding-bottom: 4px; }
-    table.exercise-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-    table.exercise-table th { background-color: #f7fafc; color: #2d3748; font-weight: bold; text-align: left; padding: 10px 12px; border-bottom: 2px solid #cbd5e0; font-size: 12px; text-transform: uppercase; }
-    table.exercise-table td { padding: 12px; border-bottom: 1px solid #e2e8f0; font-size: 13px; vertical-align: top; }
-    .exercise-name { font-weight: bold; color: #1a202c; font-size: 14px; }
-    .muscle-badge { font-size: 10px; font-weight: bold; color: #4a5568; display: inline-block; margin-top: 3px; }
-    .obs-text { font-size: 12px; color: #4a5568; }
-    .num-value { font-weight: bold; color: #1a202c; text-align: center; font-size: 14px; }
+    @page { size: A4; margin: 0.8cm; }
+    body { font-family: 'Segoe UI', Helvetica, Arial, sans-serif; color: #1a202c; line-height: 1.25; padding: 0; margin: 0; }
+    .header-table { width: 100%; border-bottom: 2px solid #2b6cb0; padding-bottom: 6px; margin-bottom: 12px; }
+    .header-title { font-size: 20px; font-weight: bold; color: #1a202c; margin: 0; }
+    .header-desc { font-size: 11px; color: #718096; font-style: italic; }
+    .meta-text { font-size: 11px; color: #4a5568; text-align: right; }
+    .day-title { font-size: 15px; color: #2b6cb0; font-weight: bold; margin-top: 15px; margin-bottom: 6px; border-bottom: 1.5px solid #ebf8ff; padding-bottom: 3px; text-transform: uppercase; }
+    .section-title { font-size: 12px; color: #2b6cb0; font-weight: bold; text-transform: uppercase; margin-top: 10px; margin-bottom: 6px; border-bottom: 1.5px solid #2b6cb0; padding-bottom: 2px; }
+    table.exercise-table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+    table.exercise-table th { background-color: #f7fafc; color: #2d3748; font-weight: bold; text-align: left; padding: 6px 8px; border-bottom: 1.5px solid #cbd5e0; font-size: 10px; text-transform: uppercase; }
+    table.exercise-table td { padding: 6px 8px; border-bottom: 1px solid #e2e8f0; font-size: 11px; vertical-align: top; }
+    .exercise-name { font-weight: bold; color: #1a202c; font-size: 11px; }
+    .muscle-text { font-size: 9px; color: #718096; font-weight: normal; }
+    .obs-text { font-size: 10px; color: #4a5568; }
+    .num-value { font-weight: bold; color: #1a202c; text-align: center; font-size: 11px; }
   </style>`
   html += `</head><body>`
 
-  html += `<h1 class="header-title">${routine.value.nombre}</h1>`
-  html += `<p class="header-desc">${routine.value.descripcion || 'Sin descripción'}</p>`
-
-  html += `<div class="meta-box">`
-  html += `<div class="meta-item"><span class="meta-label">Profesor:</span> ${routine.value.profesorNombre}</div>`
-  if (routine.value.fechaAsignacion) {
-    html += `<div class="meta-item"><span class="meta-label">Fecha de Asignación:</span> ${formatDate(routine.value.fechaAsignacion)}</div>`
+  html += `<table class="header-table"><tr>`
+  html += `<td style="vertical-align: bottom;">`
+  html += `<span class="header-title">${routine.value.nombre}</span> `
+  if (routine.value.descripcion) {
+    html += `<span class="header-desc">— ${routine.value.descripcion}</span>`
   }
-  html += `<div class="meta-item"><span class="meta-label">Ejercicios:</span> ${routine.value.ejercicios.length} total</div>`
-  html += `</div>`
+  html += `</td>`
+  html += `<td class="meta-text" style="vertical-align: bottom;">`
+  html += `Profesor: <strong>${routine.value.profesorNombre}</strong>`
+  if (routine.value.fechaAsignacion) {
+    html += ` | Asignada: <strong>${formatDate(routine.value.fechaAsignacion)}</strong>`
+  }
+  html += ` | Ejercicios: <strong>${routine.value.ejercicios.length}</strong>`
+  html += `</td></tr></table>`
 
   const renderTable = (exercises) => {
     let tableHtml = `<table class="exercise-table"><thead><tr>`
     tableHtml += `<th>Ejercicio</th>`
-    tableHtml += `<th style="width: 65px; text-align: center;">Series</th>`
-    tableHtml += `<th style="width: 65px; text-align: center;">Reps</th>`
-    tableHtml += `<th style="width: 80px; text-align: center;">Peso</th>`
-    tableHtml += `<th style="width: 85px; text-align: center;">Descanso</th>`
+    tableHtml += `<th style="width: 55px; text-align: center;">Series</th>`
+    tableHtml += `<th style="width: 55px; text-align: center;">Reps</th>`
+    tableHtml += `<th style="width: 70px; text-align: center;">Peso</th>`
+    tableHtml += `<th style="width: 75px; text-align: center;">Descanso</th>`
     tableHtml += `<th>Observaciones</th>`
     tableHtml += `</tr></thead><tbody>`
 
     exercises.forEach(ej => {
       tableHtml += `<tr>`
       tableHtml += `<td>`
-      tableHtml += `<div class="exercise-name">${ej.ejercicioNombre}</div>`
-      tableHtml += `<div class="muscle-badge">${ej.grupoMuscular}</div>`
+      tableHtml += `<span class="exercise-name">${ej.ejercicioNombre}</span> <span class="muscle-text">(${ej.grupoMuscular})</span>`
       tableHtml += `</td>`
       tableHtml += `<td class="num-value">${ej.series}</td>`
       tableHtml += `<td class="num-value">${ej.repeticiones}</td>`
