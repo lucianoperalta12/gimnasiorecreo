@@ -3,7 +3,20 @@
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h1 class="page-title">Usuarios</h1>
+        <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <h1 class="page-title">Usuarios</h1>
+          <div class="flex gap-2 text-xs font-medium text-dark-400">
+            <span class="flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+              {{ activeCount }} activos
+            </span>
+            <span class="text-dark-600">•</span>
+            <span class="flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-dark-500"></span>
+              {{ inactiveCount }} inactivos
+            </span>
+          </div>
+        </div>
         <p class="page-subtitle hidden sm:block">Administración de usuarios y roles</p>
       </div>
 
@@ -427,6 +440,20 @@ const filteredUsers = computed(() => {
 
     return matchesSearch && matchesRole && matchesGym;
   });
+});
+
+const activeCount = computed(() => {
+  return userStore.users.filter((u) => {
+    const matchesGym = !gymFilter.value || u.gymId === Number(gymFilter.value);
+    return u.activo && matchesGym;
+  }).length;
+});
+
+const inactiveCount = computed(() => {
+  return userStore.users.filter((u) => {
+    const matchesGym = !gymFilter.value || u.gymId === Number(gymFilter.value);
+    return !u.activo && matchesGym;
+  }).length;
 });
 
 const totalPages = computed(() => Math.ceil(filteredUsers.value.length / pageSize.value));
