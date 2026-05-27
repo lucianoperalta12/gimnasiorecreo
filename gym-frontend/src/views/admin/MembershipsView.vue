@@ -435,7 +435,7 @@ function openCreateModal() {
 function openRenewModal(m) {
   renewingMembership.value = m
   renewForm.planId = activePlans.value[0]?.id || 0
-  renewForm.fechaInicio = ''
+  renewForm.fechaInicio = new Date().toISOString().slice(0, 10)
   renewForm.notas = ''
   showRenewModal.value = true
 }

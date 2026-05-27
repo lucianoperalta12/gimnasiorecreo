@@ -43,7 +43,7 @@ export function membershipEstadoBadgeClass(estado) {
   }
 }
 
-export const MEMBERSHIP_ESTADOS = ['Activa', 'Vencida', 'Cancelada', 'Suspendida']
+export const MEMBERSHIP_ESTADOS = ['Activa', 'Vencida', 'Cancelada']
 export const PAYMENT_ESTADOS = ['Pendiente', 'Completado', 'Rechazado', 'Reembolsado']
 
 export function formatCurrency(value, currencyCode = 'ARS') {
