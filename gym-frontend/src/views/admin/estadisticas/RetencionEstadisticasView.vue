@@ -90,21 +90,6 @@
         </div>
       </div>
 
-      <!-- Explicación de Métricas (Minimalista) -->
-      <div class="p-4 rounded-2xl bg-dark-900/20 border border-dark-800/40 text-xs text-dark-400 flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div class="flex items-center gap-2">
-          <svg class="w-5 h-5 text-primary-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span class="font-bold text-white uppercase tracking-wider text-[10px]">Guía de Métricas:</span>
-        </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:flex md:flex-wrap gap-x-6 gap-y-2 flex-1">
-          <div><strong class="text-emerald-400">Activo:</strong> Membresía vigente.</div>
-          <div><strong class="text-rose-400">Baja:</strong> Membresía finalizada sin renovación.</div>
-          <div><strong class="text-emerald-500">Retención %:</strong> Alumnos que continúan mes a mes.</div>
-          <div><strong class="text-rose-500">Deserción %:</strong> Alumnos que dejaron de asistir (bajas).</div>
-        </div>
-      </div>
 
       <!-- Charts Section -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -290,6 +275,24 @@
               </tr>
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- Guía de Métricas -->
+      <div class="card p-5">
+        <div class="flex flex-col md:flex-row md:items-center gap-4">
+          <div class="flex items-center gap-2">
+            <svg class="w-5 h-5 text-primary-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span class="font-bold text-white uppercase tracking-wider text-[10px]">Guía de Métricas</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:flex md:flex-wrap gap-x-6 gap-y-2 text-xs text-dark-400 flex-1">
+            <div><strong class="text-emerald-400">Activo:</strong> Membresía vigente.</div>
+            <div><strong class="text-rose-400">Baja:</strong> Membresía finalizada sin renovación.</div>
+            <div><strong class="text-emerald-500">Retención %:</strong> Alumnos que continúan mes a mes.</div>
+            <div><strong class="text-rose-500">Deserción %:</strong> Alumnos que dejaron de asistir (bajas).</div>
+          </div>
         </div>
       </div>
     </template>
