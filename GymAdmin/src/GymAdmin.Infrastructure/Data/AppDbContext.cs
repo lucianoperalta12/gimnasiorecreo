@@ -9,6 +9,7 @@ public class AppDbContext : DbContext
 
     public DbSet<User> Users => Set<User>();
     public DbSet<Gym> Gyms => Set<Gym>();
+    public DbSet<GymUser> GymUsers => Set<GymUser>();
     public DbSet<Exercise> Exercises => Set<Exercise>();
     public DbSet<Routine> Routines => Set<Routine>();
     public DbSet<RoutineExercise> RoutineExercises => Set<RoutineExercise>();

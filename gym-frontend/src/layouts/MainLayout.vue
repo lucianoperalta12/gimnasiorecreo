@@ -149,7 +149,10 @@
     <!-- Main content -->
     <div class="flex-1 lg:ml-72 min-w-0">
       <!-- Top bar (Optimized for Mobile) -->
-      <header class="h-[70px] bg-dark-950/80 backdrop-blur-xl border-b border-dark-800/50 flex items-center px-4 sm:px-6 sticky top-0 z-40">
+      <header
+        class="h-[70px] bg-dark-950/80 backdrop-blur-xl border-b border-dark-800/50 flex items-center px-4 sm:px-6 sticky top-0 z-40"
+        :style="{ boxShadow: `inset 0 -1px 0 ${brandColor}55` }"
+      >
         <button
           @click="sidebarOpen = !sidebarOpen"
           class="lg:hidden w-10 h-10 flex items-center justify-center rounded-xl bg-dark-900 border border-dark-800 text-dark-300 active:scale-95 transition-transform mr-3"
@@ -167,8 +170,8 @@
           <img :src="logoUrl" alt="Logo" class="h-10 w-auto object-contain opacity-80" />
         </div>
 
-        <!-- Notifications -->
-        <div class="ml-auto">
+        <div class="ml-auto flex items-center gap-3">
+          <GymContextSelector />
           <Teleport to="body">
             <div class="fixed top-4 right-4 z-[100] space-y-2">
               <TransitionGroup name="notification">
@@ -262,6 +265,7 @@ import { useNotification } from '@/composables/useNotification';
 import FloatingStopwatch from '@/components/ui/FloatingStopwatch.vue';
 import AppModal from '@/components/ui/AppModal.vue';
 import AppInput from '@/components/ui/AppInput.vue';
+import GymContextSelector from '@/components/shared/GymContextSelector.vue';
 import { usersApi } from '@/api/users.api';
 
 const router = useRouter();
@@ -271,9 +275,9 @@ const authStore = useAuthStore();
 const { notifications } = useNotification();
 const sidebarOpen = ref(false);
 const logoUrl = computed(() => {
-  if (authStore.hasRole('Superusuario')) return '/logo.png';
-  return authStore.user?.gymLogoUrl || '/logo.png';
+  return authStore.selectedGym?.logoUrl || authStore.user?.gymLogoUrl || '/logo.png';
 });
+const brandColor = computed(() => authStore.selectedGym?.colorPrincipalHex || authStore.user?.gymColorPrincipalHex || '#ff6600');
 const showInitialPasswordModal = ref(false);
 const initialPassword = ref('');
 const initialPasswordError = ref('');

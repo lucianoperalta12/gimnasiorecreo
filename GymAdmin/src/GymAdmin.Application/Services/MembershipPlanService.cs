@@ -9,8 +9,13 @@ namespace GymAdmin.Application.Services;
 public class MembershipPlanService : IMembershipPlanService
 {
     private readonly AppDbContext _context;
+    private readonly Microsoft.AspNetCore.Http.IHttpContextAccessor _httpContextAccessor;
 
-    public MembershipPlanService(AppDbContext context) => _context = context;
+    public MembershipPlanService(AppDbContext context, Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor)
+    {
+        _context = context;
+        _httpContextAccessor = httpContextAccessor;
+    }
 
     public async Task<List<MembershipPlanDto>> GetAllAsync(int requesterId, int? gymId = null)
     {
@@ -149,7 +154,30 @@ public class MembershipPlanService : IMembershipPlanService
             throw new UnauthorizedAccessException("No autorizado.");
     }
 
-    private async Task<User> GetRequesterAsync(int requesterId) =>
-        await _context.Users.FindAsync(requesterId)
-        ?? throw new UnauthorizedAccessException("Usuario invalido.");
+    private async Task<User> GetRequesterAsync(int requesterId)
+    {
+        var user = await _context.Users
+            .Include(u => u.GymUsers)
+                .ThenInclude(gu => gu.Gym)
+            .FirstOrDefaultAsync(u => u.Id == requesterId)
+            ?? throw new UnauthorizedAccessException("Usuario invalido.");
+
+        var httpContext = _httpContextAccessor.HttpContext;
+        if (httpContext != null)
+        {
+            var gymIdClaim = httpContext.User.FindFirst("gymId")?.Value;
+            if (int.TryParse(gymIdClaim, out var gymId))
+            {
+                user.GymId = gymId;
+            }
+
+            var roleClaim = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+            if (Enum.TryParse<UserRole>(roleClaim, true, out var role))
+            {
+                user.Rol = role;
+            }
+        }
+
+        return user;
+    }
 }

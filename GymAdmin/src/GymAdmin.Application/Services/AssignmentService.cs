@@ -10,10 +10,12 @@ namespace GymAdmin.Application.Services;
 public class AssignmentService : IAssignmentService
 {
     private readonly AppDbContext _context;
+    private readonly Microsoft.AspNetCore.Http.IHttpContextAccessor _httpContextAccessor;
 
-    public AssignmentService(AppDbContext context)
+    public AssignmentService(AppDbContext context, Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor)
     {
         _context = context;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<StudentRoutineDto> AssignAsync(int requesterId, AssignRoutineRequest request)
@@ -95,15 +97,15 @@ public class AssignmentService : IAssignmentService
         {
             exercises = exercises.Where(e => e.GymId == requester.GymId);
             routines = routines.Where(r => r.GymId == requester.GymId);
-            users = users.Where(u => u.GymId == requester.GymId);
+            users = users.Where(u => u.GymUsers.Any(gu => gu.GymId == requester.GymId));
             assignments = assignments.Where(a => a.GymId == requester.GymId);
         }
 
         return new AssignmentSummaryDto(
             await exercises.CountAsync(),
             await routines.CountAsync(),
-            await users.CountAsync(u => u.Rol == UserRole.Alumno && u.Activo),
-            await users.CountAsync(u => u.Rol == UserRole.Profesor && u.Activo),
+            await users.CountAsync(u => u.GymUsers.Any(gu => gu.GymId == requester.GymId && gu.Rol == UserRole.Alumno && gu.Activo) && u.Activo),
+            await users.CountAsync(u => u.GymUsers.Any(gu => gu.GymId == requester.GymId && gu.Rol == UserRole.Profesor && gu.Activo) && u.Activo),
             await assignments.CountAsync()
         );
     }
@@ -151,7 +153,43 @@ public class AssignmentService : IAssignmentService
         )).ToList();
     }
 
-    private async Task<User> GetRequesterAsync(int requesterId) =>
-        await _context.Users.FindAsync(requesterId)
-        ?? throw new UnauthorizedAccessException("Usuario invalido.");
+    private async Task<User> GetRequesterAsync(int requesterId)
+    {
+        var user = await _context.Users
+            .Include(u => u.GymUsers)
+                .ThenInclude(gu => gu.Gym)
+            .FirstOrDefaultAsync(u => u.Id == requesterId)
+            ?? throw new UnauthorizedAccessException("Usuario invalido.");
+
+        var httpContext = _httpContextAccessor.HttpContext;
+        if (httpContext != null)
+        {
+            var gymIdClaim = httpContext.User.FindFirst("gymId")?.Value;
+            if (int.TryParse(gymIdClaim, out var gymId))
+            {
+                user.GymId = gymId;
+            }
+
+            var roleClaim = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+            if (Enum.TryParse<UserRole>(roleClaim, true, out var role))
+            {
+                user.Rol = role;
+            }
+            else
+            {
+                var association = user.GymUsers.FirstOrDefault(gu => gu.GymId == user.GymId && gu.Activo)
+                    ?? user.GymUsers.FirstOrDefault(gu => gu.Activo);
+                if (association != null)
+                {
+                    user.Rol = association.Rol;
+                    if (user.GymId == 0)
+                    {
+                        user.GymId = association.GymId;
+                    }
+                }
+            }
+        }
+
+        return user;
+    }
 }

@@ -63,11 +63,8 @@ api.interceptors.response.use(
 
         const { data } = await axios.post('/api/auth/refresh', { refreshToken })
         
-        localStorage.setItem('accessToken', data.accessToken)
-        localStorage.setItem('refreshToken', data.refreshToken)
-
         const authStore = useAuthStore()
-        authStore.setUser(data.user)
+        authStore.saveAuthData(data)
 
         processQueue(null, data.accessToken)
         

@@ -9,34 +9,49 @@ namespace GymAdmin.Application.Services;
 public class IngresoService : IIngresoService
 {
     private readonly AppDbContext _context;
+    private readonly Microsoft.AspNetCore.Http.IHttpContextAccessor _httpContextAccessor;
 
-    public IngresoService(AppDbContext context) => _context = context;
+    public IngresoService(AppDbContext context, Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor)
+    {
+        _context = context;
+        _httpContextAccessor = httpContextAccessor;
+    }
 
     public async Task<RegistrarIngresoResponse> RegistrarAsync(int terminalUserId, RegistrarIngresoRequest request)
     {
-        var terminal = await _context.Users
-            .Include(x => x.Gym)
-            .FirstOrDefaultAsync(x => x.Id == terminalUserId)
+        var terminal = await GetRequesterAsync(terminalUserId);
+        var terminalEntity = await _context.Users
+            .Include(x => x.GymUsers)
+                .ThenInclude(gu => gu.Gym)
+            .FirstOrDefaultAsync(x => x.Id == terminal.Id)
             ?? throw new UnauthorizedAccessException("Usuario inválido.");
 
         if (terminal.Rol is not (UserRole.Terminal or UserRole.Administrativo or UserRole.Superusuario))
             throw new UnauthorizedAccessException("No autorizado.");
+
+        var terminalAssociation = terminalEntity.GymUsers.FirstOrDefault(gu => gu.GymId == terminal.GymId && gu.Activo && gu.Gym.Activo)
+            ?? throw new UnauthorizedAccessException("La terminal no está asociada al gimnasio activo.");
 
         var dni = request.Dni.Trim();
         if (string.IsNullOrWhiteSpace(dni))
             throw new ArgumentException("Debe ingresar un DNI.");
 
         var alumno = await _context.Users
-            .FirstOrDefaultAsync(x => x.Dni == dni && x.Rol == UserRole.Alumno && x.Activo)
+            .Include(x => x.GymUsers)
+                .ThenInclude(gu => gu.Gym)
+            .FirstOrDefaultAsync(x =>
+                x.Dni == dni &&
+                x.Activo &&
+                x.GymUsers.Any(gu => gu.GymId == terminalAssociation.GymId && gu.Rol == UserRole.Alumno && gu.Activo))
             ?? throw new InvalidOperationException("No existe un alumno activo con ese DNI.");
 
-        if (alumno.GymId != terminal.GymId)
-            throw new InvalidOperationException("El alumno no pertenece al gimnasio de esta terminal.");
+        var alumnoAssociation = alumno.GymUsers.FirstOrDefault(gu => gu.GymId == terminalAssociation.GymId && gu.Rol == UserRole.Alumno && gu.Activo)
+            ?? throw new InvalidOperationException("El alumno no pertenece al gimnasio de esta terminal.");
 
         var membership = await _context.Memberships
             .Include(x => x.Plan)
             .Include(x => x.Gym)
-            .Where(x => x.AlumnoId == alumno.Id && x.GymId == terminal.GymId && x.Estado == MembershipStatus.Activa)
+            .Where(x => x.AlumnoId == alumno.Id && x.GymId == terminalAssociation.GymId && x.Estado == MembershipStatus.Activa)
             .OrderByDescending(x => x.FechaCreacion)
             .FirstOrDefaultAsync();
 
@@ -55,12 +70,12 @@ public class IngresoService : IIngresoService
             if (membership.Plan.DiasPorSemana.HasValue && membership.Plan.DiasPorSemana.Value > 0)
             {
                 var today = DateTime.UtcNow.Date;
-                int diff = (7 + (today.DayOfWeek - DayOfWeek.Monday)) % 7;
+                var diff = (7 + (today.DayOfWeek - DayOfWeek.Monday)) % 7;
                 var startOfWeek = today.AddDays(-1 * diff);
 
                 var ingresosEstaSemana = await _context.Ingresos
-                    .CountAsync(x => x.AlumnoId == alumno.Id 
-                                  && x.MembershipId == membership.Id 
+                    .CountAsync(x => x.AlumnoId == alumno.Id
+                                  && x.MembershipId == membership.Id
                                   && x.FechaHora >= startOfWeek);
 
                 if (ingresosEstaSemana >= membership.Plan.DiasPorSemana.Value)
@@ -70,9 +85,9 @@ public class IngresoService : IIngresoService
 
         var ingreso = new Ingreso
         {
-            GymId = terminal.GymId,
+            GymId = terminalAssociation.GymId,
             AlumnoId = alumno.Id,
-            TerminalId = terminal.Id,
+            TerminalId = terminalEntity.Id,
             MembershipId = membership.Id,
             FechaHora = DateTime.UtcNow
         };
@@ -90,7 +105,7 @@ public class IngresoService : IIngresoService
             alumno.Dni,
             membership.Gym.Nombre,
             ingreso.FechaHora,
-            $"{terminal.Nombre} {terminal.Apellido}".Trim(),
+            $"{terminalEntity.Nombre} {terminalEntity.Apellido}".Trim(),
             membership.Plan.Nombre,
             membership.Plan.PaseLibre,
             membership.IngresosUtilizados,
@@ -100,8 +115,7 @@ public class IngresoService : IIngresoService
 
     public async Task<List<IngresoListItemDto>> GetAllAsync(int requesterId, DateOnly? fechaDesde = null, DateOnly? fechaHasta = null, int? alumnoId = null, int? gymId = null)
     {
-        var requester = await _context.Users.FindAsync(requesterId)
-            ?? throw new UnauthorizedAccessException("Usuario inválido.");
+        var requester = await GetRequesterAsync(requesterId);
 
         if (requester.Rol is not (UserRole.Superusuario or UserRole.Administrativo))
             throw new UnauthorizedAccessException("No autorizado.");
@@ -164,5 +178,36 @@ public class IngresoService : IIngresoService
         var dias = Math.Max(1, (membership.FechaVencimiento.Date - membership.FechaInicio.Date).Days);
         var semanas = (int)Math.Ceiling(dias / 7d);
         return semanas * membership.Plan.DiasPorSemana.Value;
+    }
+
+    private async Task<User> GetRequesterAsync(int requesterId)
+    {
+        var user = await _context.Users
+            .Include(u => u.GymUsers)
+                .ThenInclude(gu => gu.Gym)
+            .FirstOrDefaultAsync(u => u.Id == requesterId)
+            ?? throw new UnauthorizedAccessException("Usuario inválido.");
+
+        var httpContext = _httpContextAccessor.HttpContext;
+        if (httpContext != null)
+        {
+            var gymIdClaim = httpContext.User.FindFirst("gymId")?.Value;
+            if (int.TryParse(gymIdClaim, out var gymId))
+            {
+                user.GymId = gymId;
+            }
+
+            var activeAssociation = user.GymUsers.FirstOrDefault(gu => gu.GymId == user.GymId && gu.Activo) ?? user.GymUsers.FirstOrDefault(gu => gu.Activo);
+            if (activeAssociation != null)
+            {
+                user.Rol = activeAssociation.Rol;
+                if (user.GymId == 0)
+                {
+                    user.GymId = activeAssociation.GymId;
+                }
+            }
+        }
+
+        return user;
     }
 }

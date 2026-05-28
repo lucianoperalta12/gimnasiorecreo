@@ -37,12 +37,50 @@ public static class DbSeeder
                 Email = "admin",
                 Dni = "admin",
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword("admin123"),
-                Rol = UserRole.Superusuario,
-                GymId = gym.Id,
                 Activo = true,
                 DebeCambiarPassword = false
             };
             context.Users.Add(adminUser);
+            await context.SaveChangesAsync();
+        }
+
+        if (!await context.GymUsers.AnyAsync(gu => gu.UserId == adminUser.Id && gu.GymId == gym.Id))
+        {
+            context.GymUsers.Add(new GymUser
+            {
+                UserId = adminUser.Id,
+                GymId = gym.Id,
+                Rol = UserRole.Superusuario,
+                Activo = true,
+                FechaAsociacion = DateTime.UtcNow
+            });
+            await context.SaveChangesAsync();
+        }
+
+        var gymNorte = await context.Gyms.FirstOrDefaultAsync(g => g.Nombre == "Gimnasio Norte");
+        if (gymNorte == null)
+        {
+            gymNorte = new Gym
+            {
+                Nombre = "Gimnasio Norte",
+                DuenoNombreApellido = "Sede Norte",
+                ColorPrincipalHex = "#00aaff",
+                Activo = true
+            };
+            context.Gyms.Add(gymNorte);
+            await context.SaveChangesAsync();
+        }
+
+        if (!await context.GymUsers.AnyAsync(gu => gu.UserId == adminUser.Id && gu.GymId == gymNorte.Id))
+        {
+            context.GymUsers.Add(new GymUser
+            {
+                UserId = adminUser.Id,
+                GymId = gymNorte.Id,
+                Rol = UserRole.Administrativo,
+                Activo = true,
+                FechaAsociacion = DateTime.UtcNow
+            });
             await context.SaveChangesAsync();
         }
 

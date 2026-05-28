@@ -9,10 +9,12 @@ namespace GymAdmin.Application.Services;
 public class RoutineService : IRoutineService
 {
     private readonly AppDbContext _context;
+    private readonly Microsoft.AspNetCore.Http.IHttpContextAccessor _httpContextAccessor;
 
-    public RoutineService(AppDbContext context)
+    public RoutineService(AppDbContext context, Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor)
     {
         _context = context;
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<List<RoutineListDto>> GetAllAsync(int requesterId)
@@ -143,9 +145,32 @@ public class RoutineService : IRoutineService
         await _context.SaveChangesAsync();
     }
 
-    private async Task<User> GetRequesterAsync(int requesterId) =>
-        await _context.Users.FindAsync(requesterId)
-        ?? throw new UnauthorizedAccessException("Usuario invalido.");
+    private async Task<User> GetRequesterAsync(int requesterId)
+    {
+        var user = await _context.Users
+            .Include(u => u.GymUsers)
+                .ThenInclude(gu => gu.Gym)
+            .FirstOrDefaultAsync(u => u.Id == requesterId)
+            ?? throw new UnauthorizedAccessException("Usuario invalido.");
+
+        var httpContext = _httpContextAccessor.HttpContext;
+        if (httpContext != null)
+        {
+            var gymIdClaim = httpContext.User.FindFirst("gymId")?.Value;
+            if (int.TryParse(gymIdClaim, out var gymId))
+            {
+                user.GymId = gymId;
+            }
+
+            var roleClaim = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+            if (Enum.TryParse<UserRole>(roleClaim, true, out var role))
+            {
+                user.Rol = role;
+            }
+        }
+
+        return user;
+    }
 
     private static bool CanAccessRoutine(User requester, Routine routine)
     {

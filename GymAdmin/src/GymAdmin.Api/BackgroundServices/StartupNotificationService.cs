@@ -28,7 +28,10 @@ public class StartupNotificationService : BackgroundService
             var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
 
-            var users = await dbContext.Users.ToListAsync(stoppingToken);
+            var users = await dbContext.Users
+                .Include(u => u.GymUsers)
+                    .ThenInclude(gu => gu.Gym)
+                .ToListAsync(stoppingToken);
 
             var activeCount = users.Count(u => u.Activo);
             var inactiveCount = users.Count(u => !u.Activo);
@@ -61,7 +64,7 @@ public class StartupNotificationService : BackgroundService
                     <tr>
                         <td>{user.Nombre}</td>
                         <td>{user.Email}</td>
-                        <td>{user.Rol}</td>
+                        <td>{user.GymUsers.FirstOrDefault(gu => gu.Activo)?.Rol.ToString() ?? "Sin asignación"}</td>
                         <td>{(user.Activo ? "Activo" : "Inactivo")}</td>
                     </tr>";
             }

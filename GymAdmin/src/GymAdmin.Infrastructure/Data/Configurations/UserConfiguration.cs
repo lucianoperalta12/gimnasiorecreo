@@ -40,10 +40,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.GoogleId)
             .HasMaxLength(200);
 
-        builder.Property(u => u.Rol)
-            .HasConversion<string>()
-            .HasMaxLength(20)
-            .HasDefaultValue(UserRole.Alumno);
+
 
         builder.Property(u => u.FechaCreacion)
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
@@ -60,9 +57,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.Observaciones)
             .HasMaxLength(1000);
 
-        builder.HasOne(u => u.Gym)
-            .WithMany(g => g.Users)
-            .HasForeignKey(u => u.GymId)
-            .OnDelete(DeleteBehavior.Restrict);
+
     }
 }

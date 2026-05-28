@@ -3,6 +3,12 @@ import { useAuthStore } from '@/stores/auth.store'
 
 const routes = [
   {
+    path: '/select-gym',
+    name: 'Seleccionar Gimnasio',
+    component: () => import('@/views/SelectGymView.vue'),
+    meta: { requiresAuth: true, requiresGymSelection: true }
+  },
+  {
     path: '/login',
     name: 'Login',
     component: () => import('@/views/LoginView.vue'),
@@ -145,6 +151,7 @@ const router = createRouter({
 
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
+  const needsGymSelection = authStore.pendingGymSelection || (authStore.isAuthenticated && !authStore.hasSelectedGym)
   
   // Force logout if requested by URL
   if (to.query.forceLogout === 'true') {
@@ -152,10 +159,22 @@ router.beforeEach((to, from, next) => {
     return next({ path: '/login', query: {}, replace: true })
   }
 
+  if (to.path === '/select-gym') {
+    if (!authStore.isAuthenticated) {
+      return next('/login')
+    }
+
+    if (!needsGymSelection) {
+      return next('/')
+    }
+
+    return next()
+  }
+
   // Public routes
   if (to.meta.requiresAuth === false) {
     if (authStore.isAuthenticated) {
-      return next('/')
+      return needsGymSelection ? next('/select-gym') : next('/')
     }
     return next()
   }
@@ -163,6 +182,10 @@ router.beforeEach((to, from, next) => {
   // Auth required
   if (to.meta.requiresAuth !== false && !authStore.isAuthenticated) {
     return next('/login')
+  }
+
+  if (needsGymSelection) {
+    return next('/select-gym')
   }
 
   // Role check

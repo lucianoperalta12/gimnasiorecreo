@@ -11,9 +11,11 @@ public class User
     public string Dni { get; set; } = string.Empty;
     public string? PasswordHash { get; set; }
     public string? GoogleId { get; set; }
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
     public UserRole Rol { get; set; } = UserRole.Alumno;
     public bool Activo { get; set; } = true;
     public bool DebeCambiarPassword { get; set; } = true;
+    [System.ComponentModel.DataAnnotations.Schema.NotMapped]
     public int GymId { get; set; }
     public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
     public string? RefreshToken { get; set; }
@@ -24,7 +26,7 @@ public class User
     public string? Observaciones { get; set; }
 
     // Navigation properties
-    public Gym Gym { get; set; } = null!;
+    public ICollection<GymUser> GymUsers { get; set; } = new List<GymUser>();
     public ICollection<Routine> RutinasCreadas { get; set; } = new List<Routine>();
     public ICollection<StudentRoutine> RutinasAsignadas { get; set; } = new List<StudentRoutine>();
     public ICollection<Membership> Membresias { get; set; } = new List<Membership>();

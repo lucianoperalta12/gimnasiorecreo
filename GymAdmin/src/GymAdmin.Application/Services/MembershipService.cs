@@ -10,8 +10,13 @@ namespace GymAdmin.Application.Services;
 public class MembershipService : IMembershipService
 {
     private readonly AppDbContext _context;
+    private readonly Microsoft.AspNetCore.Http.IHttpContextAccessor _httpContextAccessor;
 
-    public MembershipService(AppDbContext context) => _context = context;
+    public MembershipService(AppDbContext context, Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor)
+    {
+        _context = context;
+        _httpContextAccessor = httpContextAccessor;
+    }
 
     public async Task<List<MembershipListDto>> GetAllAsync(
         int requesterId,
@@ -204,7 +209,7 @@ public class MembershipService : IMembershipService
 
     private async Task<StudentAccessDto> BuildStudentAccessDtoAsync(User student)
     {
-        if (student.Gym is null) await _context.Entry(student).Reference(x => x.Gym).LoadAsync();
+        var gym = await _context.Gyms.FindAsync(student.GymId);
         await ExpireOverdueMembershipsAsync(null, student.GymId);
 
         var active = await _context.Memberships
@@ -228,7 +233,7 @@ public class MembershipService : IMembershipService
             active?.Plan.Nombre,
             active?.FechaVencimiento,
             active is not null ? AccessStatusHelper.DiasRestantes(active) : null,
-            student.Gym?.Moneda
+            gym?.Moneda
         );
     }
 
@@ -364,8 +369,21 @@ public class MembershipService : IMembershipService
 
     private async Task<User> GetStudentAsync(int studentId)
     {
-        var student = await _context.Users.FindAsync(studentId)
+        var student = await _context.Users
+            .Include(u => u.GymUsers)
+                .ThenInclude(gu => gu.Gym)
+            .FirstOrDefaultAsync(u => u.Id == studentId)
             ?? throw new KeyNotFoundException("Alumno no encontrado.");
+
+        var gymId = GetCurrentGymId();
+        var association = student.GymUsers.FirstOrDefault(gu => gu.GymId == gymId && gu.Activo)
+            ?? student.GymUsers.FirstOrDefault(gu => gu.Activo);
+
+        if (association != null)
+        {
+            student.GymId = association.GymId;
+            student.Rol = association.Rol;
+        }
 
         if (student.Rol != UserRole.Alumno)
             throw new InvalidOperationException("Solo se pueden gestionar membresías de alumnos.");
@@ -414,7 +432,49 @@ public class MembershipService : IMembershipService
             throw new UnauthorizedAccessException("No autorizado.");
     }
 
-    private async Task<User> GetRequesterAsync(int requesterId) =>
-        await _context.Users.FindAsync(requesterId)
-        ?? throw new UnauthorizedAccessException("Usuario invalido.");
+    private async Task<User> GetRequesterAsync(int requesterId)
+    {
+        var user = await _context.Users
+            .Include(u => u.GymUsers)
+                .ThenInclude(gu => gu.Gym)
+            .FirstOrDefaultAsync(u => u.Id == requesterId)
+            ?? throw new UnauthorizedAccessException("Usuario invalido.");
+
+        var gymId = GetCurrentGymId();
+        if (gymId.HasValue)
+        {
+            user.GymId = gymId.Value;
+        }
+
+        var roleClaim = _httpContextAccessor.HttpContext?.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value;
+        if (Enum.TryParse<UserRole>(roleClaim, true, out var role))
+        {
+            user.Rol = role;
+        }
+        else
+        {
+            var association = user.GymUsers.FirstOrDefault(gu => gu.GymId == user.GymId && gu.Activo) ?? user.GymUsers.FirstOrDefault(gu => gu.Activo);
+            if (association != null)
+            {
+                user.Rol = association.Rol;
+                if (user.GymId == 0)
+                {
+                    user.GymId = association.GymId;
+                }
+            }
+        }
+
+        return user;
+    }
+
+    private int? GetCurrentGymId()
+    {
+        var gymIdClaim = _httpContextAccessor.HttpContext?.User.FindFirst("gymId")?.Value;
+        if (int.TryParse(gymIdClaim, out var gymId))
+        {
+            return gymId;
+        }
+
+        return null;
+    }
 }

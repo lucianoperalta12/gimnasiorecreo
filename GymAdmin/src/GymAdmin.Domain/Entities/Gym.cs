@@ -12,7 +12,7 @@ public class Gym
     public bool VeRutinas { get; set; } = true;
     public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
 
-    public ICollection<User> Users { get; set; } = new List<User>();
+    public ICollection<GymUser> GymUsers { get; set; } = new List<GymUser>();
     public ICollection<Exercise> Exercises { get; set; } = new List<Exercise>();
     public ICollection<Routine> Routines { get; set; } = new List<Routine>();
     public ICollection<StudentRoutine> StudentRoutines { get; set; } = new List<StudentRoutine>();

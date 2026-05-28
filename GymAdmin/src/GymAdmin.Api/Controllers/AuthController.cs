@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using GymAdmin.Application.DTOs.Auth;
+using GymAdmin.Application.DTOs.Users;
 using GymAdmin.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -46,6 +47,15 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<AuthResponse>> Refresh([FromBody] TokenRefreshRequest request)
     {
         var result = await _authService.RefreshTokenAsync(request.RefreshToken);
+        return Ok(result);
+    }
+
+    [Authorize]
+    [HttpPost("select-gym")]
+    public async Task<ActionResult<AuthResponse>> SelectGym([FromBody] SelectGymRequest request)
+    {
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var result = await _authService.SelectGymAsync(userId, request.GymId);
         return Ok(result);
     }
 

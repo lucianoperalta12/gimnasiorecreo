@@ -75,7 +75,7 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth.store'
 import AppInput from '@/components/ui/AppInput.vue'
@@ -95,6 +95,15 @@ const errors = reactive({
   password: ''
 })
 
+onMounted(() => {
+  if (!authStore.isAuthenticated) return
+  if (authStore.pendingGymSelection) {
+    router.replace('/select-gym')
+  } else if (authStore.hasSelectedGym) {
+    router.replace('/')
+  }
+})
+
 async function handleLogin() {
   error.value = ''
   errors.username = ''
@@ -112,7 +121,8 @@ async function handleLogin() {
   loading.value = true
   try {
     await authStore.login(form.username, form.password)
-    router.push('/')
+    const target = authStore.pendingGymSelection ? '/select-gym' : '/'
+    await router.replace(target)
   } catch (err) {
     console.error('Login error:', err)
     error.value = err.response?.data?.error || 'Credenciales inválidas o error de conexión'
