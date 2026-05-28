@@ -80,13 +80,14 @@ public class UsersController : ControllerBase
 
     [HttpPatch("{id}/toggle-status")]
     [Authorize(Roles = "Superusuario,Administrativo")]
-    public async Task<ActionResult<UserDto>> ToggleStatus(int id) => Ok(await _userService.ToggleStatusAsync(GetUserId(), id));
+    public async Task<ActionResult<UserDto>> ToggleStatus(int id, [FromQuery] int? gymId)
+        => Ok(await _userService.ToggleStatusAsync(GetUserId(), id, gymId));
 
     [HttpDelete("{id}")]
     [Authorize(Roles = "Superusuario,Administrativo")]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(int id, [FromQuery] int? gymId)
     {
-        await _userService.DeleteUserAsync(GetUserId(), id);
+        await _userService.DeleteUserAsync(GetUserId(), id, gymId);
         return NoContent();
     }
 }

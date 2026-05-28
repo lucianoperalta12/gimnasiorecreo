@@ -46,7 +46,7 @@ public record UpdateUserRequest(
     string? Observaciones
 );
 
-public record ChangeRoleRequest(string Rol);
+public record ChangeRoleRequest(string Rol, int? GymId = null);
 public record ChangePasswordRequest(string Password);
 
 public record GymAssociationDto(int GymId, string GymNombre, string? LogoUrl, string ColorPrincipalHex, string Rol);

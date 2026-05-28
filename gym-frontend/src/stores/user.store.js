@@ -2,6 +2,14 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { usersApi } from '@/api/users.api'
 
+function rowKey(user) {
+  return `${user.id}-${user.gymId}`
+}
+
+function findUserRowIndex(users, user) {
+  return users.findIndex((u) => u.id === user.id && u.gymId === user.gymId)
+}
+
 export const useUserStore = defineStore('user', () => {
   const users = ref([])
   const students = ref([])
@@ -27,23 +35,34 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
-  async function changeRole(userId, rol) {
-    const { data } = await usersApi.changeRole(userId, rol)
-    const index = users.value.findIndex(u => u.id === userId)
+  async function changeRole(user, rol) {
+    const { data } = await usersApi.changeRole(user.id, rol, user.gymId)
+    const index = findUserRowIndex(users.value, user)
     if (index !== -1) users.value[index] = data
     return data
   }
 
   async function createUser(payload) {
     const { data } = await usersApi.create(payload)
-    users.value.unshift(data)
+    await fetchUsers()
     return data
   }
 
   async function updateUser(userId, payload) {
     const { data } = await usersApi.update(userId, payload)
-    const index = users.value.findIndex(u => u.id === userId)
-    if (index !== -1) users.value[index] = data
+    users.value = users.value.map((u) =>
+      u.id === userId
+        ? {
+            ...u,
+            nombre: data.nombre,
+            apellido: data.apellido,
+            fechaNacimiento: data.fechaNacimiento,
+            domicilio: data.domicilio,
+            telefono: data.telefono,
+            observaciones: data.observaciones
+          }
+        : u
+    )
     return data
   }
 
@@ -51,16 +70,16 @@ export const useUserStore = defineStore('user', () => {
     await usersApi.changePassword(userId, password)
   }
 
-  async function toggleUserStatus(userId) {
-    const { data } = await usersApi.toggleStatus(userId)
-    const index = users.value.findIndex(u => u.id === userId)
+  async function toggleUserStatus(user) {
+    const { data } = await usersApi.toggleStatus(user.id, user.gymId)
+    const index = findUserRowIndex(users.value, user)
     if (index !== -1) users.value[index] = data
     return data
   }
 
-  async function deleteUser(userId) {
-    await usersApi.delete(userId)
-    users.value = users.value.filter(u => u.id !== userId)
+  async function deleteUser(user) {
+    await usersApi.delete(user.id, user.gymId)
+    users.value = users.value.filter((u) => rowKey(u) !== rowKey(user))
   }
 
   return {
@@ -74,6 +93,7 @@ export const useUserStore = defineStore('user', () => {
     changeRole,
     changePassword,
     toggleUserStatus,
-    deleteUser
+    deleteUser,
+    rowKey
   }
 })

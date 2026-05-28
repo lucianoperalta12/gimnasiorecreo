@@ -63,7 +63,12 @@
     <template v-else>
       <!-- Mobile Cards (visible < md) -->
       <div class="md:hidden space-y-3">
-        <div v-for="u in paginatedUsers" :key="u.id" class="p-4 rounded-2xl bg-dark-900/40 border border-dark-800/50" :class="{ 'opacity-50': !u.activo }">
+        <div
+          v-for="u in paginatedUsers"
+          :key="userStore.rowKey(u)"
+          class="p-4 rounded-2xl bg-dark-900/40 border border-dark-800/50"
+          :class="{ 'opacity-50': !u.activo }"
+        >
           <div class="flex items-center justify-between mb-3">
             <div>
               <p class="font-semibold text-white text-sm">{{ fullName(u) }}</p>
@@ -73,7 +78,7 @@
               v-if="canChangeRole(u)"
               :value="u.rol"
               class="bg-dark-800 border border-dark-700 text-[10px] rounded-full px-2 py-0.5 text-dark-200 focus:outline-none focus:ring-1 focus:ring-primary-500/50"
-              @change="handleRoleChange(u.id, $event.target.value)"
+              @change="handleRoleChange(u, $event.target.value)"
             >
               <option v-for="role in getAvailableRoles(u)" :key="role" :value="role">{{ role }}</option>
             </select>
@@ -106,7 +111,12 @@
             >
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                />
               </svg>
             </button>
             <button
@@ -160,7 +170,7 @@
           <tbody>
             <tr
               v-for="u in paginatedUsers"
-              :key="u.id"
+              :key="userStore.rowKey(u)"
               class="border-b border-dark-800 hover:bg-dark-800/40 transition-colors"
               :class="{ 'opacity-50': !u.activo }"
             >
@@ -177,7 +187,7 @@
                   v-if="canChangeRole(u)"
                   :value="u.rol"
                   class="bg-dark-800 border border-dark-700 text-xs rounded-full px-2.5 py-0.5 text-dark-200 focus:outline-none focus:ring-1 focus:ring-primary-500/50 cursor-pointer"
-                  @change="handleRoleChange(u.id, $event.target.value)"
+                  @change="handleRoleChange(u, $event.target.value)"
                 >
                   <option v-for="role in getAvailableRoles(u)" :key="role" :value="role">{{ role }}</option>
                 </select>
@@ -206,7 +216,12 @@
                   >
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      />
                     </svg>
                   </button>
                   <button
@@ -322,7 +337,7 @@
     </AppModal>
 
     <!-- Delete Confirmation Modal -->
-    <AppModal v-model="showDeleteModal" title="Confirmar eliminación" size="sm">
+    <AppModal v-model="showDeleteModal" :title="deleteModalCopy.title" size="sm">
       <div class="space-y-4">
         <div class="p-4 rounded-xl bg-red-500/10 border border-red-500/20 flex gap-3 items-start">
           <svg class="w-5 h-5 text-red-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -334,17 +349,15 @@
             />
           </svg>
           <div>
-            <p class="text-sm font-bold text-white">¿Estás seguro?</p>
-            <p class="text-xs text-dark-400 mt-1">
-              Esta acción eliminará permanentemente al usuario
-              <span class="font-bold text-dark-200">{{ fullName(userToDelete) }}</span
-              >.
-            </p>
+            <p class="text-sm font-bold text-white">{{ deleteModalCopy.lead }}</p>
+            <p class="text-xs text-dark-400 mt-1">{{ deleteModalCopy.detail }}</p>
           </div>
         </div>
         <div class="flex justify-end gap-3 pt-2">
           <button type="button" class="btn-secondary" @click="showDeleteModal = false">Cancelar</button>
-          <AppButton class="!bg-red-600 hover:!bg-red-500" :loading="deleting" @click="confirmDelete">Eliminar</AppButton>
+          <AppButton class="!bg-red-600 hover:!bg-red-500" :loading="deleting" @click="confirmDelete">
+            {{ deleteModalCopy.confirmLabel }}
+          </AppButton>
         </div>
       </div>
     </AppModal>
@@ -384,7 +397,18 @@ const newPassword = ref('');
 const formError = ref('');
 const pageSize = ref(15);
 const currentPage = ref(1);
-const createForm = reactive({ nombre: '', apellido: '', email: '', dni: '', rol: 'Alumno', gymId: null, fechaNacimiento: '', domicilio: '', telefono: '', observaciones: '' });
+const createForm = reactive({
+  nombre: '',
+  apellido: '',
+  email: '',
+  dni: '',
+  rol: 'Alumno',
+  gymId: null,
+  fechaNacimiento: '',
+  domicilio: '',
+  telefono: '',
+  observaciones: '',
+});
 
 // Removí el watcher que limpiaba el DNI para permitir texto alfanumérico (extranjeros, etc) como pidió el usuario.
 
@@ -467,6 +491,42 @@ const paginatedUsers = computed(() => {
 // Reset to first page when filters change
 watch([search, roleFilter, gymFilter], () => {
   currentPage.value = 1;
+});
+
+const deleteModalCopy = computed(() => {
+  const user = userToDelete.value;
+  if (!user) {
+    return {
+      title: 'Confirmar eliminación',
+      lead: '¿Estás seguro?',
+      detail: '',
+      confirmLabel: 'Eliminar',
+      removesAssociationOnly: false,
+    };
+  }
+
+  const name = fullName(user);
+  const gym = user.gymNombre || 'este gimnasio';
+  const dni = user.dni ? ` (DNI ${user.dni})` : '';
+  const removesAssociationOnly = userStore.users.some((u) => u.id === user.id && u.gymId !== user.gymId);
+
+  if (removesAssociationOnly) {
+    return {
+      title: 'Eliminar del gimnasio',
+      lead: `Eliminar a ${name}${dni} ?`,
+      detail: 'Esta acción no se puede deshacer.',
+      confirmLabel: 'Eliminar de este gimnasio',
+      removesAssociationOnly: true,
+    };
+  }
+
+  return {
+    title: 'Confirmar eliminación',
+    lead: `¿Eliminar a ${name}${dni}?`,
+    detail: 'Esta acción no se puede deshacer.',
+    confirmLabel: 'Eliminar',
+    removesAssociationOnly: false,
+  };
 });
 
 function fullName(user) {
@@ -567,7 +627,7 @@ async function createUser() {
   try {
     await userStore.createUser({
       ...createForm,
-      fechaNacimiento: createForm.fechaNacimiento || null
+      fechaNacimiento: createForm.fechaNacimiento || null,
     });
     success('Usuario creado. La contraseña inicial es el DNI.');
     showCreateModal.value = false;
@@ -588,7 +648,7 @@ async function editUser() {
       fechaNacimiento: createForm.fechaNacimiento || null,
       domicilio: createForm.domicilio,
       telefono: createForm.telefono,
-      observaciones: createForm.observaciones
+      observaciones: createForm.observaciones,
     });
     success('Usuario actualizado correctamente.');
     showCreateModal.value = false;
@@ -599,9 +659,9 @@ async function editUser() {
   }
 }
 
-async function handleRoleChange(userId, newRole) {
+async function handleRoleChange(user, newRole) {
   try {
-    await userStore.changeRole(userId, newRole);
+    await userStore.changeRole(user, newRole);
     success(`Rol cambiado a ${newRole}`);
   } catch (err) {
     showError(err.response?.data?.error || 'Error al cambiar rol');
@@ -610,8 +670,8 @@ async function handleRoleChange(userId, newRole) {
 
 async function handleToggleStatus(user) {
   try {
-    await userStore.toggleUserStatus(user.id);
-    success(user.activo ? 'Usuario desactivado' : 'Usuario activado');
+    await userStore.toggleUserStatus(user);
+    success(user.activo ? 'Usuario desactivado en este gimnasio' : 'Usuario activado en este gimnasio');
   } catch (err) {
     showError(err.response?.data?.error || 'Error al cambiar estado');
   }
@@ -633,8 +693,9 @@ async function confirmDelete() {
 
   deleting.value = true;
   try {
-    await userStore.deleteUser(userToDelete.value.id);
-    success('Usuario eliminado correctamente');
+    const removedAssociationOnly = deleteModalCopy.value.removesAssociationOnly;
+    await userStore.deleteUser(userToDelete.value);
+    success(removedAssociationOnly ? 'Usuario quitado del gimnasio correctamente' : 'Usuario eliminado correctamente');
     showDeleteModal.value = false;
     userToDelete.value = null;
   } catch (err) {

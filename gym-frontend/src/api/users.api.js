@@ -16,8 +16,8 @@ export const usersApi = {
   update(id, payload) {
     return api.put(`/users/${id}`, payload)
   },
-  changeRole(id, rol) {
-    return api.put(`/users/${id}/role`, { rol })
+  changeRole(id, rol, gymId) {
+    return api.put(`/users/${id}/role`, { rol, gymId: gymId ?? undefined })
   },
   changePassword(id, password) {
     return api.put(`/users/${id}/password`, { password })
@@ -25,10 +25,14 @@ export const usersApi = {
   changeInitialPassword(password) {
     return api.put('/users/me/change-initial-password', { password })
   },
-  toggleStatus(id) {
-    return api.patch(`/users/${id}/toggle-status`)
+  toggleStatus(id, gymId) {
+    return api.patch(`/users/${id}/toggle-status`, null, {
+      params: gymId != null ? { gymId } : undefined
+    })
   },
-  delete(id) {
-    return api.delete(`/users/${id}`)
+  delete(id, gymId) {
+    return api.delete(`/users/${id}`, {
+      params: gymId != null ? { gymId } : undefined
+    })
   }
 }

@@ -22,60 +22,39 @@ public class UserService : IUserService
         var requester = await GetRequester(requesterId);
         var gymId = requester.GymId;
 
-        var query = _context.Users.AsNoTracking()
-            .Include(u => u.GymUsers)
-                .ThenInclude(gu => gu.Gym)
+        var query = _context.GymUsers.AsNoTracking()
+            .Include(gu => gu.User)
+            .Include(gu => gu.Gym)
             .AsQueryable();
 
-        if (requester.Rol != UserRole.Superusuario)
+        if (requester.Rol == UserRole.Superusuario)
         {
-            query = query.Where(u => u.GymUsers.Any(gu => gu.GymId == gymId));
+            // Una fila por cada asociacion usuario-gimnasio (mismo DNI puede repetirse).
+        }
+        else if (requester.Rol == UserRole.Administrativo)
+        {
+            query = query.Where(gu =>
+                gu.GymId == gymId &&
+                (gu.Rol == UserRole.Alumno || gu.Rol == UserRole.Profesor));
+        }
+        else
+        {
+            throw new UnauthorizedAccessException("No autorizado.");
         }
 
-        var users = await query
-            .OrderBy(u => u.Nombre).ThenBy(u => u.Apellido)
+        var associations = await query
+            .OrderBy(gu => gu.User.Nombre)
+            .ThenBy(gu => gu.User.Apellido)
+            .ThenBy(gu => gu.Gym.Nombre)
             .ToListAsync();
 
-        var data = users
-            .Select(u => new
-            {
-                User = u,
-                GymUser = u.GymUsers.FirstOrDefault(gu => gu.GymId == gymId) ?? u.GymUsers.FirstOrDefault()
-            })
-            .Where(x => x.GymUser != null)
-            .ToList();
-
-        if (requester.Rol == UserRole.Administrativo)
-        {
-            data = data.Where(x => x.GymUser.GymId == gymId && (x.GymUser.Rol == UserRole.Alumno || x.GymUser.Rol == UserRole.Profesor)).ToList();
-        }
-
-        return data.Select(x => new UserDto(
-            x.User.Id,
-            x.User.Nombre,
-            x.User.Apellido,
-            x.User.Email,
-            x.User.Dni,
-            x.GymUser.Rol.ToString(),
-            x.GymUser.Activo && x.User.Activo,
-            x.User.DebeCambiarPassword,
-            x.GymUser.GymId,
-            x.GymUser.Gym.Nombre,
-            x.GymUser.Gym.ColorPrincipalHex,
-            x.GymUser.Gym.LogoUrl,
-            x.GymUser.Gym.VeRutinas,
-            x.User.FechaCreacion,
-            x.User.FechaNacimiento,
-            x.User.Domicilio,
-            x.User.Telefono,
-            x.User.Observaciones
-        )).ToList();
+        return associations.Select(gu => MapToUserDto(gu.User, gu)).ToList();
     }
 
-    public async Task<UserDto?> GetUserByIdAsync(int requesterId, int id)
+    public async Task<UserDto?> GetUserByIdAsync(int requesterId, int id, int? gymId = null)
     {
         var requester = await GetRequester(requesterId);
-        var gymId = requester.GymId;
+        var targetGymId = ResolveTargetGymId(requester, gymId);
 
         var query = _context.Users.AsNoTracking()
             .Include(u => u.GymUsers)
@@ -84,41 +63,22 @@ public class UserService : IUserService
 
         if (requester.Rol != UserRole.Superusuario)
         {
-            query = query.Where(u => u.GymUsers.Any(gu => gu.GymId == gymId));
+            query = query.Where(u => u.GymUsers.Any(gu => gu.GymId == targetGymId));
         }
 
         var u = await query.FirstOrDefaultAsync();
         if (u == null) return null;
 
-        var gymUser = u.GymUsers.FirstOrDefault(gu => gu.GymId == gymId) ?? u.GymUsers.FirstOrDefault();
+        var gymUser = u.GymUsers.FirstOrDefault(gu => gu.GymId == targetGymId);
         if (gymUser == null) return null;
 
         if (requester.Rol == UserRole.Administrativo)
         {
-            if (gymUser.GymId != gymId || (gymUser.Rol != UserRole.Alumno && gymUser.Rol != UserRole.Profesor))
+            if (gymUser.GymId != requester.GymId || (gymUser.Rol != UserRole.Alumno && gymUser.Rol != UserRole.Profesor))
                 return null;
         }
 
-        return new UserDto(
-            u.Id,
-            u.Nombre,
-            u.Apellido,
-            u.Email,
-            u.Dni,
-            gymUser.Rol.ToString(),
-            gymUser.Activo && u.Activo,
-            u.DebeCambiarPassword,
-            gymUser.GymId,
-            gymUser.Gym.Nombre,
-            gymUser.Gym.ColorPrincipalHex,
-            gymUser.Gym.LogoUrl,
-            gymUser.Gym.VeRutinas,
-            u.FechaCreacion,
-            u.FechaNacimiento,
-            u.Domicilio,
-            u.Telefono,
-            u.Observaciones
-        );
+        return MapToUserDto(u, gymUser);
     }
 
     public async Task<List<UserDto>> GetStudentsAsync(int requesterId)
@@ -202,7 +162,7 @@ public class UserService : IUserService
             };
             _context.GymUsers.Add(association);
             await _context.SaveChangesAsync();
-            return (await GetUserByIdAsync(requesterId, existingUser.Id))!;
+            return (await GetUserByIdAsync(requesterId, existingUser.Id, gymId))!;
         }
 
         var user = new User
@@ -233,7 +193,7 @@ public class UserService : IUserService
         _context.GymUsers.Add(newAssociation);
         await _context.SaveChangesAsync();
 
-        return (await GetUserByIdAsync(requesterId, user.Id))!;
+        return (await GetUserByIdAsync(requesterId, user.Id, gymId))!;
     }
 
     public async Task<UserDto> UpdateUserAsync(int requesterId, int userId, UpdateUserRequest request)
@@ -284,7 +244,7 @@ public class UserService : IUserService
 
         if (!Enum.TryParse<UserRole>(request.Rol, true, out var newRole)) throw new ArgumentException("Rol inválido.");
 
-        var gymId = requester.GymId;
+        var gymId = ResolveTargetGymId(requester, request.GymId);
         var gymUser = user.GymUsers.FirstOrDefault(gu => gu.GymId == gymId);
         if (gymUser == null) throw new UnauthorizedAccessException("El usuario no pertenece a este gimnasio.");
 
@@ -316,7 +276,7 @@ public class UserService : IUserService
         }
 
         await _context.SaveChangesAsync();
-        return (await GetUserByIdAsync(requesterId, user.Id))!;
+        return (await GetUserByIdAsync(requesterId, user.Id, gymId))!;
     }
 
     public async Task ChangePasswordAsync(int requesterId, int userId, ChangePasswordRequest request)
@@ -351,15 +311,15 @@ public class UserService : IUserService
         await _context.SaveChangesAsync();
     }
 
-    public async Task<UserDto> ToggleStatusAsync(int requesterId, int userId)
+    public async Task<UserDto> ToggleStatusAsync(int requesterId, int userId, int? gymId = null)
     {
         var requester = await GetRequester(requesterId);
         var user = await _context.Users
             .Include(u => u.GymUsers)
             .FirstOrDefaultAsync(u => u.Id == userId) ?? throw new KeyNotFoundException("Usuario no encontrado.");
 
-        var gymId = requester.GymId;
-        var gymUser = user.GymUsers.FirstOrDefault(gu => gu.GymId == gymId);
+        var targetGymId = ResolveTargetGymId(requester, gymId);
+        var gymUser = user.GymUsers.FirstOrDefault(gu => gu.GymId == targetGymId);
         if (gymUser == null) throw new UnauthorizedAccessException("El usuario no pertenece a este gimnasio.");
 
         if (requester.Rol == UserRole.Superusuario)
@@ -368,17 +328,17 @@ public class UserService : IUserService
         }
         else if (requester.Rol == UserRole.Administrativo)
         {
-            if (gymUser.GymId != gymId || (gymUser.Rol != UserRole.Alumno && gymUser.Rol != UserRole.Profesor))
+            if (gymUser.GymId != targetGymId || (gymUser.Rol != UserRole.Alumno && gymUser.Rol != UserRole.Profesor))
                 throw new UnauthorizedAccessException("No autorizado.");
             gymUser.Activo = !gymUser.Activo;
         }
         else throw new UnauthorizedAccessException("No autorizado.");
 
         await _context.SaveChangesAsync();
-        return (await GetUserByIdAsync(requesterId, user.Id))!;
+        return (await GetUserByIdAsync(requesterId, user.Id, targetGymId))!;
     }
 
-    public async Task DeleteUserAsync(int requesterId, int userId)
+    public async Task DeleteUserAsync(int requesterId, int userId, int? gymId = null)
     {
         var requester = await GetRequester(requesterId);
         var user = await _context.Users
@@ -388,13 +348,13 @@ public class UserService : IUserService
         if (userId == requesterId) throw new InvalidOperationException("No puedes eliminar tu propio usuario.");
         if (user.Email == "admin" || user.Nombre.ToLower() == "admin") throw new InvalidOperationException("No se puede eliminar el administrador del sistema.");
 
-        var gymId = requester.GymId;
-        var gymUser = user.GymUsers.FirstOrDefault(gu => gu.GymId == gymId);
+        var targetGymId = ResolveTargetGymId(requester, gymId);
+        var gymUser = user.GymUsers.FirstOrDefault(gu => gu.GymId == targetGymId);
 
         if (requester.Rol == UserRole.Superusuario) { /* OK */ }
         else if (requester.Rol == UserRole.Administrativo)
         {
-            if (gymUser == null || gymUser.GymId != gymId) throw new UnauthorizedAccessException("No autorizado para este gimnasio.");
+            if (gymUser == null || gymUser.GymId != targetGymId) throw new UnauthorizedAccessException("No autorizado para este gimnasio.");
             if (gymUser.Rol != UserRole.Alumno && gymUser.Rol != UserRole.Profesor)
                 throw new UnauthorizedAccessException("No autorizado para eliminar este tipo de usuario.");
         }
@@ -402,9 +362,12 @@ public class UserService : IUserService
 
         try 
         {
-            if (user.GymUsers.Count > 1 && requester.Rol != UserRole.Superusuario)
+            if (gymUser == null)
+                throw new UnauthorizedAccessException("No autorizado para este gimnasio.");
+
+            if (user.GymUsers.Count > 1)
             {
-                if (gymUser != null) _context.GymUsers.Remove(gymUser);
+                _context.GymUsers.Remove(gymUser);
             }
             else
             {
@@ -461,4 +424,41 @@ public class UserService : IUserService
 
         return user;
     }
+
+    private static int ResolveTargetGymId(User requester, int? requestedGymId)
+    {
+        if (requestedGymId is > 0)
+        {
+            if (requester.Rol != UserRole.Superusuario && requestedGymId.Value != requester.GymId)
+                throw new UnauthorizedAccessException("No autorizado para este gimnasio.");
+
+            return requestedGymId.Value;
+        }
+
+        if (requester.GymId <= 0)
+            throw new UnauthorizedAccessException("Contexto de gimnasio no definido.");
+
+        return requester.GymId;
+    }
+
+    private static UserDto MapToUserDto(User user, GymUser gymUser) => new(
+        user.Id,
+        user.Nombre,
+        user.Apellido,
+        user.Email,
+        user.Dni,
+        gymUser.Rol.ToString(),
+        gymUser.Activo && user.Activo,
+        user.DebeCambiarPassword,
+        gymUser.GymId,
+        gymUser.Gym.Nombre,
+        gymUser.Gym.ColorPrincipalHex,
+        gymUser.Gym.LogoUrl,
+        gymUser.Gym.VeRutinas,
+        user.FechaCreacion,
+        user.FechaNacimiento,
+        user.Domicilio,
+        user.Telefono,
+        user.Observaciones
+    );
 }
