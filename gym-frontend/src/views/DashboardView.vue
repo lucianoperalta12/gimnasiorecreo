@@ -134,7 +134,7 @@
           <a
             href="/terminal"
             target="_blank"
-            class="px-4 py-2 rounded-xl border border-dark-800 text-xs font-black text-dark-400 uppercase hover:text-white hover:border-dark-600 transition-colors flex items-center gap-2"
+            class="px-4 py-2 rounded-xl bg-primary-500 hover:bg-primary-600 text-xs font-black text-white uppercase transition-colors flex items-center gap-2"
           >
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path
@@ -330,9 +330,9 @@
                   <p class="text-[11px] font-black text-white truncate leading-none mb-1">{{ membresia.alumnoNombreCompleto }}</p>
                   <p class="text-[9px] text-dark-500">Vence: {{ formatDate(membresia.fechaVencimiento) }}</p>
                 </div>
-                <router-link to="/memberships" class="text-[9px] font-black text-primary-500 hover:text-primary-400 uppercase tracking-widest flex-shrink-0">
+                <button @click="openRenewModal(membresia)" class="text-[9px] font-black text-primary-500 hover:text-primary-400 uppercase tracking-widest flex-shrink-0">
                   Renovar
-                </router-link>
+                </button>
               </div>
 
               <div v-if="!membresiasPorVencer.length" class="h-full flex flex-col items-center justify-center text-center py-4">
@@ -398,20 +398,82 @@
           </div>
         </div>
       </div>
+      <!-- Modales de Renovación y Pago -->
+      <AppModal v-model="showRenewModal" title="Renovar membresía">
+        <form class="space-y-4" @submit.prevent="handleRenew">
+          <p class="text-sm text-dark-400">Alumno: <strong class="text-white">{{ renewingMembership?.alumnoNombreCompleto }}</strong></p>
+          <label class="label">Plan</label>
+          <AppSearchSelect
+            v-model.number="renewForm.planId"
+            :options="planOptions"
+            placeholder="Seleccionar plan"
+          />
+          <AppInput v-model="renewForm.fechaInicio" label="Fecha de inicio (opcional)" type="date" />
+          <textarea v-model="renewForm.notas" rows="2" class="input" placeholder="Notas" />
+        </form>
+        <template #footer>
+          <AppButton variant="secondary" @click="showRenewModal = false">Cancelar</AppButton>
+          <div class="flex gap-2">
+            <AppButton :loading="saving" @click="handleRenew(false)">Renovar</AppButton>
+            <AppButton :loading="saving" variant="primary" @click="handleRenew(true)">Renovar y Pagar</AppButton>
+          </div>
+        </template>
+      </AppModal>
+
+      <AppModal v-model="showPaymentModal" title="Registrar pago">
+        <form class="space-y-4" @submit.prevent="handlePaymentSubmit">
+          <div class="grid grid-cols-2 gap-4">
+            <AppInput v-model="paymentForm.alumnoNombre" label="Alumno" disabled />
+            <AppInput v-model="paymentForm.planNombre" label="Plan" disabled />
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <AppInput v-model="paymentForm.monto" label="Precio" type="text" @input="onMontoInput" />
+            <AppInput v-model="paymentForm.fechaPago" label="Fecha de pago" type="datetime-local" />
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="label">Método de pago</label>
+              <AppSearchSelect
+                v-model="paymentForm.metodoPago"
+                :options="metodoPagoOptions"
+                placeholder="Método de pago"
+              />
+            </div>
+            <div>
+              <label class="label">Estado</label>
+              <AppSearchSelect
+                v-model="paymentForm.estado"
+                :options="paymentEstadoOptions"
+                placeholder="Estado"
+              />
+            </div>
+          </div>
+          <textarea v-model="paymentForm.notas" rows="2" class="input" placeholder="Notas opcionales" />
+        </form>
+        <template #footer>
+          <AppButton variant="secondary" @click="showPaymentModal = false">Cancelar</AppButton>
+          <AppButton :loading="saving" @click="handlePaymentSubmit">Guardar Pago</AppButton>
+        </template>
+      </AppModal>
     </template>
   </div>
 </template>
 
 <script setup>
-import { computed, nextTick, onMounted, ref } from 'vue';
+import { computed, nextTick, onMounted, ref, reactive } from 'vue';
 import { useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/auth.store';
 import { useRoutineStore } from '@/stores/routine.store';
 import { useUserStore } from '@/stores/user.store';
 import { useMembershipStore } from '@/stores/membership.store';
-import { accessStatusBadgeClass, formatDate } from '@/constants/membershipStatus';
+import { accessStatusBadgeClass, formatDate, formatCurrency, PAYMENT_ESTADOS } from '@/constants/membershipStatus';
 import { ingresosApi } from '@/api/ingresos.api';
 import { paymentsApi } from '@/api/payments.api';
+import AppButton from '@/components/ui/AppButton.vue';
+import AppInput from '@/components/ui/AppInput.vue';
+import AppModal from '@/components/ui/AppModal.vue';
+import AppSearchSelect from '@/components/ui/AppSearchSelect.vue';
+import { useNotification } from '@/composables/useNotification';
 
 const route = useRoute();
 const isTerminalRoute = computed(() => route.path === '/terminal');
@@ -584,6 +646,7 @@ onMounted(async () => {
       routineStore.fetchAssignmentSummary(),
       userStore.fetchUsers(),
       membershipStore.fetchMemberships({ estado: 'Activa' }),
+      membershipStore.fetchPlans(),
       fetchIngresosHoy(),
       fetchPagosMes(),
     ]);
@@ -598,4 +661,139 @@ onMounted(async () => {
     }
   }
 });
+
+const { success, error: showError } = useNotification();
+const showRenewModal = ref(false);
+const showPaymentModal = ref(false);
+const renewingMembership = ref(null);
+const saving = ref(false);
+
+const renewForm = reactive({ planId: 0, fechaInicio: '', notas: '' });
+
+const paymentForm = reactive({
+  membresiaId: 0,
+  alumnoNombre: '',
+  planNombre: '',
+  monto: '',
+  fechaPago: '',
+  metodoPago: 'Efectivo',
+  estado: 'Completado',
+  notas: ''
+});
+
+const activePlans = computed(() => membershipStore.plans.filter(p => p.activo));
+const planOptions = computed(() => {
+  return activePlans.value.map(p => ({
+    id: p.id,
+    label: `${p.nombre} (${p.duracionDias} días - ${formatCurrency(p.precio, p.moneda)})`
+  }));
+});
+const metodoPagoOptions = [
+  { id: 'Efectivo', label: 'Efectivo' },
+  { id: 'Transferencia', label: 'Transferencia' }
+];
+const paymentEstadoOptions = computed(() => {
+  return PAYMENT_ESTADOS.map(e => ({ id: e, label: e }));
+});
+
+async function openRenewModal(m) {
+  renewingMembership.value = m;
+  if (membershipStore.plans.length === 0) {
+    await membershipStore.fetchPlans();
+  }
+  renewForm.planId = activePlans.value[0]?.id || 0;
+  renewForm.fechaInicio = new Date().toISOString().slice(0, 10);
+  renewForm.notas = '';
+  showRenewModal.value = true;
+}
+
+async function handleRenew(andPay = false) {
+  saving.value = true;
+  try {
+    const renewed = await membershipStore.renewMembership(renewingMembership.value.alumnoId, {
+      planId: renewForm.planId,
+      fechaInicio: renewForm.fechaInicio || null,
+      notas: renewForm.notas || null
+    });
+    success('Membresía renovada');
+    showRenewModal.value = false;
+    
+    // Refresh memberships
+    await membershipStore.fetchMemberships({ estado: 'Activa' });
+
+    if (andPay && renewed) {
+      paymentForm.membresiaId = renewed.id;
+      paymentForm.alumnoNombre = `${renewed.alumnoNombre} ${renewed.alumnoApellido}`.trim();
+      paymentForm.planNombre = renewed.planNombre;
+      paymentForm.monto = formatNumberWithDots(renewed.planPrecio);
+      paymentForm.fechaPago = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      paymentForm.metodoPago = 'Efectivo';
+      paymentForm.estado = 'Completado';
+      paymentForm.notas = '';
+      showPaymentModal.value = true;
+    }
+  } catch (err) {
+    showError(err.response?.data?.error || 'Error al renovar');
+  } finally {
+    saving.value = false;
+  }
+}
+
+async function handlePaymentSubmit() {
+  saving.value = true;
+  try {
+    await membershipStore.createPayment({
+      membresiaId: paymentForm.membresiaId,
+      monto: parseFormattedNumber(paymentForm.monto),
+      fechaPago: paymentForm.fechaPago,
+      metodoPago: paymentForm.metodoPago,
+      estado: paymentForm.estado,
+      notas: paymentForm.notas || null
+    });
+    success('Pago registrado');
+    showPaymentModal.value = false;
+  } catch (err) {
+    showError(err.response?.data?.error || 'Error al guardar pago')
+  } finally {
+    saving.value = false;
+  }
+}
+
+function formatNumberWithDots(val) {
+  if (val === null || val === undefined || val === '') return '';
+  let str = String(val).replace(/\./g, '');
+  str = str.replace(/[^0-9,]/g, '');
+  const parts = str.split(',');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  if (parts.length > 2) {
+    return parts[0] + ',' + parts.slice(1).join('');
+  }
+  return parts.join(',');
+}
+
+function parseFormattedNumber(val) {
+  if (val === null || val === undefined || val === '') return 0;
+  const clean = String(val).replace(/\./g, '').replace(/,/g, '.');
+  const num = Number(clean);
+  return isNaN(num) ? 0 : num;
+}
+
+function onMontoInput(event) {
+  const input = event.target;
+  const value = input.value;
+  const formatted = formatNumberWithDots(value);
+  
+  const selectionStart = input.selectionStart;
+  const oldLength = value.length;
+  
+  paymentForm.monto = formatted;
+  input.value = formatted;
+  
+  nextTick(() => {
+    const newLength = formatted.length;
+    const diff = newLength - oldLength;
+    const newCursorPos = selectionStart + diff;
+    input.setSelectionRange(newCursorPos, newCursorPos);
+  });
+}
 </script>
