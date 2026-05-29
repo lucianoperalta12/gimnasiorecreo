@@ -1,12 +1,15 @@
 <template>
   <div>
-    <label v-if="label" :for="id" class="label">{{ label }}</label>
+    <label v-if="label" :for="id" class="label">
+      {{ label }}<span v-if="required" class="text-red-400 ml-0.5" aria-hidden="true">*</span>
+    </label>
     <input
       :id="id"
       :type="type"
       :value="modelValue"
       :placeholder="placeholder"
       :disabled="disabled"
+      :required="required"
       class="input"
       :class="{ 'border-red-500/50 focus:ring-red-500/50': error }"
       @input="$emit('update:modelValue', $event.target.value)"
@@ -24,7 +27,8 @@ defineProps({
   placeholder: { type: String, default: '' },
   id: { type: String, default: () => `input-${Math.random().toString(36).substr(2, 9)}` },
   error: { type: String, default: '' },
-  disabled: { type: Boolean, default: false }
+  disabled: { type: Boolean, default: false },
+  required: { type: Boolean, default: false }
 })
 
 defineEmits(['update:modelValue'])

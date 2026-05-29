@@ -300,27 +300,45 @@
       <form class="grid grid-cols-1 sm:grid-cols-2 gap-4" @submit.prevent="submitForm">
         <AppInput v-model="createForm.nombre" label="Nombre" required />
         <AppInput v-model="createForm.apellido" label="Apellido" required />
-        <AppInput v-model="createForm.email" label="Correo electrónico" type="email" required :disabled="!!userToEdit" />
-        <AppInput v-model="createForm.dni" label="DNI" required :disabled="!!userToEdit" />
+        <AppInput
+          v-model="createForm.email"
+          label="Correo electrónico"
+          type="email"
+          :required="!userToEdit"
+          :disabled="!!userToEdit"
+        />
+        <AppInput v-model="createForm.dni" label="DNI" :required="!userToEdit" :disabled="!!userToEdit" />
         <AppInput v-model="createForm.fechaNacimiento" label="Fecha de Nacimiento" type="date" required />
         <AppInput v-model="createForm.domicilio" label="Domicilio" />
         <AppInput v-model="createForm.telefono" label="Teléfono" />
-        <div>
-          <label class="label">Rol</label>
-          <AppSearchSelect v-model="createForm.rol" :options="createRoleOptions" placeholder="Seleccionar rol" :disabled="!!userToEdit" />
+        <div class="min-w-0">
+          <AppSearchSelect
+            v-model="createForm.rol"
+            label="Rol"
+            :required="!userToEdit"
+            :options="createRoleOptions"
+            placeholder="Seleccionar rol"
+            :disabled="!!userToEdit"
+          />
         </div>
-        <div v-if="authStore.hasRole('Superusuario')">
-          <label class="label">Gimnasio</label>
-          <AppSearchSelect v-model.number="createForm.gymId" :options="createGymOptions" placeholder="Seleccionar gimnasio" :disabled="!!userToEdit" />
+        <div v-if="authStore.hasRole('Superusuario')" class="min-w-0">
+          <AppSearchSelect
+            v-model.number="createForm.gymId"
+            label="Gimnasio"
+            :required="!userToEdit"
+            :options="createGymOptions"
+            placeholder="Seleccionar gimnasio"
+            :disabled="!!userToEdit"
+          />
         </div>
-        <div class="sm:col-span-2">
+        <div class="sm:col-span-2 min-w-0">
           <label class="label">Observaciones</label>
-          <textarea v-model="createForm.observaciones" class="input w-full min-h-[80px]" placeholder="Observaciones adicionales..."></textarea>
+          <textarea v-model="createForm.observaciones" class="input w-full min-h-[80px] resize-y" placeholder="Observaciones adicionales..."></textarea>
         </div>
         <p v-if="formError" class="sm:col-span-2 text-sm text-red-400">{{ formError }}</p>
-        <div class="sm:col-span-2 flex justify-end gap-3">
-          <button type="button" class="btn-secondary" @click="showCreateModal = false">Cancelar</button>
-          <AppButton type="submit" :loading="creating">{{ userToEdit ? 'Guardar' : 'Crear' }}</AppButton>
+        <div class="sm:col-span-2 flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-1">
+          <button type="button" class="btn-secondary w-full sm:w-auto" @click="showCreateModal = false">Cancelar</button>
+          <AppButton type="submit" class="w-full sm:w-auto" :loading="creating">{{ userToEdit ? 'Guardar' : 'Crear' }}</AppButton>
         </div>
       </form>
     </AppModal>

@@ -1,6 +1,8 @@
 <template>
   <div class="relative" ref="containerRef">
-    <label v-if="label" class="label">{{ label }}</label>
+    <label v-if="label" class="label">
+      {{ label }}<span v-if="required" class="text-red-400 ml-0.5" aria-hidden="true">*</span>
+    </label>
     
     <div class="relative group">
       <input
@@ -63,7 +65,8 @@ const props = defineProps({
   options: { type: Array, required: true }, // [{ id, label, subLabel }]
   label: { type: String, default: '' },
   placeholder: { type: String, default: 'Buscar...' },
-  disabled: { type: Boolean, default: false }
+  disabled: { type: Boolean, default: false },
+  required: { type: Boolean, default: false }
 })
 
 const emit = defineEmits(['update:modelValue'])
