@@ -344,7 +344,7 @@
       </div>
 
       <!-- Alumnos con membresía vencida (último mes, sin membresía activa) -->
-      <div v-if="authStore.hasRole('Superusuario', 'Administrativo')" class="card p-6 mb-8">
+      <div v-if="authStore.hasRole('Superusuario', 'Administrativo')" class="card p-4 sm:p-6 mb-8">
         <div class="flex items-center justify-between mb-4">
           <div>
             <h2 class="text-sm font-bold text-white uppercase tracking-wider">Membresías vencidas</h2>
@@ -368,7 +368,41 @@
         <LoadingSpinner v-if="loadingVencidas" />
 
         <template v-else>
-          <div v-if="alumnosMembresiaVencida.length" class="table-container max-h-[360px] overflow-y-auto custom-scrollbar">
+          <!-- Móvil: tarjetas apiladas, sin scroll horizontal -->
+          <div
+            v-if="alumnosMembresiaVencida.length"
+            class="md:hidden max-h-[360px] overflow-y-auto custom-scrollbar space-y-2.5"
+          >
+            <div
+              v-for="m in alumnosMembresiaVencida"
+              :key="m.id"
+              class="flex items-center gap-3 p-3.5 rounded-2xl bg-dark-950/40 border border-dark-900/60"
+            >
+              <div class="w-9 h-9 rounded-full bg-red-500/10 text-red-400 flex items-center justify-center text-xs font-black flex-shrink-0">
+                {{ m.alumnoNombreCompleto?.charAt(0)?.toUpperCase() }}
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-xs font-black text-white truncate leading-none mb-1">{{ m.alumnoNombreCompleto }}</p>
+                <p class="text-[10px] text-dark-500 truncate">
+                  {{ m.planNombre }} · venció {{ formatDate(m.fechaVencimiento) }}
+                </p>
+                <p class="text-[9px] text-dark-600 mt-0.5">Hace {{ diasDesdeVencimiento(m.fechaVencimiento) }} días</p>
+              </div>
+              <button
+                type="button"
+                class="text-[9px] font-black text-primary-500 hover:text-primary-400 uppercase tracking-widest flex-shrink-0 px-2 py-1"
+                @click="openRenewModal(m)"
+              >
+                Renovar
+              </button>
+            </div>
+          </div>
+
+          <!-- Escritorio: tabla -->
+          <div
+            v-if="alumnosMembresiaVencida.length"
+            class="hidden md:block table-container max-h-[360px] overflow-y-auto custom-scrollbar"
+          >
             <table class="table">
               <thead class="sticky top-0 z-10 bg-dark-950">
                 <tr>
