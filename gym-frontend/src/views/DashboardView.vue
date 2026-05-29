@@ -343,6 +343,68 @@
         </div>
       </div>
 
+      <!-- Alumnos con membresía vencida (último mes, sin membresía activa) -->
+      <div v-if="authStore.hasRole('Superusuario', 'Administrativo')" class="card p-6 mb-8">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-sm font-bold text-white uppercase tracking-wider">Membresías vencidas</h2>
+            <p class="text-xs text-dark-500">Alumnos sin membresía activa que vencieron en el último mes</p>
+          </div>
+          <button
+            type="button"
+            class="p-2 rounded-lg text-dark-400 hover:text-white hover:bg-dark-900/60 transition-colors"
+            @click="fetchMembresiasVencidas"
+          >
+            <svg class="w-4 h-4" :class="{ 'animate-spin': loadingVencidas }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <LoadingSpinner v-if="loadingVencidas" />
+
+        <template v-else>
+          <div v-if="alumnosMembresiaVencida.length" class="table-container max-h-[360px] overflow-y-auto custom-scrollbar">
+            <table class="table">
+              <thead class="sticky top-0 z-10 bg-dark-950">
+                <tr>
+                  <th>Alumno</th>
+                  <th>Plan</th>
+                  <th>Vencimiento</th>
+                  <th>Hace</th>
+                  <th class="text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="m in alumnosMembresiaVencida" :key="m.id">
+                  <td class="font-medium text-white">{{ m.alumnoNombreCompleto }}</td>
+                  <td>{{ m.planNombre }}</td>
+                  <td>{{ formatDate(m.fechaVencimiento) }}</td>
+                  <td class="text-dark-400">{{ diasDesdeVencimiento(m.fechaVencimiento) }} días</td>
+                  <td class="text-right">
+                    <button
+                      type="button"
+                      class="text-[10px] font-black text-primary-500 hover:text-primary-400 uppercase tracking-widest"
+                      @click="openRenewModal(m)"
+                    >
+                      Renovar
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div v-else class="py-8 text-center">
+            <p class="text-xs text-dark-500 font-bold">No hay alumnos con membresía vencida en el último mes.</p>
+          </div>
+        </template>
+      </div>
+
       <div v-if="authStore.hasRole('Alumno')" class="space-y-8">
         <router-link v-if="myAccess" to="/my-membership" class="card p-5 max-w-2xl block hover:border-primary-500/30 transition-colors">
           <div class="flex items-start justify-between gap-4">
@@ -468,8 +530,10 @@ import { useUserStore } from '@/stores/user.store';
 import { useMembershipStore } from '@/stores/membership.store';
 import { accessStatusBadgeClass, formatDate, formatCurrency, PAYMENT_ESTADOS } from '@/constants/membershipStatus';
 import { ingresosApi } from '@/api/ingresos.api';
+import { membershipsApi } from '@/api/memberships.api';
 import { paymentsApi } from '@/api/payments.api';
 import AppButton from '@/components/ui/AppButton.vue';
+import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
 import AppInput from '@/components/ui/AppInput.vue';
 import AppModal from '@/components/ui/AppModal.vue';
 import AppSearchSelect from '@/components/ui/AppSearchSelect.vue';
@@ -502,6 +566,8 @@ const terminalName = computed(() => {
 const ingresosHoy = ref([]);
 const loadingIngresos = ref(false);
 const pagosMesVal = ref(0);
+const membershipsVencidasRaw = ref([]);
+const loadingVencidas = ref(false);
 
 const greetingMessage = computed(() => {
   const role = user.value?.rol;
@@ -624,6 +690,59 @@ const membresiasPorVencer = computed(() => {
     .sort((a, b) => new Date(a.fechaVencimiento) - new Date(b.fechaVencimiento));
 });
 
+const alumnosMembresiaVencida = computed(() => {
+  if (!authStore.hasRole('Superusuario', 'Administrativo')) return [];
+
+  const hoy = new Date();
+  hoy.setHours(23, 59, 59, 999);
+  const haceUnMes = new Date();
+  haceUnMes.setMonth(haceUnMes.getMonth() - 1);
+  haceUnMes.setHours(0, 0, 0, 0);
+
+  const activosPorAlumno = new Set(
+    membershipStore.memberships.filter((m) => m.estado === 'Activa').map((m) => m.alumnoId)
+  );
+
+  const porAlumno = new Map();
+  for (const m of membershipsVencidasRaw.value) {
+    if (m.estado !== 'Vencida' || activosPorAlumno.has(m.alumnoId)) continue;
+    const v = new Date(m.fechaVencimiento);
+    if (v < haceUnMes || v > hoy) continue;
+
+    const prev = porAlumno.get(m.alumnoId);
+    if (!prev || new Date(m.fechaVencimiento) > new Date(prev.fechaVencimiento)) {
+      porAlumno.set(m.alumnoId, m);
+    }
+  }
+
+  return Array.from(porAlumno.values()).sort(
+    (a, b) => new Date(b.fechaVencimiento) - new Date(a.fechaVencimiento)
+  );
+});
+
+async function fetchMembresiasVencidas() {
+  if (!authStore.hasRole('Superusuario', 'Administrativo')) return;
+  loadingVencidas.value = true;
+  try {
+    const params = { estado: 'Vencida' };
+    if (authStore.user?.gymId) params.gymId = authStore.user.gymId;
+    const { data } = await membershipsApi.getAll(params);
+    membershipsVencidasRaw.value = data || [];
+  } catch (err) {
+    console.error(err);
+  } finally {
+    loadingVencidas.value = false;
+  }
+}
+
+function diasDesdeVencimiento(fechaVencimiento) {
+  const v = new Date(fechaVencimiento);
+  v.setHours(0, 0, 0, 0);
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
+  return Math.max(0, Math.floor((hoy - v) / (1000 * 60 * 60 * 24)));
+}
+
 function formatMoneda(val) {
   return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(val);
 }
@@ -649,6 +768,7 @@ onMounted(async () => {
       membershipStore.fetchPlans(),
       fetchIngresosHoy(),
       fetchPagosMes(),
+      fetchMembresiasVencidas(),
     ]);
     updateDashboardStats();
   } else if (authStore.hasRole('Profesor')) {
@@ -718,8 +838,10 @@ async function handleRenew(andPay = false) {
     success('Membresía renovada');
     showRenewModal.value = false;
     
-    // Refresh memberships
-    await membershipStore.fetchMemberships({ estado: 'Activa' });
+    await Promise.all([
+      membershipStore.fetchMemberships({ estado: 'Activa' }),
+      fetchMembresiasVencidas(),
+    ]);
 
     if (andPay && renewed) {
       paymentForm.membresiaId = renewed.id;
