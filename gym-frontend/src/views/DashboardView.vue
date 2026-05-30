@@ -1,16 +1,28 @@
 <template>
   <div class="animate-fade-in flex-1 flex flex-col h-full">
-    <div v-if="authStore.hasRole('Terminal') || isTerminalRoute" class="flex-1 flex flex-col items-center w-full pt-6 sm:pt-8 relative" @click.once="requestAutoFullscreen">
-
+    <div
+      v-if="authStore.hasRole('Terminal') || isTerminalRoute"
+      class="flex-1 flex flex-col items-center w-full pt-6 sm:pt-8 relative"
+      @click.once="requestAutoFullscreen"
+    >
       <!-- Header -->
       <div class="w-full max-w-3xl text-center mb-5 sm:mb-6 px-4">
         <div class="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-3 rounded-2xl bg-dark-900/60 border border-dark-800/50 flex items-center justify-center">
           <svg class="w-6 h-6 sm:w-7 sm:h-7 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z"
+            />
           </svg>
         </div>
-        <h2 class="text-base sm:text-lg font-black tracking-wide text-white">Ingresá tu DNI</h2>
-        <p class="text-xs sm:text-sm text-dark-500 mt-1.5">Escaneá o escribí y presioná <span class="font-black text-white">ENTER</span></p>
+
+        <h2 class="text-2xl sm:text-3xl font-black tracking-wide text-white">Ingresá tu DNI</h2>
+
+        <p class="text-base sm:text-lg text-dark-500 mt-2">
+          Escaneá o escribí y presioná
+          <span class="font-black text-white">ENTER</span>
+        </p>
       </div>
 
       <!-- Input DNI — estilo original con glow naranja -->
@@ -20,8 +32,19 @@
             class="flex items-center gap-3 sm:gap-4 px-4 py-4 sm:px-6 sm:py-5 rounded-2xl border-2 bg-[#0a0a0a]/80 backdrop-blur-md transition-all duration-300"
             :class="inputFocused ? 'border-primary-500 shadow-[0_0_0_4px_rgba(255,108,19,0.12),0_0_40px_rgba(255,108,19,0.18)]' : 'border-dark-800/70'"
           >
-            <svg class="w-7 h-7 sm:w-9 sm:h-9 flex-shrink-0 transition-colors duration-300" :class="inputFocused ? 'text-primary-500/70' : 'text-dark-700'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
+            <svg
+              class="w-7 h-7 sm:w-9 sm:h-9 flex-shrink-0 transition-colors duration-300"
+              :class="inputFocused ? 'text-primary-500/70' : 'text-dark-700'"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z"
+              />
             </svg>
             <input
               ref="dniInput"
@@ -40,16 +63,18 @@
         </form>
 
         <!-- Tip / Loading -->
-        <div class="flex items-center justify-center gap-1.5 mt-3 sm:mt-4">
+        <div class="flex items-center justify-center gap-2 mt-4 sm:mt-5">
           <template v-if="terminalLoading">
-            <span class="w-3.5 h-3.5 border-2 border-primary-500/40 border-t-primary-500 rounded-full animate-spin"></span>
-            <span class="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-dark-500">Verificando...</span>
+            <span class="w-5 h-5 border-2 border-primary-500/40 border-t-primary-500 rounded-full animate-spin"></span>
+            <span class="text-sm sm:text-base font-bold uppercase tracking-widest text-dark-500"> Verificando... </span>
           </template>
+
           <template v-else>
-            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-dark-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <svg class="w-5 h-5 sm:w-6 sm:h-6 text-dark-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
             </svg>
-            <span class="text-[10px] sm:text-xs text-dark-500 tracking-wide">Presioná <span class="font-black text-primary-500">ENTER</span> para validar</span>
+
+            <span class="text-sm sm:text-base text-dark-500 tracking-wide"> Presioná <span class="font-black text-primary-500">ENTER</span> para validar </span>
           </template>
         </div>
       </div>
@@ -58,7 +83,6 @@
       <div class="w-full max-w-3xl px-4 mt-5">
         <Transition name="fade-slide">
           <div v-if="terminalMessage && !terminalLoading" :key="terminalMessage" class="animate-fade-in">
-
             <!-- SUCCESS: Acceso autorizado (membresía vigente) -->
             <div v-if="terminalSuccess && terminalData && terminalData.diasRestantes > 7" class="terminal-result-success rounded-2xl overflow-hidden">
               <div class="h-1 w-full bg-gradient-to-r from-emerald-500 to-emerald-400"></div>
@@ -98,7 +122,11 @@
                 <div class="flex items-center gap-3 mb-4">
                   <div class="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
                     <svg class="w-5 h-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+                      />
                     </svg>
                   </div>
                   <div>
@@ -140,7 +168,6 @@
                 </div>
               </div>
             </div>
-
           </div>
         </Transition>
       </div>
@@ -151,7 +178,6 @@
         Sistema en línea &bull; {{ terminalName }}
       </div>
     </div>
-
 
     <template v-else>
       <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -359,7 +385,10 @@
                   <p class="text-[11px] font-black text-white truncate leading-none mb-1">{{ membresia.alumnoNombreCompleto }}</p>
                   <p class="text-[9px] text-dark-500">Vence: {{ formatDate(membresia.fechaVencimiento) }}</p>
                 </div>
-                <button @click="openRenewModal(membresia)" class="text-[9px] font-black text-primary-500 hover:text-primary-400 uppercase tracking-widest flex-shrink-0">
+                <button
+                  @click="openRenewModal(membresia)"
+                  class="text-[9px] font-black text-primary-500 hover:text-primary-400 uppercase tracking-widest flex-shrink-0"
+                >
                   Renovar
                 </button>
               </div>
@@ -379,11 +408,7 @@
             <h2 class="text-sm font-bold text-white uppercase tracking-wider">Membresías vencidas</h2>
             <p class="text-xs text-dark-500">Alumnos sin membresía activa que vencieron en el último mes</p>
           </div>
-          <button
-            type="button"
-            class="p-2 rounded-lg text-dark-400 hover:text-white hover:bg-dark-900/60 transition-colors"
-            @click="fetchMembresiasVencidas"
-          >
+          <button type="button" class="p-2 rounded-lg text-dark-400 hover:text-white hover:bg-dark-900/60 transition-colors" @click="fetchMembresiasVencidas">
             <svg class="w-4 h-4" :class="{ 'animate-spin': loadingVencidas }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path
                 stroke-linecap="round"
@@ -398,23 +423,14 @@
 
         <template v-else>
           <!-- Móvil: tarjetas apiladas, sin scroll horizontal -->
-          <div
-            v-if="alumnosMembresiaVencida.length"
-            class="md:hidden max-h-[360px] overflow-y-auto custom-scrollbar space-y-2.5"
-          >
-            <div
-              v-for="m in alumnosMembresiaVencida"
-              :key="m.id"
-              class="flex items-center gap-3 p-3.5 rounded-2xl bg-dark-950/40 border border-dark-900/60"
-            >
+          <div v-if="alumnosMembresiaVencida.length" class="md:hidden max-h-[360px] overflow-y-auto custom-scrollbar space-y-2.5">
+            <div v-for="m in alumnosMembresiaVencida" :key="m.id" class="flex items-center gap-3 p-3.5 rounded-2xl bg-dark-950/40 border border-dark-900/60">
               <div class="w-9 h-9 rounded-full bg-red-500/10 text-red-400 flex items-center justify-center text-xs font-black flex-shrink-0">
                 {{ m.alumnoNombreCompleto?.charAt(0)?.toUpperCase() }}
               </div>
               <div class="min-w-0 flex-1">
                 <p class="text-xs font-black text-white truncate leading-none mb-1">{{ m.alumnoNombreCompleto }}</p>
-                <p class="text-[10px] text-dark-500 truncate">
-                  {{ m.planNombre }} · venció {{ formatDate(m.fechaVencimiento) }}
-                </p>
+                <p class="text-[10px] text-dark-500 truncate">{{ m.planNombre }} · venció {{ formatDate(m.fechaVencimiento) }}</p>
                 <p class="text-[9px] text-dark-600 mt-0.5">Hace {{ diasDesdeVencimiento(m.fechaVencimiento) }} días</p>
               </div>
               <div class="flex items-center gap-1 flex-shrink-0">
@@ -445,10 +461,7 @@
           </div>
 
           <!-- Escritorio: tabla -->
-          <div
-            v-if="alumnosMembresiaVencida.length"
-            class="hidden md:block table-container max-h-[360px] overflow-y-auto custom-scrollbar"
-          >
+          <div v-if="alumnosMembresiaVencida.length" class="hidden md:block table-container max-h-[360px] overflow-y-auto custom-scrollbar">
             <table class="table">
               <thead class="sticky top-0 z-10 bg-dark-950">
                 <tr>
@@ -560,13 +573,11 @@
       <!-- Modales de Renovación y Pago -->
       <AppModal v-model="showRenewModal" title="Renovar membresía">
         <form class="space-y-4" @submit.prevent="handleRenew">
-          <p class="text-sm text-dark-400">Alumno: <strong class="text-white">{{ renewingMembership?.alumnoNombreCompleto }}</strong></p>
+          <p class="text-sm text-dark-400">
+            Alumno: <strong class="text-white">{{ renewingMembership?.alumnoNombreCompleto }}</strong>
+          </p>
           <label class="label">Plan</label>
-          <AppSearchSelect
-            v-model.number="renewForm.planId"
-            :options="planOptions"
-            placeholder="Seleccionar plan"
-          />
+          <AppSearchSelect v-model.number="renewForm.planId" :options="planOptions" placeholder="Seleccionar plan" />
           <AppInput v-model="renewForm.fechaInicio" label="Fecha de inicio (opcional)" type="date" />
           <textarea v-model="renewForm.notas" rows="2" class="input" placeholder="Notas" />
         </form>
@@ -592,19 +603,11 @@
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="label">Método de pago</label>
-              <AppSearchSelect
-                v-model="paymentForm.metodoPago"
-                :options="metodoPagoOptions"
-                placeholder="Método de pago"
-              />
+              <AppSearchSelect v-model="paymentForm.metodoPago" :options="metodoPagoOptions" placeholder="Método de pago" />
             </div>
             <div>
               <label class="label">Estado</label>
-              <AppSearchSelect
-                v-model="paymentForm.estado"
-                :options="paymentEstadoOptions"
-                placeholder="Estado"
-              />
+              <AppSearchSelect v-model="paymentForm.estado" :options="paymentEstadoOptions" placeholder="Estado" />
             </div>
           </div>
           <textarea v-model="paymentForm.notas" rows="2" class="input" placeholder="Notas opcionales" />
@@ -788,15 +791,11 @@ const membresiasPorVencer = computed(() => {
     .sort((a, b) => new Date(a.fechaVencimiento) - new Date(b.fechaVencimiento));
 });
 
-const gymNombreWhatsApp = computed(
-  () => authStore.user?.gymNombre || authStore.selectedGym?.gymNombre || 'Gimnasio'
-);
+const gymNombreWhatsApp = computed(() => authStore.user?.gymNombre || authStore.selectedGym?.gymNombre || 'Gimnasio');
 
 function getAlumnoTelefono(alumnoId) {
   const gymId = authStore.user?.gymId;
-  const alumno = userStore.users.find(
-    (u) => u.id === alumnoId && u.rol === 'Alumno' && (!gymId || u.gymId === gymId)
-  );
+  const alumno = userStore.users.find((u) => u.id === alumnoId && u.rol === 'Alumno' && (!gymId || u.gymId === gymId));
   return alumno?.telefono ?? null;
 }
 
@@ -816,9 +815,7 @@ const alumnosMembresiaVencida = computed(() => {
   haceUnMes.setMonth(haceUnMes.getMonth() - 1);
   haceUnMes.setHours(0, 0, 0, 0);
 
-  const activosPorAlumno = new Set(
-    membershipStore.memberships.filter((m) => m.estado === 'Activa').map((m) => m.alumnoId)
-  );
+  const activosPorAlumno = new Set(membershipStore.memberships.filter((m) => m.estado === 'Activa').map((m) => m.alumnoId));
 
   const porAlumno = new Map();
   for (const m of membershipsVencidasRaw.value) {
@@ -924,22 +921,22 @@ const paymentForm = reactive({
   fechaPago: '',
   metodoPago: 'Efectivo',
   estado: 'Completado',
-  notas: ''
+  notas: '',
 });
 
-const activePlans = computed(() => membershipStore.plans.filter(p => p.activo));
+const activePlans = computed(() => membershipStore.plans.filter((p) => p.activo));
 const planOptions = computed(() => {
-  return activePlans.value.map(p => ({
+  return activePlans.value.map((p) => ({
     id: p.id,
-    label: `${p.nombre} (${p.duracionDias} días - ${formatCurrency(p.precio, p.moneda)})`
+    label: `${p.nombre} (${p.duracionDias} días - ${formatCurrency(p.precio, p.moneda)})`,
   }));
 });
 const metodoPagoOptions = [
   { id: 'Efectivo', label: 'Efectivo' },
-  { id: 'Transferencia', label: 'Transferencia' }
+  { id: 'Transferencia', label: 'Transferencia' },
 ];
 const paymentEstadoOptions = computed(() => {
-  return PAYMENT_ESTADOS.map(e => ({ id: e, label: e }));
+  return PAYMENT_ESTADOS.map((e) => ({ id: e, label: e }));
 });
 
 async function openRenewModal(m) {
@@ -959,15 +956,12 @@ async function handleRenew(andPay = false) {
     const renewed = await membershipStore.renewMembership(renewingMembership.value.alumnoId, {
       planId: renewForm.planId,
       fechaInicio: renewForm.fechaInicio || null,
-      notas: renewForm.notas || null
+      notas: renewForm.notas || null,
     });
     success('Membresía renovada');
     showRenewModal.value = false;
-    
-    await Promise.all([
-      membershipStore.fetchMemberships({ estado: 'Activa' }),
-      fetchMembresiasVencidas(),
-    ]);
+
+    await Promise.all([membershipStore.fetchMemberships({ estado: 'Activa' }), fetchMembresiasVencidas()]);
 
     if (andPay && renewed) {
       paymentForm.membresiaId = renewed.id;
@@ -996,12 +990,12 @@ async function handlePaymentSubmit() {
       fechaPago: paymentForm.fechaPago,
       metodoPago: paymentForm.metodoPago,
       estado: paymentForm.estado,
-      notas: paymentForm.notas || null
+      notas: paymentForm.notas || null,
     });
     success('Pago registrado');
     showPaymentModal.value = false;
   } catch (err) {
-    showError(err.response?.data?.error || 'Error al guardar pago')
+    showError(err.response?.data?.error || 'Error al guardar pago');
   } finally {
     saving.value = false;
   }
@@ -1030,13 +1024,13 @@ function onMontoInput(event) {
   const input = event.target;
   const value = input.value;
   const formatted = formatNumberWithDots(value);
-  
+
   const selectionStart = input.selectionStart;
   const oldLength = value.length;
-  
+
   paymentForm.monto = formatted;
   input.value = formatted;
-  
+
   nextTick(() => {
     const newLength = formatted.length;
     const diff = newLength - oldLength;
@@ -1047,7 +1041,6 @@ function onMontoInput(event) {
 </script>
 
 <style scoped>
-
 /* ==============================
    RESULT CARDS
 ============================== */
@@ -1112,7 +1105,9 @@ function onMontoInput(event) {
 ============================== */
 .fade-slide-enter-active,
 .fade-slide-leave-active {
-  transition: opacity 0.3s ease, transform 0.3s ease;
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
 }
 .fade-slide-enter-from,
 .fade-slide-leave-to {
