@@ -50,7 +50,7 @@
     <template v-else>
       <!-- Mobile Cards (visible < md) -->
       <div v-if="items.length" class="md:hidden space-y-3">
-        <div v-for="item in paginated" :key="item.id" class="p-4 rounded-2xl bg-dark-900/40 border border-dark-800/50 flex flex-col gap-2">
+        <div v-for="item in items" :key="item.id" class="p-4 rounded-2xl bg-dark-900/40 border border-dark-800/50 flex flex-col gap-2">
           <div class="flex items-center justify-between">
             <h3 class="font-semibold text-white text-sm">{{ item.alumno }}</h3>
             <span class="badge-primary">{{ item.tipoMembresia || '—' }}</span>
@@ -90,7 +90,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="item in paginated" :key="item.id">
+            <tr v-for="item in items" :key="item.id">
               <td class="font-medium text-white">{{ item.alumno }}</td>
               <td>{{ item.dni }}</td>
               <td>{{ item.gimnasio }}</td>
@@ -105,16 +105,16 @@
       </div>
 
       <!-- Pagination Controls -->
-      <div v-if="items.length > pageSize" class="mt-6 flex items-center justify-between px-2">
+      <div v-if="serverPaginationEnabled && totalCount > pageSize" class="mt-6 flex items-center justify-between px-2">
         <div class="text-xs text-dark-500 font-medium">
-          Mostrando {{ (page - 1) * pageSize + 1 }} - {{ Math.min(page * pageSize, items.length) }} 
-          de {{ items.length }} registros
+          Mostrando {{ pageStart }} - {{ pageEnd }}
+          de {{ totalCount }} registros
         </div>
         <div class="flex items-center gap-2">
           <button 
             class="btn-secondary !p-2 !rounded-lg" 
             :disabled="page === 1"
-            @click="page--"
+            @click="goToPage(page - 1)"
           >
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
           </button>
@@ -123,7 +123,7 @@
             <button 
               v-for="p in totalPages" 
               :key="p"
-              @click="page = p"
+              @click="goToPage(p)"
               class="w-8 h-8 rounded-lg text-xs font-black transition-all"
               :class="page === p ? 'bg-primary-600 text-white' : 'bg-dark-800 text-dark-400 hover:bg-dark-700'"
             >
@@ -134,7 +134,7 @@
           <button 
             class="btn-secondary !p-2 !rounded-lg" 
             :disabled="page === totalPages"
-            @click="page++"
+            @click="goToPage(page + 1)"
           >
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
           </button>
@@ -159,6 +159,7 @@ import { gymsApi } from '@/api/gyms.api'
 import { useUserStore } from '@/stores/user.store'
 import { useAuthStore } from '@/stores/auth.store'
 import { useNotification } from '@/composables/useNotification'
+import { parsePaginatedResponse } from '@/utils/pagination'
 
 const router = useRouter()
 const { error: showError } = useNotification()
@@ -166,6 +167,8 @@ const userStore = useUserStore()
 const authStore = useAuthStore()
 const loading = ref(false)
 const items = ref([])
+const totalCount = ref(0)
+const serverPaginationEnabled = ref(false)
 const alumnoId = ref('')
 const gymId = ref('')
 const gyms = ref([])
@@ -183,18 +186,22 @@ const gymOptions = computed(() => [
   ...gyms.value.map(g => ({ id: g.id, label: g.nombre }))
 ])
 
-const totalPages = computed(() => Math.ceil(items.value.length / pageSize) || 1)
-
-const paginated = computed(() => items.value.slice((page.value - 1) * pageSize, page.value * pageSize))
+const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize)))
+const pageStart = computed(() => (items.value.length ? (page.value - 1) * pageSize + 1 : 0))
+const pageEnd = computed(() => (items.value.length ? pageStart.value + items.value.length - 1 : 0))
 
 function formatDateTime(value) {
   return new Date(value).toLocaleString()
 }
 
-async function buscar() {
+async function buscar(targetPage = 1) {
+  const pageNum = typeof targetPage === 'number' ? targetPage : 1
   loading.value = true
   try {
-    const params = {}
+    const params = {
+      page: pageNum,
+      pageSize
+    }
     if (alumnoId.value) {
       params.alumnoId = alumnoId.value
     } else {
@@ -206,9 +213,12 @@ async function buscar() {
       params.gymId = gymId.value
     }
     
-    const { data } = await ingresosApi.getAll(params)
-    items.value = data
-    page.value = 1
+    const response = await ingresosApi.getAll(params)
+    const pagination = parsePaginatedResponse(response)
+    items.value = pagination.items
+    totalCount.value = pagination.totalCount
+    serverPaginationEnabled.value = pagination.serverPaginationEnabled
+    page.value = pagination.page ?? targetPage
   } catch (err) {
     showError(err.response?.data?.error || 'No se pudieron cargar los ingresos')
   } finally {
@@ -226,4 +236,10 @@ onMounted(async () => {
   promises.push(buscar())
   await Promise.allSettled(promises)
 })
+
+async function goToPage(targetPage) {
+  if (!serverPaginationEnabled.value) return
+  if (targetPage < 1 || targetPage > totalPages.value || targetPage === page.value) return
+  await buscar(targetPage)
+}
 </script>

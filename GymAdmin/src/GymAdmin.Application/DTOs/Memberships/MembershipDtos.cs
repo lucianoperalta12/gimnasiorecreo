@@ -35,7 +35,8 @@ public record MembershipListDto(
     int DiasRestantes,
     int IngresosUtilizados,
     bool PaseLibre = true,
-    int? DiasPorSemana = null
+    int? DiasPorSemana = null,
+    bool PuedeRenovar = false
 );
 
 public record CreateMembershipRequest(

@@ -1,8 +1,8 @@
 import api from './axios'
 
 export const routinesApi = {
-  getAll() {
-    return api.get('/routines')
+  getAll(params = {}) {
+    return api.get('/routines', { params })
   },
   getById(id) {
     return api.get(`/routines/${id}`)

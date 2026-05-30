@@ -3,9 +3,14 @@ import { ref } from 'vue'
 import { routinesApi } from '@/api/routines.api'
 import { exercisesApi } from '@/api/exercises.api'
 import { assignmentsApi } from '@/api/assignments.api'
+import { parsePaginatedResponse } from '@/utils/pagination'
 
 export const useRoutineStore = defineStore('routine', () => {
   const routines = ref([])
+  const routinesTotalCount = ref(0)
+  const routinesPage = ref(null)
+  const routinesPageSize = ref(null)
+  const routinesServerPaginationEnabled = ref(false)
   const exercises = ref([])
   const myRoutines = ref([])
   const assignmentSummary = ref({
@@ -48,11 +53,16 @@ export const useRoutineStore = defineStore('routine', () => {
   }
 
   // Routines
-  async function fetchRoutines() {
+  async function fetchRoutines(params = {}) {
     loading.value = true
     try {
-      const { data } = await routinesApi.getAll()
-      routines.value = data
+      const response = await routinesApi.getAll(params)
+      const pagination = parsePaginatedResponse(response)
+      routines.value = pagination.items
+      routinesTotalCount.value = pagination.totalCount
+      routinesPage.value = pagination.page
+      routinesPageSize.value = pagination.pageSize
+      routinesServerPaginationEnabled.value = pagination.serverPaginationEnabled
     } finally {
       loading.value = false
     }
@@ -136,6 +146,10 @@ export const useRoutineStore = defineStore('routine', () => {
 
   return {
     routines,
+    routinesTotalCount,
+    routinesPage,
+    routinesPageSize,
+    routinesServerPaginationEnabled,
     exercises,
     myRoutines,
     assignmentSummary,

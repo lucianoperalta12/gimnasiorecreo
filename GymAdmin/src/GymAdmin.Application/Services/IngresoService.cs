@@ -1,3 +1,4 @@
+using GymAdmin.Application.DTOs.Common;
 using GymAdmin.Application.DTOs.Ingresos;
 using GymAdmin.Domain.Entities;
 using GymAdmin.Domain.Enums;
@@ -113,7 +114,7 @@ public class IngresoService : IIngresoService
         );
     }
 
-    public async Task<List<IngresoListItemDto>> GetAllAsync(int requesterId, DateOnly? fechaDesde = null, DateOnly? fechaHasta = null, int? alumnoId = null, int? gymId = null)
+    public async Task<PagedResult<IngresoListItemDto>> GetAllAsync(int requesterId, DateOnly? fechaDesde = null, DateOnly? fechaHasta = null, int? alumnoId = null, int? gymId = null, int? page = null, int? pageSize = null)
     {
         var requester = await GetRequesterAsync(requesterId);
 
@@ -155,8 +156,10 @@ public class IngresoService : IIngresoService
             query = query.Where(x => x.FechaHora >= inicio && x.FechaHora < fin);
         }
 
-        return await query
-            .OrderByDescending(x => x.FechaHora)
+        var totalCount = await query.CountAsync();
+        var pagedQuery = ApplyPagination(query.OrderByDescending(x => x.FechaHora), page, pageSize);
+
+        var items = await pagedQuery
             .Select(x => new IngresoListItemDto(
                 x.Id,
                 (x.Alumno.Nombre + " " + x.Alumno.Apellido).Trim(),
@@ -167,6 +170,8 @@ public class IngresoService : IIngresoService
                 x.Membership.Plan.Nombre
             ))
             .ToListAsync();
+
+        return new PagedResult<IngresoListItemDto>(items, totalCount, page, NormalizePageSize(pageSize));
     }
 
     private static int CalcularIngresosDisponibles(Membership membership)
@@ -209,5 +214,25 @@ public class IngresoService : IIngresoService
         }
 
         return user;
+    }
+
+    private static IQueryable<T> ApplyPagination<T>(IQueryable<T> query, int? page, int? pageSize)
+    {
+        var normalizedPageSize = NormalizePageSize(pageSize);
+        if (!normalizedPageSize.HasValue)
+            return query;
+
+        var normalizedPage = NormalizePage(page);
+        return query.Skip((normalizedPage - 1) * normalizedPageSize.Value).Take(normalizedPageSize.Value);
+    }
+
+    private static int NormalizePage(int? page) => page.GetValueOrDefault(1) > 0 ? page.GetValueOrDefault(1) : 1;
+
+    private static int? NormalizePageSize(int? pageSize)
+    {
+        if (!pageSize.HasValue || pageSize.Value <= 0)
+            return null;
+
+        return Math.Min(pageSize.Value, 200);
     }
 }

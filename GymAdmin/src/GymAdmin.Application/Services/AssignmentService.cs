@@ -21,15 +21,22 @@ public class AssignmentService : IAssignmentService
     public async Task<StudentRoutineDto> AssignAsync(int requesterId, AssignRoutineRequest request)
     {
         var requester = await GetRequesterAsync(requesterId);
-        var student = await _context.Users.FindAsync(request.AlumnoId)
+        var student = await _context.Users
+            .Include(u => u.GymUsers)
+            .FirstOrDefaultAsync(u => u.Id == request.AlumnoId)
             ?? throw new KeyNotFoundException("Alumno no encontrado.");
         var routine = await _context.Routines.FindAsync(request.RutinaId)
             ?? throw new KeyNotFoundException("Rutina no encontrada.");
 
+        var studentGymUser = student.GymUsers.FirstOrDefault(gu => gu.GymId == routine.GymId && gu.Activo);
+        if (studentGymUser == null)
+            throw new InvalidOperationException("El alumno y la rutina deben pertenecer al mismo gimnasio.");
+
+        student.GymId = studentGymUser.GymId;
+        student.Rol = studentGymUser.Rol;
+
         if (student.Rol != UserRole.Alumno)
             throw new InvalidOperationException("Solo se pueden asignar rutinas a alumnos.");
-        if (student.GymId != routine.GymId)
-            throw new InvalidOperationException("El alumno y la rutina deben pertenecer al mismo gimnasio.");
         if (requester.Rol != UserRole.Superusuario && requester.GymId != student.GymId)
             throw new UnauthorizedAccessException("No autorizado.");
 
@@ -69,8 +76,17 @@ public class AssignmentService : IAssignmentService
     public async Task<List<StudentRoutineDto>> GetByStudentIdAsync(int requesterId, int studentId)
     {
         var requester = await GetRequesterAsync(requesterId);
-        var student = await _context.Users.FindAsync(studentId)
+        var student = await _context.Users
+            .Include(u => u.GymUsers)
+            .FirstOrDefaultAsync(u => u.Id == studentId)
             ?? throw new KeyNotFoundException("Alumno no encontrado.");
+
+        var studentGymUser = student.GymUsers.FirstOrDefault(gu => gu.GymId == (requester.Rol == UserRole.Superusuario ? gu.GymId : requester.GymId) && gu.Activo);
+        if (studentGymUser != null)
+        {
+            student.GymId = studentGymUser.GymId;
+            student.Rol = studentGymUser.Rol;
+        }
 
         if (requester.Rol != UserRole.Superusuario && requester.GymId != student.GymId)
             throw new UnauthorizedAccessException("No autorizado.");

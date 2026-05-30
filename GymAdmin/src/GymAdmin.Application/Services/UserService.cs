@@ -1,3 +1,4 @@
+using GymAdmin.Application.DTOs.Common;
 using GymAdmin.Application.DTOs.Users;
 using GymAdmin.Domain.Entities;
 using GymAdmin.Domain.Enums;
@@ -17,7 +18,7 @@ public class UserService : IUserService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<List<UserDto>> GetAllUsersAsync(int requesterId)
+    public async Task<PagedResult<UserDto>> GetAllUsersAsync(int requesterId, int? page = null, int? pageSize = null)
     {
         var requester = await GetRequester(requesterId);
         var gymId = requester.GymId;
@@ -42,13 +43,21 @@ public class UserService : IUserService
             throw new UnauthorizedAccessException("No autorizado.");
         }
 
-        var associations = await query
-            .OrderBy(gu => gu.User.Nombre)
-            .ThenBy(gu => gu.User.Apellido)
-            .ThenBy(gu => gu.Gym.Nombre)
-            .ToListAsync();
+        var totalCount = await query.CountAsync();
+        var pagedQuery = ApplyPagination(
+            query.OrderBy(gu => gu.User.Nombre)
+                .ThenBy(gu => gu.User.Apellido)
+                .ThenBy(gu => gu.Gym.Nombre),
+            page,
+            pageSize);
 
-        return associations.Select(gu => MapToUserDto(gu.User, gu)).ToList();
+        var associations = await pagedQuery.ToListAsync();
+
+        return new PagedResult<UserDto>(
+            associations.Select(gu => MapToUserDto(gu.User, gu)).ToList(),
+            totalCount,
+            page,
+            NormalizePageSize(pageSize));
     }
 
     public async Task<UserDto?> GetUserByIdAsync(int requesterId, int id, int? gymId = null)
@@ -81,7 +90,7 @@ public class UserService : IUserService
         return MapToUserDto(u, gymUser);
     }
 
-    public async Task<List<UserDto>> GetStudentsAsync(int requesterId)
+    public async Task<PagedResult<UserDto>> GetStudentsAsync(int requesterId, int? page = null, int? pageSize = null)
     {
         var requester = await GetRequester(requesterId);
         var gymId = requester.GymId;
@@ -100,9 +109,11 @@ public class UserService : IUserService
             query = query.Where(u => u.GymUsers.Any(gu => gu.Rol == UserRole.Alumno));
         }
 
-        var data = await query.OrderBy(u => u.Nombre).ThenBy(u => u.Apellido).ToListAsync();
+        var totalCount = await query.CountAsync();
+        var pagedQuery = ApplyPagination(query.OrderBy(u => u.Nombre).ThenBy(u => u.Apellido), page, pageSize);
+        var data = await pagedQuery.ToListAsync();
 
-        return data.Select(u => {
+        var items = data.Select(u => {
             var gymUser = u.GymUsers.FirstOrDefault(gu => gu.GymId == gymId && gu.Rol == UserRole.Alumno)
                           ?? u.GymUsers.FirstOrDefault(gu => gu.Rol == UserRole.Alumno);
             return new UserDto(
@@ -126,6 +137,8 @@ public class UserService : IUserService
                 u.Observaciones
             );
         }).ToList();
+
+        return new PagedResult<UserDto>(items, totalCount, page, NormalizePageSize(pageSize));
     }
 
     public async Task<UserDto> CreateUserAsync(int requesterId, CreateUserRequest request)
@@ -461,4 +474,24 @@ public class UserService : IUserService
         user.Telefono,
         user.Observaciones
     );
+
+    private static IQueryable<T> ApplyPagination<T>(IQueryable<T> query, int? page, int? pageSize)
+    {
+        var normalizedPageSize = NormalizePageSize(pageSize);
+        if (!normalizedPageSize.HasValue)
+            return query;
+
+        var normalizedPage = NormalizePage(page);
+        return query.Skip((normalizedPage - 1) * normalizedPageSize.Value).Take(normalizedPageSize.Value);
+    }
+
+    private static int NormalizePage(int? page) => page.GetValueOrDefault(1) > 0 ? page.GetValueOrDefault(1) : 1;
+
+    private static int? NormalizePageSize(int? pageSize)
+    {
+        if (!pageSize.HasValue || pageSize.Value <= 0)
+            return null;
+
+        return Math.Min(pageSize.Value, 200);
+    }
 }

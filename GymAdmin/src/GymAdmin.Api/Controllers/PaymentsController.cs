@@ -20,8 +20,14 @@ public class PaymentsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<List<PaymentListDto>>> GetAll(
         [FromQuery] int? gymId,
-        [FromQuery] int? membresiaId) =>
-        Ok(await _paymentService.GetAllAsync(GetUserId(), gymId, membresiaId));
+        [FromQuery] int? membresiaId,
+        [FromQuery] int? page,
+        [FromQuery] int? pageSize)
+    {
+        var result = await _paymentService.GetAllAsync(GetUserId(), gymId, membresiaId, page, pageSize);
+        AddPaginationHeaders(result.TotalCount, result.Page, result.PageSize);
+        return Ok(result.Items);
+    }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<PaymentDto>> GetById(int id)
@@ -47,5 +53,14 @@ public class PaymentsController : ControllerBase
     {
         await _paymentService.DeleteAsync(GetUserId(), id);
         return NoContent();
+    }
+
+    private void AddPaginationHeaders(int totalCount, int? page, int? pageSize)
+    {
+        Response.Headers["X-Total-Count"] = totalCount.ToString();
+        if (page.HasValue)
+            Response.Headers["X-Page"] = page.Value.ToString();
+        if (pageSize.HasValue)
+            Response.Headers["X-Page-Size"] = pageSize.Value.ToString();
     }
 }

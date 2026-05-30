@@ -22,8 +22,12 @@ public class RoutinesController : ControllerBase
 
     [HttpGet]
     [Authorize(Roles = "Profesor,Superusuario,Administrativo")]
-    public async Task<ActionResult<List<RoutineListDto>>> GetAll() =>
-        Ok(await _routineService.GetAllAsync(GetUserId()));
+    public async Task<ActionResult<List<RoutineListDto>>> GetAll([FromQuery] int? page, [FromQuery] int? pageSize)
+    {
+        var result = await _routineService.GetAllAsync(GetUserId(), page, pageSize);
+        AddPaginationHeaders(result.TotalCount, result.Page, result.PageSize);
+        return Ok(result.Items);
+    }
 
     [HttpGet("{id}")]
     public async Task<ActionResult<RoutineDto>> GetById(int id)
@@ -51,5 +55,14 @@ public class RoutinesController : ControllerBase
     {
         await _routineService.DeleteAsync(GetUserId(), id);
         return NoContent();
+    }
+
+    private void AddPaginationHeaders(int totalCount, int? page, int? pageSize)
+    {
+        Response.Headers["X-Total-Count"] = totalCount.ToString();
+        if (page.HasValue)
+            Response.Headers["X-Page"] = page.Value.ToString();
+        if (pageSize.HasValue)
+            Response.Headers["X-Page-Size"] = pageSize.Value.ToString();
     }
 }

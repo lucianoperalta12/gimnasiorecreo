@@ -22,7 +22,12 @@ public class UsersController : ControllerBase
 
     [HttpGet]
     [Authorize(Roles = "Superusuario,Administrativo")]
-    public async Task<ActionResult<List<UserDto>>> GetAll() => Ok(await _userService.GetAllUsersAsync(GetUserId()));
+    public async Task<ActionResult<List<UserDto>>> GetAll([FromQuery] int? page, [FromQuery] int? pageSize)
+    {
+        var result = await _userService.GetAllUsersAsync(GetUserId(), page, pageSize);
+        AddPaginationHeaders(result.TotalCount, result.Page, result.PageSize);
+        return Ok(result.Items);
+    }
 
     [HttpGet("{id}")]
     [Authorize(Roles = "Superusuario,Administrativo")]
@@ -34,7 +39,12 @@ public class UsersController : ControllerBase
 
     [HttpGet("students")]
     [Authorize(Roles = "Profesor,Superusuario,Administrativo")]
-    public async Task<ActionResult<List<UserDto>>> GetStudents() => Ok(await _userService.GetStudentsAsync(GetUserId()));
+    public async Task<ActionResult<List<UserDto>>> GetStudents([FromQuery] int? page, [FromQuery] int? pageSize)
+    {
+        var result = await _userService.GetStudentsAsync(GetUserId(), page, pageSize);
+        AddPaginationHeaders(result.TotalCount, result.Page, result.PageSize);
+        return Ok(result.Items);
+    }
 
     [HttpPost]
     [Authorize(Roles = "Superusuario,Administrativo")]
@@ -89,5 +99,14 @@ public class UsersController : ControllerBase
     {
         await _userService.DeleteUserAsync(GetUserId(), id, gymId);
         return NoContent();
+    }
+
+    private void AddPaginationHeaders(int totalCount, int? page, int? pageSize)
+    {
+        Response.Headers["X-Total-Count"] = totalCount.ToString();
+        if (page.HasValue)
+            Response.Headers["X-Page"] = page.Value.ToString();
+        if (pageSize.HasValue)
+            Response.Headers["X-Page-Size"] = pageSize.Value.ToString();
     }
 }

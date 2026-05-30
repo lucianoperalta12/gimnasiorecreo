@@ -3,11 +3,20 @@ import { ref } from 'vue'
 import { membershipPlansApi } from '@/api/membership-plans.api'
 import { membershipsApi } from '@/api/memberships.api'
 import { paymentsApi } from '@/api/payments.api'
+import { parsePaginatedResponse } from '@/utils/pagination'
 
 export const useMembershipStore = defineStore('membership', () => {
   const plans = ref([])
   const memberships = ref([])
   const payments = ref([])
+  const membershipsTotalCount = ref(0)
+  const membershipsPage = ref(null)
+  const membershipsPageSize = ref(null)
+  const membershipsServerPaginationEnabled = ref(false)
+  const paymentsTotalCount = ref(0)
+  const paymentsPage = ref(null)
+  const paymentsPageSize = ref(null)
+  const paymentsServerPaginationEnabled = ref(false)
   const myAccess = ref(null)
   const loading = ref(false)
 
@@ -42,8 +51,13 @@ export const useMembershipStore = defineStore('membership', () => {
   async function fetchMemberships(params = {}) {
     loading.value = true
     try {
-      const { data } = await membershipsApi.getAll(params)
-      memberships.value = data
+      const response = await membershipsApi.getAll(params)
+      const pagination = parsePaginatedResponse(response)
+      memberships.value = pagination.items
+      membershipsTotalCount.value = pagination.totalCount
+      membershipsPage.value = pagination.page
+      membershipsPageSize.value = pagination.pageSize
+      membershipsServerPaginationEnabled.value = pagination.serverPaginationEnabled
     } finally {
       loading.value = false
     }
@@ -93,8 +107,13 @@ export const useMembershipStore = defineStore('membership', () => {
   async function fetchPayments(params = {}) {
     loading.value = true
     try {
-      const { data } = await paymentsApi.getAll(params)
-      payments.value = data
+      const response = await paymentsApi.getAll(params)
+      const pagination = parsePaginatedResponse(response)
+      payments.value = pagination.items
+      paymentsTotalCount.value = pagination.totalCount
+      paymentsPage.value = pagination.page
+      paymentsPageSize.value = pagination.pageSize
+      paymentsServerPaginationEnabled.value = pagination.serverPaginationEnabled
     } finally {
       loading.value = false
     }
@@ -122,6 +141,14 @@ export const useMembershipStore = defineStore('membership', () => {
     plans,
     memberships,
     payments,
+    membershipsTotalCount,
+    membershipsPage,
+    membershipsPageSize,
+    membershipsServerPaginationEnabled,
+    paymentsTotalCount,
+    paymentsPage,
+    paymentsPageSize,
+    paymentsServerPaginationEnabled,
     myAccess,
     loading,
     fetchPlans,

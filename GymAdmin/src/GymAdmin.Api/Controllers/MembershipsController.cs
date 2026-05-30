@@ -22,8 +22,17 @@ public class MembershipsController : ControllerBase
     public async Task<ActionResult<List<MembershipListDto>>> GetAll(
         [FromQuery] int? gymId,
         [FromQuery] int? alumnoId,
-        [FromQuery] string? estado) =>
-        Ok(await _membershipService.GetAllAsync(GetUserId(), gymId, alumnoId, estado));
+        [FromQuery] string? estado,
+        [FromQuery] string? search,
+        [FromQuery] string? sortBy,
+        [FromQuery] bool? sortDesc,
+        [FromQuery] int? page,
+        [FromQuery] int? pageSize)
+    {
+        var result = await _membershipService.GetAllAsync(GetUserId(), gymId, alumnoId, estado, search, sortBy, sortDesc, page, pageSize);
+        AddPaginationHeaders(result.TotalCount, result.Page, result.PageSize);
+        return Ok(result.Items);
+    }
 
     [HttpGet("{id}")]
     [Authorize(Roles = "Alumno,Profesor,Superusuario,Administrativo")]
@@ -62,4 +71,13 @@ public class MembershipsController : ControllerBase
     [Authorize(Roles = "Superusuario,Administrativo")]
     public async Task<ActionResult<MembershipDto>> Cancel(int id, [FromBody] CancelMembershipRequest request) =>
         Ok(await _membershipService.CancelAsync(GetUserId(), id, request));
+
+    private void AddPaginationHeaders(int totalCount, int? page, int? pageSize)
+    {
+        Response.Headers["X-Total-Count"] = totalCount.ToString();
+        if (page.HasValue)
+            Response.Headers["X-Page"] = page.Value.ToString();
+        if (pageSize.HasValue)
+            Response.Headers["X-Page-Size"] = pageSize.Value.ToString();
+    }
 }

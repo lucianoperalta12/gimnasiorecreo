@@ -1,3 +1,4 @@
+using GymAdmin.Application.DTOs.Common;
 using GymAdmin.Application.DTOs.Payments;
 using GymAdmin.Domain.Entities;
 using GymAdmin.Domain.Enums;
@@ -17,7 +18,7 @@ public class PaymentService : IPaymentService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<List<PaymentListDto>> GetAllAsync(int requesterId, int? gymId = null, int? membresiaId = null)
+    public async Task<PagedResult<PaymentListDto>> GetAllAsync(int requesterId, int? gymId = null, int? membresiaId = null, int? page = null, int? pageSize = null)
     {
         var requester = await GetRequesterAsync(requesterId);
         EnsureCanManagePayments(requester);
@@ -33,8 +34,10 @@ public class PaymentService : IPaymentService
         if (membresiaId.HasValue)
             query = query.Where(p => p.MembresiaId == membresiaId.Value);
 
-        return await query
-            .OrderByDescending(p => p.FechaPago)
+        var totalCount = await query.CountAsync();
+        var pagedQuery = ApplyPagination(query.OrderByDescending(p => p.FechaPago), page, pageSize);
+
+        var items = await pagedQuery
             .Select(p => new PaymentListDto(
                 p.Id,
                 p.MembresiaId,
@@ -44,6 +47,8 @@ public class PaymentService : IPaymentService
                 p.Estado.ToString(),
                 p.MetodoPago))
             .ToListAsync();
+
+        return new PagedResult<PaymentListDto>(items, totalCount, page, NormalizePageSize(pageSize));
     }
 
     public async Task<PaymentDto?> GetByIdAsync(int requesterId, int id)
@@ -70,7 +75,8 @@ public class PaymentService : IPaymentService
 
         EnsureSameGym(requester, membership.GymId);
 
-        return await GetAllAsync(requesterId, membership.GymId, membresiaId);
+        var result = await GetAllAsync(requesterId, membership.GymId, membresiaId);
+        return result.Items.ToList();
     }
 
     public async Task<PaymentDto> CreateAsync(int requesterId, CreatePaymentRequest request)
@@ -227,5 +233,25 @@ public class PaymentService : IPaymentService
         }
 
         return user;
+    }
+
+    private static IQueryable<T> ApplyPagination<T>(IQueryable<T> query, int? page, int? pageSize)
+    {
+        var normalizedPageSize = NormalizePageSize(pageSize);
+        if (!normalizedPageSize.HasValue)
+            return query;
+
+        var normalizedPage = NormalizePage(page);
+        return query.Skip((normalizedPage - 1) * normalizedPageSize.Value).Take(normalizedPageSize.Value);
+    }
+
+    private static int NormalizePage(int? page) => page.GetValueOrDefault(1) > 0 ? page.GetValueOrDefault(1) : 1;
+
+    private static int? NormalizePageSize(int? pageSize)
+    {
+        if (!pageSize.HasValue || pageSize.Value <= 0)
+            return null;
+
+        return Math.Min(pageSize.Value, 200);
     }
 }

@@ -1,3 +1,4 @@
+using GymAdmin.Application.DTOs.Common;
 using GymAdmin.Application.DTOs.Memberships;
 using GymAdmin.Application.Helpers;
 using GymAdmin.Domain.Entities;
@@ -18,19 +19,27 @@ public class MembershipService : IMembershipService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<List<MembershipListDto>> GetAllAsync(
+    public async Task<PagedResult<MembershipListDto>> GetAllAsync(
         int requesterId,
         int? gymId = null,
         int? alumnoId = null,
-        string? estado = null)
+        string? estado = null,
+        string? search = null,
+        string? sortBy = null,
+        bool? sortDesc = null,
+        int? page = null,
+        int? pageSize = null)
     {
         var requester = await GetRequesterAsync(requesterId);
         await ExpireOverdueMembershipsAsync(requester, gymId);
 
-        var query = BuildMembershipQuery(requester, gymId, alumnoId, estado);
+        var query = BuildMembershipQuery(requester, gymId, alumnoId, estado, search, sortBy, sortDesc);
+        var totalCount = await query.CountAsync();
+        query = ApplyPagination(query, page, pageSize);
         var items = await query.ToListAsync();
+        var dtos = await MapToListDtosAsync(items);
 
-        return await MapToListDtosAsync(items);
+        return new PagedResult<MembershipListDto>(dtos, totalCount, page, NormalizePageSize(pageSize));
     }
 
     public async Task<MembershipDto?> GetByIdAsync(int requesterId, int id)
@@ -177,7 +186,10 @@ public class MembershipService : IMembershipService
         User requester,
         int? gymId,
         int? alumnoId,
-        string? estado)
+        string? estado,
+        string? search,
+        string? sortBy,
+        bool? sortDesc)
     {
         var query = _context.Memberships
             .AsNoTracking()
@@ -204,7 +216,15 @@ public class MembershipService : IMembershipService
             query = query.Where(m => m.Estado == status);
         }
 
-        return query.OrderByDescending(m => m.FechaCreacion);
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var normalizedSearch = search.Trim().ToLower();
+            query = query.Where(m =>
+                (m.Alumno.Nombre + " " + m.Alumno.Apellido).ToLower().Contains(normalizedSearch) ||
+                m.Plan.Nombre.ToLower().Contains(normalizedSearch));
+        }
+
+        return ApplySorting(query, sortBy, sortDesc);
     }
 
     private async Task<StudentAccessDto> BuildStudentAccessDtoAsync(User student)
@@ -239,11 +259,46 @@ public class MembershipService : IMembershipService
 
     private async Task<List<MembershipListDto>> MapToListDtosAsync(List<Membership> items)
     {
+        var activeMembershipIds = items
+            .Where(m => m.Estado == MembershipStatus.Activa)
+            .Select(m => m.Id)
+            .ToList();
+
+        var alumnoIds = items
+            .Select(m => m.AlumnoId)
+            .Distinct()
+            .ToList();
+
+        var pendingMembershipIds = activeMembershipIds.Count == 0
+            ? []
+            : await _context.MembershipPayments
+                .AsNoTracking()
+                .Where(p => activeMembershipIds.Contains(p.MembresiaId) && p.Estado == PaymentStatus.Pendiente)
+                .Select(p => p.MembresiaId)
+                .Distinct()
+                .ToListAsync();
+
+        var studentMemberships = alumnoIds.Count == 0
+            ? []
+            : await _context.Memberships
+                .AsNoTracking()
+                .Where(m => alumnoIds.Contains(m.AlumnoId) &&
+                            (m.Estado == MembershipStatus.Activa || m.Estado == MembershipStatus.Vencida))
+                .Select(m => new StudentMembershipRenewalCandidate(
+                    m.Id,
+                    m.AlumnoId,
+                    m.Estado,
+                    m.FechaVencimiento))
+                .ToListAsync();
+
+        var renewalEligibilityByMembershipId = BuildRenewalEligibilityLookup(studentMemberships);
+        var pendingLookup = pendingMembershipIds.ToHashSet();
         var result = new List<MembershipListDto>();
         foreach (var m in items)
         {
-            var pending = m.Estado == MembershipStatus.Activa && await HasPendingPaymentsAsync(m.Id);
+            var pending = m.Estado == MembershipStatus.Activa && pendingLookup.Contains(m.Id);
             var access = AccessStatusHelper.DeriveFromMembership(m, pending);
+            var puedeRenovar = renewalEligibilityByMembershipId.TryGetValue(m.Id, out var renewAllowed) && renewAllowed;
             result.Add(new MembershipListDto(
                 m.Id,
                 m.GymId,
@@ -257,7 +312,8 @@ public class MembershipService : IMembershipService
                 AccessStatusHelper.DiasRestantes(m),
                 m.IngresosUtilizados,
                 m.Plan.PaseLibre,
-                m.Plan.DiasPorSemana
+                m.Plan.DiasPorSemana,
+                puedeRenovar
             ));
         }
         return result;
@@ -477,4 +533,80 @@ public class MembershipService : IMembershipService
 
         return null;
     }
+
+    private static IQueryable<T> ApplyPagination<T>(IQueryable<T> query, int? page, int? pageSize)
+    {
+        var normalizedPageSize = NormalizePageSize(pageSize);
+        if (!normalizedPageSize.HasValue)
+            return query;
+
+        var normalizedPage = NormalizePage(page);
+        return query.Skip((normalizedPage - 1) * normalizedPageSize.Value).Take(normalizedPageSize.Value);
+    }
+
+    private static int NormalizePage(int? page) => page.GetValueOrDefault(1) > 0 ? page.GetValueOrDefault(1) : 1;
+
+    private static int? NormalizePageSize(int? pageSize)
+    {
+        if (!pageSize.HasValue || pageSize.Value <= 0)
+            return null;
+
+        return Math.Min(pageSize.Value, 200);
+    }
+
+    private static IQueryable<Membership> ApplySorting(IQueryable<Membership> query, string? sortBy, bool? sortDesc)
+    {
+        var descending = sortDesc ?? true;
+        var normalizedSortBy = sortBy?.Trim();
+
+        return normalizedSortBy switch
+        {
+            nameof(MembershipListDto.AlumnoNombreCompleto) => descending
+                ? query.OrderByDescending(m => m.Alumno.Nombre).ThenByDescending(m => m.Alumno.Apellido).ThenByDescending(m => m.Id)
+                : query.OrderBy(m => m.Alumno.Nombre).ThenBy(m => m.Alumno.Apellido).ThenBy(m => m.Id),
+            nameof(MembershipListDto.FechaInicio) => descending
+                ? query.OrderByDescending(m => m.FechaInicio).ThenByDescending(m => m.Id)
+                : query.OrderBy(m => m.FechaInicio).ThenBy(m => m.Id),
+            nameof(MembershipListDto.FechaVencimiento) => descending
+                ? query.OrderByDescending(m => m.FechaVencimiento).ThenByDescending(m => m.Id)
+                : query.OrderBy(m => m.FechaVencimiento).ThenBy(m => m.Id),
+            _ => descending
+                ? query.OrderByDescending(m => m.FechaCreacion).ThenByDescending(m => m.Id)
+                : query.OrderBy(m => m.FechaCreacion).ThenBy(m => m.Id)
+        };
+    }
+
+    private static Dictionary<int, bool> BuildRenewalEligibilityLookup(List<StudentMembershipRenewalCandidate> memberships)
+    {
+        var result = new Dictionary<int, bool>();
+
+        foreach (var group in memberships.GroupBy(m => m.AlumnoId))
+        {
+            var hasActive = group.Any(m => m.Estado == MembershipStatus.Activa);
+            var latestExpiredMembershipId = group
+                .Where(m => m.Estado == MembershipStatus.Vencida)
+                .OrderByDescending(m => m.FechaVencimiento)
+                .ThenByDescending(m => m.Id)
+                .Select(m => m.Id)
+                .FirstOrDefault();
+
+            foreach (var membership in group)
+            {
+                var canRenew = membership.Estado == MembershipStatus.Activa ||
+                               (membership.Estado == MembershipStatus.Vencida &&
+                                !hasActive &&
+                                latestExpiredMembershipId == membership.Id);
+
+                result[membership.Id] = canRenew;
+            }
+        }
+
+        return result;
+    }
+
+    private sealed record StudentMembershipRenewalCandidate(
+        int Id,
+        int AlumnoId,
+        MembershipStatus Estado,
+        DateTime FechaVencimiento);
 }

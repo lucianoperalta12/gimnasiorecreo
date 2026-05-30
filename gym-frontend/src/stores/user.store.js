@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { usersApi } from '@/api/users.api'
+import { parsePaginatedResponse } from '@/utils/pagination'
 
 function rowKey(user) {
   return `${user.id}-${user.gymId}`
@@ -13,23 +14,41 @@ function findUserRowIndex(users, user) {
 export const useUserStore = defineStore('user', () => {
   const users = ref([])
   const students = ref([])
+  const usersTotalCount = ref(0)
+  const usersPage = ref(null)
+  const usersPageSize = ref(null)
+  const usersServerPaginationEnabled = ref(false)
+  const studentsTotalCount = ref(0)
+  const studentsPage = ref(null)
+  const studentsPageSize = ref(null)
+  const studentsServerPaginationEnabled = ref(false)
   const loading = ref(false)
 
-  async function fetchUsers() {
+  async function fetchUsers(params = {}) {
     loading.value = true
     try {
-      const { data } = await usersApi.getAll()
-      users.value = data
+      const response = await usersApi.getAll(params)
+      const pagination = parsePaginatedResponse(response)
+      users.value = pagination.items
+      usersTotalCount.value = pagination.totalCount
+      usersPage.value = pagination.page
+      usersPageSize.value = pagination.pageSize
+      usersServerPaginationEnabled.value = pagination.serverPaginationEnabled
     } finally {
       loading.value = false
     }
   }
 
-  async function fetchStudents() {
+  async function fetchStudents(params = {}) {
     loading.value = true
     try {
-      const { data } = await usersApi.getStudents()
-      students.value = data
+      const response = await usersApi.getStudents(params)
+      const pagination = parsePaginatedResponse(response)
+      students.value = pagination.items
+      studentsTotalCount.value = pagination.totalCount
+      studentsPage.value = pagination.page
+      studentsPageSize.value = pagination.pageSize
+      studentsServerPaginationEnabled.value = pagination.serverPaginationEnabled
     } finally {
       loading.value = false
     }
@@ -85,6 +104,14 @@ export const useUserStore = defineStore('user', () => {
   return {
     users,
     students,
+    usersTotalCount,
+    usersPage,
+    usersPageSize,
+    usersServerPaginationEnabled,
+    studentsTotalCount,
+    studentsPage,
+    studentsPageSize,
+    studentsServerPaginationEnabled,
     loading,
     fetchUsers,
     fetchStudents,

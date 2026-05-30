@@ -1,14 +1,14 @@
 import api from './axios'
 
 export const usersApi = {
-  getAll() {
-    return api.get('/users')
+  getAll(params = {}) {
+    return api.get('/users', { params })
   },
   getById(id) {
     return api.get(`/users/${id}`)
   },
-  getStudents() {
-    return api.get('/users/students')
+  getStudents(params = {}) {
+    return api.get('/users/students', { params })
   },
   create(payload) {
     return api.post('/users', payload)

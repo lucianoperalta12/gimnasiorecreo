@@ -1,3 +1,4 @@
+using GymAdmin.Application.DTOs.Common;
 using GymAdmin.Application.DTOs.Routines;
 using GymAdmin.Domain.Entities;
 using GymAdmin.Domain.Enums;
@@ -17,21 +18,18 @@ public class RoutineService : IRoutineService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<List<RoutineListDto>> GetAllAsync(int requesterId)
+    public async Task<PagedResult<RoutineListDto>> GetAllAsync(int requesterId, int? page = null, int? pageSize = null)
     {
         var requester = await GetRequesterAsync(requesterId);
-        var query = _context.Routines
-            .AsNoTracking()
-            .Include(r => r.Profesor)
-            .Include(r => r.Gym)
-            .Include(r => r.Ejercicios)
-            .AsQueryable();
+        var query = _context.Routines.AsNoTracking().AsQueryable();
 
         if (requester.Rol != UserRole.Superusuario)
             query = query.Where(r => r.GymId == requester.GymId);
 
-        return await query
-            .OrderByDescending(r => r.FechaCreacion)
+        var totalCount = await query.CountAsync();
+        var pagedQuery = ApplyPagination(query.OrderByDescending(r => r.FechaCreacion), page, pageSize);
+
+        var items = await pagedQuery
             .Select(r => new RoutineListDto(
                 r.Id,
                 r.Nombre,
@@ -44,20 +42,59 @@ public class RoutineService : IRoutineService
                 r.Gym.Nombre
             ))
             .ToListAsync();
+
+        return new PagedResult<RoutineListDto>(items, totalCount, page, NormalizePageSize(pageSize));
     }
 
     public async Task<RoutineDto?> GetByIdAsync(int requesterId, int id)
     {
         var requester = await GetRequesterAsync(requesterId);
-        var routine = await _context.Routines
+        var query = _context.Routines
             .AsNoTracking()
-            .Include(r => r.Profesor)
-            .Include(r => r.AlumnosAsignados)
-            .Include(r => r.Ejercicios.OrderBy(e => e.Orden))
-                .ThenInclude(re => re.Ejercicio)
-            .FirstOrDefaultAsync(r => r.Id == id);
+            .Where(r => r.Id == id);
 
-        if (routine is null || !CanAccessRoutine(requester, routine))
+        if (requester.Rol != UserRole.Superusuario)
+            query = query.Where(r => r.GymId == requester.GymId);
+
+        if (requester.Rol == UserRole.Alumno)
+            query = query.Where(r => r.AlumnosAsignados.Any(sr => sr.AlumnoId == requester.Id));
+
+        var routine = await query
+            .Select(r => new RoutineDto(
+                r.Id,
+                r.Nombre,
+                r.Descripcion,
+                r.ProfesorId,
+                r.Profesor.Nombre,
+                r.FechaCreacion,
+                null,
+                r.Activa,
+                r.IsByDays,
+                r.DaysCount,
+                r.Ejercicios
+                    .OrderBy(re => re.Orden)
+                    .Select(re => new RoutineExerciseDto(
+                        re.Id,
+                        re.EjercicioId,
+                        re.Ejercicio.Nombre,
+                        re.Ejercicio.Descripcion,
+                        re.Ejercicio.GrupoMuscular,
+                        re.Ejercicio.VideoUrl,
+                        re.Bloque,
+                        re.Series,
+                        re.Repeticiones,
+                        re.Peso,
+                        re.DescansoSegundos,
+                        re.Orden,
+                        re.Observaciones,
+                        re.DayNumber
+                    ))
+                    .ToList(),
+                r.GymId
+            ))
+            .FirstOrDefaultAsync();
+
+        if (routine is null)
             return null;
 
         DateTime? fechaAsignacion = null;
@@ -69,7 +106,7 @@ public class RoutineService : IRoutineService
                 .FirstOrDefaultAsync();
         }
 
-        return MapToDto(routine, fechaAsignacion);
+        return routine with { FechaAsignacion = fechaAsignacion };
     }
 
     public async Task<RoutineDto> CreateAsync(int requesterId, CreateRoutineRequest request)
@@ -172,15 +209,6 @@ public class RoutineService : IRoutineService
         return user;
     }
 
-    private static bool CanAccessRoutine(User requester, Routine routine)
-    {
-        if (requester.Rol == UserRole.Superusuario) return true;
-        if (routine.GymId != requester.GymId) return false;
-        if (requester.Rol == UserRole.Alumno)
-            return routine.AlumnosAsignados.Any(sr => sr.AlumnoId == requester.Id);
-        return true;
-    }
-
     private async Task ValidateExercisesBelongToGymAsync(List<CreateRoutineExerciseRequest> ejercicios, int gymId)
     {
         var exerciseIds = ejercicios.Select(e => e.EjercicioId).Distinct().ToList();
@@ -276,4 +304,24 @@ public class RoutineService : IRoutineService
         RoutineExerciseSectionLabels.ParteMedia,
         RoutineExerciseSectionLabels.Fuerza
     ];
+
+    private static IQueryable<T> ApplyPagination<T>(IQueryable<T> query, int? page, int? pageSize)
+    {
+        var normalizedPageSize = NormalizePageSize(pageSize);
+        if (!normalizedPageSize.HasValue)
+            return query;
+
+        var normalizedPage = NormalizePage(page);
+        return query.Skip((normalizedPage - 1) * normalizedPageSize.Value).Take(normalizedPageSize.Value);
+    }
+
+    private static int NormalizePage(int? page) => page.GetValueOrDefault(1) > 0 ? page.GetValueOrDefault(1) : 1;
+
+    private static int? NormalizePageSize(int? pageSize)
+    {
+        if (!pageSize.HasValue || pageSize.Value <= 0)
+            return null;
+
+        return Math.Min(pageSize.Value, 200);
+    }
 }

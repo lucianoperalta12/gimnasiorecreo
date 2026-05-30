@@ -71,6 +71,42 @@
           </div>
         </div>
       </div>
+
+      <div v-if="showPagination" class="mt-6 flex items-center justify-between px-2">
+        <div class="text-xs text-dark-500 font-medium">
+          Mostrando {{ pageStart }} - {{ pageEnd }}
+          de {{ effectiveTotalCount }} rutinas
+        </div>
+        <div class="flex items-center gap-2">
+          <button
+            class="btn-secondary !p-2 !rounded-lg"
+            :disabled="currentPage === 1"
+            @click="goToPage(currentPage - 1)"
+          >
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+          </button>
+
+          <div class="flex items-center gap-1">
+            <button
+              v-for="p in totalPages"
+              :key="p"
+              @click="goToPage(p)"
+              class="w-8 h-8 rounded-lg text-xs font-black transition-all"
+              :class="currentPage === p ? 'bg-primary-600 text-white' : 'bg-dark-800 text-dark-400 hover:bg-dark-700'"
+            >
+              {{ p }}
+            </button>
+          </div>
+
+          <button
+            class="btn-secondary !p-2 !rounded-lg"
+            :disabled="currentPage === totalPages"
+            @click="goToPage(currentPage + 1)"
+          >
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+          </button>
+        </div>
+      </div>
     </template>
 
     <!-- Delete -->
@@ -85,7 +121,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useRoutineStore } from '@/stores/routine.store'
 import { useAuthStore } from '@/stores/auth.store'
@@ -104,6 +140,8 @@ const gyms = ref([])
 const showDeleteModal = ref(false)
 const deletingRoutine = ref(null)
 const deleting = ref(false)
+const currentPage = ref(1)
+const pageSize = 15
 
 const filteredRoutines = computed(() => {
   if (!authStore.hasRole('Superusuario') || gymFilter.value === 0) {
@@ -111,6 +149,19 @@ const filteredRoutines = computed(() => {
   }
   return store.routines.filter(r => r.gymId === gymFilter.value)
 })
+
+const usingLegacyFullFetch = computed(() => authStore.hasRole('Superusuario') && gymFilter.value !== 0)
+const effectiveTotalCount = computed(() => {
+  if (usingLegacyFullFetch.value || !store.routinesServerPaginationEnabled) {
+    return filteredRoutines.value.length
+  }
+
+  return store.routinesTotalCount
+})
+const totalPages = computed(() => Math.max(1, Math.ceil(effectiveTotalCount.value / pageSize)))
+const pageStart = computed(() => (filteredRoutines.value.length ? (currentPage.value - 1) * pageSize + 1 : 0))
+const pageEnd = computed(() => (filteredRoutines.value.length ? pageStart.value + filteredRoutines.value.length - 1 : 0))
+const showPagination = computed(() => !usingLegacyFullFetch.value && store.routinesServerPaginationEnabled && effectiveTotalCount.value > pageSize)
 
 function confirmDelete(routine) {
   deletingRoutine.value = routine
@@ -121,6 +172,12 @@ async function handleDelete() {
   deleting.value = true
   try {
     await store.deleteRoutine(deletingRoutine.value.id)
+    if (usingLegacyFullFetch.value) {
+      await loadRoutinesLegacy()
+    } else {
+      const fallbackPage = filteredRoutines.value.length === 0 && currentPage.value > 1 ? currentPage.value - 1 : currentPage.value
+      await loadRoutinesPaged(fallbackPage)
+    }
     success('Rutina eliminada')
     showDeleteModal.value = false
   } catch (err) {
@@ -130,8 +187,24 @@ async function handleDelete() {
   }
 }
 
+async function loadRoutinesPaged(targetPage = 1) {
+  await store.fetchRoutines({ page: targetPage, pageSize })
+  currentPage.value = store.routinesPage ?? targetPage
+}
+
+async function loadRoutinesLegacy() {
+  await store.fetchRoutines()
+  currentPage.value = 1
+}
+
+async function goToPage(targetPage) {
+  if (usingLegacyFullFetch.value || !store.routinesServerPaginationEnabled) return
+  if (targetPage < 1 || targetPage > totalPages.value || targetPage === currentPage.value) return
+  await loadRoutinesPaged(targetPage)
+}
+
 onMounted(async () => {
-  store.fetchRoutines()
+  await loadRoutinesPaged()
   if (authStore.hasRole('Superusuario')) {
     try {
       const { gymsApi } = await import('@/api/gyms.api')
@@ -141,5 +214,16 @@ onMounted(async () => {
       console.error('Error fetching gyms:', err)
     }
   }
+})
+
+watch(gymFilter, async (value) => {
+  if (!authStore.hasRole('Superusuario')) return
+
+  if (value === 0) {
+    await loadRoutinesPaged(1)
+    return
+  }
+
+  await loadRoutinesLegacy()
 })
 </script>

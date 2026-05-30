@@ -1,12 +1,13 @@
+using GymAdmin.Application.DTOs.Common;
 using GymAdmin.Application.DTOs.Users;
 
 namespace GymAdmin.Application.Services;
 
 public interface IUserService
 {
-    Task<List<UserDto>> GetAllUsersAsync(int requesterId);
+    Task<PagedResult<UserDto>> GetAllUsersAsync(int requesterId, int? page = null, int? pageSize = null);
     Task<UserDto?> GetUserByIdAsync(int requesterId, int id, int? gymId = null);
-    Task<List<UserDto>> GetStudentsAsync(int requesterId);
+    Task<PagedResult<UserDto>> GetStudentsAsync(int requesterId, int? page = null, int? pageSize = null);
     Task<UserDto> CreateUserAsync(int requesterId, CreateUserRequest request);
     Task<UserDto> UpdateUserAsync(int requesterId, int userId, UpdateUserRequest request);
     Task<UserDto> ChangeRoleAsync(int requesterId, int userId, ChangeRoleRequest request);

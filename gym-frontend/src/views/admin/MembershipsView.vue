@@ -2,12 +2,12 @@
   <div class="animate-fade-in">
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h1 class="page-title">Membresías</h1>
+        <h1 class="page-title">Membresias</h1>
         <p class="page-subtitle">Alumnos, vencimientos y estado de acceso</p>
       </div>
       <div class="flex items-center gap-3">
-        <AppButton 
-          variant="secondary" 
+        <AppButton
+          variant="secondary"
           @click="router.push('/dashboard')"
           class="md:px-4 px-2.5 !rounded-xl md:!rounded-lg"
         >
@@ -20,7 +20,7 @@
           <svg class="w-5 h-5 md:w-4 md:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
           </svg>
-          <span class="hidden md:inline ml-1">Nueva Membresía</span>
+          <span class="hidden md:inline ml-1">Nueva Membresia</span>
         </AppButton>
       </div>
     </div>
@@ -32,7 +32,6 @@
         :options="estadoOptions"
         placeholder="Todos los estados"
         class="w-full max-w-[180px]"
-        @update:model-value="loadMemberships"
       />
       <AppSearchSelect
         v-if="authStore.hasRole('Superusuario')"
@@ -40,16 +39,14 @@
         :options="gymOptions"
         placeholder="Todos los gimnasios"
         class="w-full max-w-xs"
-        @update:model-value="loadMemberships"
       />
     </div>
 
     <LoadingSpinner v-if="store.loading" />
 
     <template v-else>
-      <!-- Mobile List (< md) -->
       <div class="md:hidden space-y-3">
-        <div v-for="m in paginatedMemberships" :key="m.id" class="p-4 rounded-2xl bg-dark-900/40 border border-dark-800/50 flex flex-col gap-3">
+        <div v-for="m in store.memberships" :key="m.id" class="p-4 rounded-2xl bg-dark-900/40 border border-dark-800/50 flex flex-col gap-3">
           <div class="flex items-center justify-between">
             <h3 class="font-semibold text-white">{{ m.alumnoNombreCompleto }}</h3>
             <span :class="membershipEstadoBadgeClass(m.estado)" class="text-[10px]">{{ m.estado }}</span>
@@ -60,7 +57,7 @@
               <div class="text-right">
                 <span class="text-primary-400 font-bold block">{{ m.planNombre }}</span>
                 <span class="text-[10px] text-dark-400 font-medium block">
-                  {{ m.paseLibre ? 'Pase Libre' : `${m.diasPorSemana} días/sem` }}
+                  {{ m.paseLibre ? 'Pase Libre' : `${m.diasPorSemana} dias/sem` }}
                 </span>
               </div>
             </div>
@@ -82,8 +79,8 @@
           </div>
         </div>
       </div>
-      <!-- Desktop Table (md+) -->
-      <div v-if="paginatedMemberships.length" class="hidden md:block table-container">
+
+      <div v-if="store.memberships.length" class="hidden md:block table-container">
         <table class="table">
           <thead>
             <tr>
@@ -106,13 +103,13 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="m in paginatedMemberships" :key="m.id">
+            <tr v-for="m in store.memberships" :key="m.id">
               <td class="font-medium text-white">{{ m.alumnoNombreCompleto }}</td>
               <td>
                 <div class="flex flex-col">
                   <span>{{ m.planNombre }}</span>
                   <span class="text-[10px] text-dark-400 font-medium">
-                    {{ m.paseLibre ? 'Pase Libre' : `${m.diasPorSemana} días/sem` }}
+                    {{ m.paseLibre ? 'Pase Libre' : `${m.diasPorSemana} dias/sem` }}
                   </span>
                 </div>
               </td>
@@ -123,7 +120,7 @@
               <td class="text-right">
                 <div class="flex items-center justify-end gap-2">
                   <button v-if="canRenew(m)" class="btn-ghost btn-sm" @click="openRenewModal(m)">Renovar</button>
-                  <button v-if="m.estado === 'Activa'" class="btn-ghost btn-sm text-red-400 p-1.5" title="Cancelar Membresía" @click="openCancelModal(m)">
+                  <button v-if="m.estado === 'Activa'" class="btn-ghost btn-sm text-red-400 p-1.5" title="Cancelar Membresia" @click="openCancelModal(m)">
                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                   </button>
                 </div>
@@ -133,26 +130,24 @@
         </table>
       </div>
 
-      <!-- Pagination Controls -->
-      <div v-if="filteredMemberships.length > pageSize" class="mt-6 flex items-center justify-between px-2">
+      <div v-if="store.membershipsServerPaginationEnabled && totalCount > pageSize" class="mt-6 flex items-center justify-between px-2">
         <div class="text-xs text-dark-500 font-medium">
-          Mostrando {{ (currentPage - 1) * pageSize + 1 }} - {{ Math.min(currentPage * pageSize, filteredMemberships.length) }} 
-          de {{ filteredMemberships.length }} registros
+          Mostrando {{ pageStart }} - {{ pageEnd }} de {{ totalCount }} registros
         </div>
         <div class="flex items-center gap-2">
-          <button 
-            class="btn-secondary !p-2 !rounded-lg" 
+          <button
+            class="btn-secondary !p-2 !rounded-lg"
             :disabled="currentPage === 1"
-            @click="currentPage--"
+            @click="goToPage(currentPage - 1)"
           >
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
           </button>
-          
+
           <div class="flex items-center gap-1">
-            <button 
-              v-for="p in totalPages" 
+            <button
+              v-for="p in totalPages"
               :key="p"
-              @click="currentPage = p"
+              @click="goToPage(p)"
               class="w-8 h-8 rounded-lg text-xs font-black transition-all"
               :class="currentPage === p ? 'bg-primary-600 text-white' : 'bg-dark-800 text-dark-400 hover:bg-dark-700'"
             >
@@ -160,22 +155,22 @@
             </button>
           </div>
 
-          <button 
-            class="btn-secondary !p-2 !rounded-lg" 
+          <button
+            class="btn-secondary !p-2 !rounded-lg"
             :disabled="currentPage === totalPages"
-            @click="currentPage++"
+            @click="goToPage(currentPage + 1)"
           >
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
           </button>
         </div>
       </div>
 
-      <div v-if="filteredMemberships.length === 0" class="card text-center py-12">
-        <p class="text-dark-400">No hay membresías que coincidan con los filtros</p>
+      <div v-if="store.memberships.length === 0" class="card text-center py-12">
+        <p class="text-dark-400">No hay membresias que coincidan con los filtros</p>
       </div>
     </template>
 
-    <AppModal v-model="showCreateModal" title="Nueva membresía" size="lg">
+    <AppModal v-model="showCreateModal" title="Nueva membresia" size="lg">
       <form class="space-y-4" @submit.prevent="handleCreate">
         <AppSearchSelect v-model="createForm.alumnoId" label="Alumno" placeholder="Buscar alumno..." :options="studentOptions" />
         <label class="label">Plan</label>
@@ -208,11 +203,11 @@
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div>
-            <label class="label">Método de pago</label>
+            <label class="label">Metodo de pago</label>
             <AppSearchSelect
               v-model="paymentForm.metodoPago"
               :options="metodoPagoOptions"
-              placeholder="Método de pago"
+              placeholder="Metodo de pago"
             />
           </div>
           <div>
@@ -232,7 +227,7 @@
       </template>
     </AppModal>
 
-    <AppModal v-model="showRenewModal" title="Renovar membresía">
+    <AppModal v-model="showRenewModal" title="Renovar membresia">
       <form class="space-y-4" @submit.prevent="handleRenew">
         <p class="text-sm text-dark-400">Alumno: <strong class="text-white">{{ renewingMembership?.alumnoNombreCompleto }}</strong></p>
         <label class="label">Plan</label>
@@ -253,19 +248,19 @@
       </template>
     </AppModal>
 
-    <AppModal v-model="showCancelModal" title="Cancelar membresía" size="sm">
-      <p class="text-dark-300 mb-3">Cancelar membresía de <strong class="text-white">{{ cancellingMembership?.alumnoNombreCompleto }}</strong></p>
+    <AppModal v-model="showCancelModal" title="Cancelar membresia" size="sm">
+      <p class="text-dark-300 mb-3">Cancelar membresia de <strong class="text-white">{{ cancellingMembership?.alumnoNombreCompleto }}</strong></p>
       <textarea v-model="cancelMotivo" rows="2" class="input" placeholder="Motivo (opcional)" />
       <template #footer>
         <AppButton variant="secondary" @click="showCancelModal = false">Cerrar</AppButton>
-        <AppButton variant="danger" :loading="saving" @click="handleCancel">Cancelar membresía</AppButton>
+        <AppButton variant="danger" :loading="saving" @click="handleCancel">Cancelar membresia</AppButton>
       </template>
     </AppModal>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMembershipStore } from '@/stores/membership.store'
 import { useUserStore } from '@/stores/user.store'
@@ -310,6 +305,7 @@ const sortDesc = ref(true)
 
 const pageSize = ref(15)
 const currentPage = ref(1)
+let searchDebounce = null
 
 const createForm = reactive({ alumnoId: null, planId: 0, fechaInicio: new Date().toISOString().slice(0, 10), notas: '' })
 const renewForm = reactive({ planId: 0, fechaInicio: '', notas: '' })
@@ -353,43 +349,22 @@ const gymOptions = computed(() => {
   return list
 })
 
-const planOptions = computed(() => {
-  return activePlans.value.map(p => ({
-    id: p.id,
-    label: `${p.nombre} (${p.duracionDias} días - ${formatCurrency(p.precio, p.moneda)})`
-  }))
-})
+const planOptions = computed(() => activePlans.value.map(p => ({
+  id: p.id,
+  label: `${p.nombre} (${p.duracionDias} dias - ${formatCurrency(p.precio, p.moneda)})`
+})))
 
 const metodoPagoOptions = [
   { id: 'Efectivo', label: 'Efectivo' },
   { id: 'Transferencia', label: 'Transferencia' }
 ]
 
-const paymentEstadoOptions = computed(() => {
-  return PAYMENT_ESTADOS.map(e => ({ id: e, label: e }))
-})
+const paymentEstadoOptions = computed(() => PAYMENT_ESTADOS.map(e => ({ id: e, label: e })))
 
-const filteredMemberships = computed(() => {
-  const q = search.value.toLowerCase()
-  let result = store.memberships.filter(m =>
-    m.alumnoNombreCompleto.toLowerCase().includes(q) ||
-    m.planNombre.toLowerCase().includes(q)
-  )
-
-  result.sort((a, b) => {
-    let valA = a[sortBy.value]
-    let valB = b[sortBy.value]
-
-    if (valA == null) valA = ''
-    if (valB == null) valB = ''
-
-    if (valA < valB) return sortDesc.value ? 1 : -1
-    if (valA > valB) return sortDesc.value ? -1 : 1
-    return 0
-  })
-
-  return result
-})
+const totalCount = computed(() => store.membershipsTotalCount || store.memberships.length)
+const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)))
+const pageStart = computed(() => (store.memberships.length ? (currentPage.value - 1) * pageSize.value + 1 : 0))
+const pageEnd = computed(() => (store.memberships.length ? pageStart.value + store.memberships.length - 1 : 0))
 
 function toggleSort(column) {
   if (sortBy.value === column) {
@@ -400,28 +375,8 @@ function toggleSort(column) {
   }
 }
 
-const totalPages = computed(() => Math.ceil(filteredMemberships.value.length / pageSize.value))
-
-const paginatedMemberships = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return filteredMemberships.value.slice(start, end)
-})
-
 function canRenew(m) {
-  if (m.estado === 'Activa') return true
-  if (m.estado !== 'Vencida') return false
-
-  // Solo permitir renovar la última vencida si NO hay ninguna activa para este alumno
-  const studentMemberships = store.memberships.filter(ms => ms.alumnoId === m.alumnoId)
-  const hasActive = studentMemberships.some(ms => ms.estado === 'Activa')
-  if (hasActive) return false
-
-  const latestVencida = studentMemberships
-    .filter(ms => ms.estado === 'Vencida')
-    .sort((a, b) => new Date(b.fechaVencimiento) - new Date(a.fechaVencimiento))[0]
-
-  return latestVencida && latestVencida.id === m.id
+  return !!m.puedeRenovar
 }
 
 function openCreateModal() {
@@ -446,16 +401,23 @@ function openCancelModal(m) {
   showCancelModal.value = true
 }
 
-async function loadMemberships() {
-  const params = {}
+async function loadMemberships(targetPage = 1) {
+  const params = {
+    page: targetPage,
+    pageSize: pageSize.value,
+    sortBy: sortBy.value,
+    sortDesc: sortDesc.value
+  }
   if (filterEstado.value) params.estado = filterEstado.value
   if (selectedGymId.value) params.gymId = selectedGymId.value
+  if (search.value.trim()) params.search = search.value.trim()
+
   await store.fetchMemberships(params)
-  currentPage.value = 1 // Reset to first page on reload
+  currentPage.value = store.membershipsPage ?? targetPage
 }
 
 async function handleCreate(andPay = false) {
-  if (!createForm.alumnoId) return showError('Seleccioná un alumno')
+  if (!createForm.alumnoId) return showError('Selecciona un alumno')
   saving.value = true
   try {
     const created = await store.createMembership({
@@ -464,9 +426,9 @@ async function handleCreate(andPay = false) {
       fechaInicio: createForm.fechaInicio,
       notas: createForm.notas || null
     })
-    success('Membresía creada')
+    success('Membresia creada')
     showCreateModal.value = false
-    await loadMemberships()
+    await loadMemberships(currentPage.value)
 
     if (andPay && created) {
       paymentForm.membresiaId = created.id
@@ -514,9 +476,9 @@ async function handleRenew(andPay = false) {
       fechaInicio: renewForm.fechaInicio || null,
       notas: renewForm.notas || null
     })
-    success('Membresía renovada')
+    success('Membresia renovada')
     showRenewModal.value = false
-    await loadMemberships()
+    await loadMemberships(currentPage.value)
 
     if (andPay && renewed) {
       paymentForm.membresiaId = renewed.id
@@ -540,9 +502,10 @@ async function handleCancel() {
   saving.value = true
   try {
     await store.cancelMembership(cancellingMembership.value.id, { motivo: cancelMotivo.value || null })
-    success('Membresía cancelada')
+    success('Membresia cancelada')
     showCancelModal.value = false
-    await loadMemberships()
+    const fallbackPage = store.memberships.length === 1 && currentPage.value > 1 ? currentPage.value - 1 : currentPage.value
+    await loadMemberships(fallbackPage)
   } catch (err) {
     showError(err.response?.data?.error || 'Error al cancelar')
   } finally {
@@ -550,15 +513,42 @@ async function handleCancel() {
   }
 }
 
+async function goToPage(targetPage) {
+  if (!store.membershipsServerPaginationEnabled) return
+  if (targetPage < 1 || targetPage > totalPages.value || targetPage === currentPage.value) return
+  await loadMemberships(targetPage)
+}
+
 onMounted(async () => {
   if (authStore.hasRole('Superusuario')) {
-    try { const { data } = await gymsApi.getAll(); gyms.value = data } catch { /* noop */ }
+    try {
+      const { data } = await gymsApi.getAll()
+      gyms.value = data
+    } catch {
+      // noop
+    }
   }
+
   await Promise.all([
     userStore.fetchStudents(),
     store.fetchPlans(selectedGymId.value || undefined),
     loadMemberships()
   ])
+})
+
+watch([filterEstado, selectedGymId], async () => {
+  await loadMemberships(1)
+})
+
+watch([sortBy, sortDesc], async () => {
+  await loadMemberships(1)
+})
+
+watch(search, () => {
+  if (searchDebounce) clearTimeout(searchDebounce)
+  searchDebounce = setTimeout(() => {
+    loadMemberships(1)
+  }, 300)
 })
 
 function formatNumberWithDots(val) {
@@ -584,13 +574,13 @@ function onMontoInput(event) {
   const input = event.target
   const value = input.value
   const formatted = formatNumberWithDots(value)
-  
+
   const selectionStart = input.selectionStart
   const oldLength = value.length
-  
+
   paymentForm.monto = formatted
   input.value = formatted
-  
+
   nextTick(() => {
     const newLength = formatted.length
     const diff = newLength - oldLength
