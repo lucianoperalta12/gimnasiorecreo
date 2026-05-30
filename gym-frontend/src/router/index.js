@@ -26,7 +26,7 @@ const routes = [
       },
       {
         path: 'ingresos',
-        name: 'Ingresos',
+        name: 'Asistencia',
         component: () => import('@/views/admin/IngresosView.vue'),
         meta: { roles: ['Superusuario', 'Administrativo'] }
       },

@@ -474,7 +474,7 @@ const menuGroups = computed(() => {
       { to: '/membership-plans', label: 'Planes', icon: IconPlan, roles: ['Superusuario', 'Administrativo'] },
       { to: '/memberships', label: 'Membresías', icon: IconMembership, roles: ['Superusuario', 'Administrativo'] },
       { to: '/payments', label: 'Pagos', icon: IconPayment, roles: ['Superusuario', 'Administrativo'] },
-      { to: '/ingresos', label: 'Ingresos', icon: IconClock, roles: ['Superusuario', 'Administrativo'] },
+      { to: '/ingresos', label: 'Asistencia', icon: IconClock, roles: ['Superusuario', 'Administrativo'] },
       {
         label: 'Estadísticas',
         icon: IconChart,

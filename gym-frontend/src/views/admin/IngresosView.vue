@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h1 class="page-title">Ingresos</h1>
+        <h1 class="page-title">Asistencia</h1>
         <p class="page-subtitle">Registros de accesos desde terminales</p>
       </div>
       <div>
@@ -142,7 +142,7 @@
       </div>
 
       <div v-else-if="!items.length" class="card text-center py-12">
-        <p class="text-dark-400">No hay ingresos para los filtros seleccionados.</p>
+        <p class="text-dark-400">No hay asistencias para los filtros seleccionados.</p>
       </div>
     </template>
   </div>
@@ -220,7 +220,7 @@ async function buscar(targetPage = 1) {
     serverPaginationEnabled.value = pagination.serverPaginationEnabled
     page.value = pagination.page ?? targetPage
   } catch (err) {
-    showError(err.response?.data?.error || 'No se pudieron cargar los ingresos')
+    showError(err.response?.data?.error || 'No se pudieron cargar los registros de asistencia')
   } finally {
     loading.value = false
   }
