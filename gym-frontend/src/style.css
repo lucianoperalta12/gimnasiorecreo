@@ -87,10 +87,9 @@
 
   input[type="date"].input,
   input[type="datetime-local"].input {
-    height: 42px;
-    line-height: 42px;
-    padding-top: 0;
-    padding-bottom: 0;
+    min-height: 42px;
+    height: auto;
+    line-height: normal;
     width: 100% !important;
     max-width: 100% !important;
     box-sizing: border-box !important;
@@ -98,15 +97,17 @@
 
   input[type="date"].input::-webkit-date-and-time-value,
   input[type="datetime-local"].input::-webkit-date-and-time-value {
-    min-height: 42px;
-    line-height: 42px;
+    min-height: 1.5em;
+    line-height: normal;
     margin: 0;
     padding: 0;
+    text-align: left;
   }
 
   input[type="date"].input::-webkit-calendar-picker-indicator,
   input[type="datetime-local"].input::-webkit-calendar-picker-indicator {
     cursor: pointer;
+    flex-shrink: 0;
   }
 
   select.input {
