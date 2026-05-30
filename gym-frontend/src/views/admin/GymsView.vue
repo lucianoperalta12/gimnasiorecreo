@@ -184,7 +184,7 @@ const form = reactive({ nombre: '', duenoNombreApellido: '', logoUrl: '', colorP
 async function load() {
   loading.value = true
   try {
-    const response = await gymsApi.getAll()
+    const response = await gymsApi.getAllAdmin()
     gyms.value = response.data || []
   } catch (err) {
     showError('No se pudieron cargar los gimnasios')
