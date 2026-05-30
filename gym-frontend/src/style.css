@@ -85,6 +85,12 @@
     transition-all duration-200;
   }
 
+  input[type="date"].input,
+  input[type="datetime-local"].input {
+    min-height: 44px;
+    align-items: center;
+  }
+
   select.input {
     appearance: none !important;
     -webkit-appearance: none !important;

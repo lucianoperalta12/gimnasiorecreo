@@ -150,7 +150,7 @@ public class AuthService : IAuthService
         var accessToken = GenerateAccessToken(user, association.GymId, association.Rol);
         var refreshToken = GenerateRefreshToken();
         user.RefreshToken = refreshToken;
-        user.RefreshTokenExpiracion = DateTime.UtcNow.AddDays(7);
+        user.RefreshTokenExpiracion = DateTime.UtcNow.AddDays(30);
         await _context.SaveChangesAsync();
 
         return new AuthResponse(
@@ -212,7 +212,7 @@ public class AuthService : IAuthService
             issuer: _configuration["Jwt:Issuer"],
             audience: _configuration["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(15),
+            expires: DateTime.UtcNow.AddDays(5),
             signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
         );
 
