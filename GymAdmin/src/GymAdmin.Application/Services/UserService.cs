@@ -70,6 +70,16 @@ public class UserService : IUserService
         }
 
         var totalCount = await query.CountAsync();
+        var activeCount = await query.CountAsync(gu => gu.Activo && gu.User.Activo);
+        var inactiveCount = totalCount - activeCount;
+
+        var httpContext = _httpContextAccessor.HttpContext;
+        if (httpContext != null)
+        {
+            httpContext.Response.Headers["X-Active-Count"] = activeCount.ToString();
+            httpContext.Response.Headers["X-Inactive-Count"] = inactiveCount.ToString();
+        }
+
         var pagedQuery = ApplyPagination(
             query.OrderBy(gu => gu.User.Nombre)
                 .ThenBy(gu => gu.User.Apellido)

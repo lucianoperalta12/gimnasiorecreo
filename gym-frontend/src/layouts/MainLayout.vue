@@ -210,7 +210,9 @@
       <div class="terminal-layout__noise"></div>
     </div>
 
-    <header class="h-[65px] sm:h-[75px] bg-[#0c0c12]/60 border-b border-white/[0.06] backdrop-blur-md flex items-center justify-between px-3 sm:px-8 shrink-0 z-10 relative">
+    <header
+      class="h-[65px] sm:h-[75px] bg-[#0c0c12]/60 border-b border-white/[0.06] backdrop-blur-md flex items-center justify-between px-3 sm:px-8 shrink-0 z-10 relative"
+    >
       <!-- Glow superior -->
       <div class="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-primary-500/25 to-transparent"></div>
 
@@ -240,10 +242,18 @@
           :title="isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'"
         >
           <svg v-if="!isFullscreen" class="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M20.25 3.75v4.5m0-4.5h-4.5m4.5 0L15 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 20.25v-4.5m0 4.5h-4.5m4.5 0L15 15" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M20.25 3.75v4.5m0-4.5h-4.5m4.5 0L15 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 20.25v-4.5m0 4.5h-4.5m4.5 0L15 15"
+            />
           </svg>
           <svg v-else class="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 3.75v3c0 .414-.336.75-.75.75h-3m3.75-3.75L6 6.75M15 3.75v3c0 .414.336.75.75.75h3m-3.75-3.75l3 3M9 20.25v-3c0-.414-.336-.75-.75-.75h-3m3.75 3.75L6 17.25M15 20.25v-3c0-.414.336-.75.75-.75h3m-3.75 3.75l3-3" />
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M9 3.75v3c0 .414-.336.75-.75.75h-3m3.75-3.75L6 6.75M15 3.75v3c0 .414.336.75.75.75h3m-3.75-3.75l3 3M9 20.25v-3c0-.414-.336-.75-.75-.75h-3m3.75 3.75L6 17.25M15 20.25v-3c0-.414.336-.75.75-.75h3m-3.75 3.75l3-3"
+            />
           </svg>
         </button>
 
@@ -323,11 +333,14 @@ function updateClock() {
 
 function toggleFullscreen() {
   if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen().then(() => {
-      isFullscreen.value = true;
-    }).catch(err => {
-      console.error(`Error attempting to enable fullscreen: ${err.message}`);
-    });
+    document.documentElement
+      .requestFullscreen()
+      .then(() => {
+        isFullscreen.value = true;
+      })
+      .catch((err) => {
+        console.error(`Error attempting to enable fullscreen: ${err.message}`);
+      });
   } else {
     document.exitFullscreen();
     isFullscreen.value = false;
@@ -416,6 +429,14 @@ const IconPayment = (_, { attrs }) =>
       d: 'M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75m0 1.5v.75m0 1.5v.75m0 1.5V15m1.5 1.5h15m-15-1.5v-1.5m0-1.5v-1.5m0-1.5v-.75m0-1.5v-.75m0-1.5V4.5m15 0v1.5m0 1.5v.75m0 1.5v.75m0 1.5V15m0 1.5h-15m15-1.5v-1.5m0-1.5v-1.5m0-1.5v-.75m0-1.5v-.75m0-1.5V4.5m-13.5 0h12m-12 0v1.5m0 1.5v.75m0 1.5v.75m0 1.5v1.5m12-1.5V4.5m0 1.5v.75m0 1.5v.75m0 1.5v1.5m-6 4.5a3 3 0 110-6 3 3 0 010 6z',
     }),
   ]);
+const IconEgreso = (_, { attrs }) =>
+  h('svg', { ...attrs, fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', 'stroke-width': '2' }, [
+    h('path', {
+      'stroke-linecap': 'round',
+      'stroke-linejoin': 'round',
+      d: 'M2.25 6L9 12.75l4.286-4.286a11.948 11.948 0 014.306 6.43l.776 2.898m0 0l3.182-5.511m-3.182 5.51l-5.511-3.181',
+    }),
+  ]);
 const IconClock = (_, { attrs }) =>
   h('svg', { ...attrs, fill: 'none', viewBox: '0 0 24 24', stroke: 'currentColor', 'stroke-width': '2' }, [
     h('path', { 'stroke-linecap': 'round', 'stroke-linejoin': 'round', d: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z' }),
@@ -453,7 +474,7 @@ const menuGroups = computed(() => {
   // 1. General/Inicio
   const generalItems = [
     { to: '/', label: 'Panel Principal', icon: IconDashboard, roles: null },
-    { to: '/my-membership', label: 'Mi Membresía', icon: IconMembership, roles: ['Alumno'] }
+    { to: '/my-membership', label: 'Mi Membresía', icon: IconMembership, roles: ['Alumno'] },
   ];
   if (veRutinas) {
     generalItems.push({ to: '/my-routines', label: 'Mis Rutinas', icon: IconClipboard, roles: ['Alumno'] });
@@ -474,6 +495,7 @@ const menuGroups = computed(() => {
       { to: '/membership-plans', label: 'Planes', icon: IconPlan, roles: ['Superusuario', 'Administrativo'] },
       { to: '/memberships', label: 'Membresías', icon: IconMembership, roles: ['Superusuario', 'Administrativo'] },
       { to: '/payments', label: 'Pagos', icon: IconPayment, roles: ['Superusuario', 'Administrativo'] },
+      { to: '/egresos', label: 'Egresos', icon: IconEgreso, roles: ['Superusuario', 'Administrativo'] },
       { to: '/ingresos', label: 'Asistencia', icon: IconClock, roles: ['Superusuario', 'Administrativo'] },
       {
         label: 'Estadísticas',
@@ -481,6 +503,7 @@ const menuGroups = computed(() => {
         roles: ['Superusuario', 'Administrativo'],
         children: [
           { to: '/estadisticas/asistencia', label: 'Asistencia' },
+          { to: '/estadisticas/balance', label: 'Balance' },
           { to: '/estadisticas/ventas', label: 'Ventas y Membresías' },
           { to: '/estadisticas/retencion', label: 'Retención y Deserción' },
         ],

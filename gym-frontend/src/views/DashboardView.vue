@@ -203,51 +203,12 @@
           </a>
         </div>
       </div>
-      <!-- 
-      <div v-if="authStore.hasRole('Profesor', 'Superusuario', 'Administrativo')" class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
-        <router-link
-          v-for="stat in stats"
-          :key="stat.label"
-          :to="stat.path || '/'"
-          class="p-5 rounded-[2rem] bg-dark-900/40 border border-dark-800/50 backdrop-blur-md group hover:border-primary-500/30 hover:bg-dark-800/60 active:scale-[0.98] transition-all duration-300 relative overflow-hidden"
-        >
-          <div class="flex flex-col gap-4 relative z-10">
-            <div
-              class="w-12 h-12 rounded-2xl flex items-center justify-center text-xl transition-transform duration-500 group-hover:scale-110"
-              :class="stat.bgColor"
-            >
-              {{ stat.icon }}
-            </div>
-            <div>
-              <div class="flex items-baseline gap-2">
-                <p class="text-3xl font-black text-white leading-none tracking-tight">{{ stat.value }}</p>
-              </div>
-              <p class="text-[11px] text-dark-400 uppercase tracking-[0.2em] font-bold mt-2 group-hover:text-dark-200 transition-colors">{{ stat.label }}</p>
-            </div>
-          </div>
-        </router-link>
-      </div> -->
 
       <div v-if="authStore.hasRole('Profesor', 'Superusuario', 'Administrativo')" class="mb-8">
         <h2 class="text-sm font-bold text-dark-500 uppercase tracking-[0.2em] mb-4 ml-1">Accesos Rápidos</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <router-link
-            to="/assignments"
-            class="group flex items-center p-4 rounded-2xl bg-dark-900/40 border border-dark-800/50 hover:bg-dark-800/60 hover:border-primary-500/30 transition-all duration-300"
-          >
-            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center mr-4">
-              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-              </svg>
-            </div>
-            <div>
-              <h3 class="text-sm font-bold text-white">Asignar Rutina</h3>
-              <p class="text-xs text-dark-500">Vincular ejercicios a alumnos</p>
-            </div>
-          </router-link>
-
-          <router-link
-            to="/routines/new"
+            to="/users?create=true&role=Alumno"
             class="group flex items-center p-4 rounded-2xl bg-dark-900/40 border border-dark-800/50 hover:bg-dark-800/60 hover:border-primary-500/30 transition-all duration-300"
           >
             <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center mr-4">
@@ -256,13 +217,14 @@
                   stroke-linecap="round"
                   stroke-linejoin="round"
                   stroke-width="2"
-                  d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  d="M12 12a4 4 0 100-8 4 4 0 000 8zm0 2c-4.418 0-8 1.79-8 4v2h16v-2c0-2.21-3.582-4-8-4z"
                 />
               </svg>
             </div>
+
             <div>
-              <h3 class="text-sm font-bold text-white">Nueva Rutina</h3>
-              <p class="text-xs text-dark-500">Crear plan de entrenamiento</p>
+              <h3 class="text-sm font-bold text-white">Nuevo Alumno</h3>
+              <p class="text-xs text-dark-500">Carga de información</p>
             </div>
           </router-link>
 
@@ -285,20 +247,34 @@
               <p class="text-xs text-dark-500">Alumnos y pagos</p>
             </div>
           </router-link>
-
           <router-link
-            v-if="authStore.hasRole('Superusuario', 'Administrativo')"
-            to="/ingresos"
+            to="/assignments"
             class="group flex items-center p-4 rounded-2xl bg-dark-900/40 border border-dark-800/50 hover:bg-dark-800/60 hover:border-primary-500/30 transition-all duration-300"
           >
-            <div class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center mr-4">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center mr-4">
               <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3M12 3a9 9 0 100 18 9 9 0 000-18z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
               </svg>
             </div>
             <div>
-              <h3 class="text-sm font-bold text-white">Ingresos</h3>
-              <p class="text-xs text-dark-500">Accesos registrados</p>
+              <h3 class="text-sm font-bold text-white">Asignar Rutina</h3>
+              <p class="text-xs text-dark-500">Vincular ejercicios a alumnos</p>
+            </div>
+          </router-link>
+          <router-link
+            v-if="authStore.hasRole('Superusuario', 'Administrativo')"
+            to="/estadisticas/balance"
+            class="group flex items-center p-4 rounded-2xl bg-dark-900/40 border border-dark-800/50 hover:bg-dark-800/60 hover:border-primary-500/30 transition-all duration-300"
+          >
+            <div class="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mr-4">
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-6m4 6V7m4 10v-3M5 21h14" />
+              </svg>
+            </div>
+
+            <div>
+              <h3 class="text-sm font-bold text-white">Balance</h3>
+              <p class="text-xs text-dark-500">Ingresos y egresos</p>
             </div>
           </router-link>
         </div>

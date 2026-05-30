@@ -113,6 +113,12 @@ const routes = [
         meta: { roles: ['Superusuario', 'Administrativo'] }
       },
       {
+        path: 'egresos',
+        name: 'Egresos',
+        component: () => import('@/views/admin/EgresosView.vue'),
+        meta: { roles: ['Superusuario', 'Administrativo'] }
+      },
+      {
         path: 'my-membership',
         name: 'Mi Membresía',
         component: () => import('@/views/students/MyMembershipView.vue'),
@@ -134,6 +140,12 @@ const routes = [
         path: 'estadisticas/retencion',
         name: 'Retención y Deserción',
         component: () => import('@/views/admin/estadisticas/RetencionEstadisticasView.vue'),
+        meta: { roles: ['Superusuario', 'Administrativo'] }
+      },
+      {
+        path: 'estadisticas/balance',
+        name: 'Balance',
+        component: () => import('@/views/admin/estadisticas/BalanceEstadisticasView.vue'),
         meta: { roles: ['Superusuario', 'Administrativo'] }
       }
     ]

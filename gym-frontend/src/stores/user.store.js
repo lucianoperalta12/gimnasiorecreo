@@ -18,6 +18,8 @@ export const useUserStore = defineStore('user', () => {
   const usersPage = ref(null)
   const usersPageSize = ref(null)
   const usersServerPaginationEnabled = ref(false)
+  const usersActiveCount = ref(0)
+  const usersInactiveCount = ref(0)
   const studentsTotalCount = ref(0)
   const studentsPage = ref(null)
   const studentsPageSize = ref(null)
@@ -38,6 +40,8 @@ export const useUserStore = defineStore('user', () => {
       usersPage.value = pagination.page
       usersPageSize.value = pagination.pageSize
       usersServerPaginationEnabled.value = pagination.serverPaginationEnabled
+      usersActiveCount.value = pagination.activeCount ?? pagination.items.filter((u) => u.activo).length
+      usersInactiveCount.value = pagination.inactiveCount ?? pagination.items.filter((u) => !u.activo).length
     } finally {
       loading.value = false
     }
@@ -113,6 +117,8 @@ export const useUserStore = defineStore('user', () => {
     usersPage,
     usersPageSize,
     usersServerPaginationEnabled,
+    usersActiveCount,
+    usersInactiveCount,
     studentsTotalCount,
     studentsPage,
     studentsPageSize,

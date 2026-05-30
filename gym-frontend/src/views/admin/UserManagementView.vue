@@ -383,7 +383,7 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { useUserStore } from '@/stores/user.store';
 import { useAuthStore } from '@/stores/auth.store';
 import { useNotification } from '@/composables/useNotification';
@@ -395,6 +395,7 @@ import AppSearchSelect from '@/components/ui/AppSearchSelect.vue';
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
 
 const router = useRouter();
+const route = useRoute();
 const userStore = useUserStore();
 const authStore = useAuthStore();
 const { success, error: showError } = useNotification();
@@ -487,6 +488,9 @@ const filteredUsers = computed(() => {
 });
 
 const activeCount = computed(() => {
+  if (userStore.usersServerPaginationEnabled) {
+    return userStore.usersActiveCount;
+  }
   return userStore.users.filter((u) => {
     const matchesGym = !gymFilter.value || u.gymId === Number(gymFilter.value);
     return u.activo && matchesGym;
@@ -494,6 +498,9 @@ const activeCount = computed(() => {
 });
 
 const inactiveCount = computed(() => {
+  if (userStore.usersServerPaginationEnabled) {
+    return userStore.usersInactiveCount;
+  }
   return userStore.users.filter((u) => {
     const matchesGym = !gymFilter.value || u.gymId === Number(gymFilter.value);
     return !u.activo && matchesGym;
@@ -501,13 +508,11 @@ const inactiveCount = computed(() => {
 });
 
 const activeCountText = computed(() => {
-  const count = activeCount.value;
-  return userStore.usersServerPaginationEnabled ? `${count} activos en esta pág.` : `${count} activos`;
+  return `${activeCount.value} activos`;
 });
 
 const inactiveCountText = computed(() => {
-  const count = inactiveCount.value;
-  return userStore.usersServerPaginationEnabled ? `${count} inactivos en esta pág.` : `${count} inactivos`;
+  return `${inactiveCount.value} inactivos`;
 });
 
 const totalCount = computed(() => userStore.usersServerPaginationEnabled ? userStore.usersTotalCount : filteredUsers.value.length);
@@ -788,6 +793,13 @@ onMounted(async () => {
     if (authStore.hasRole('Superusuario')) {
       const response = await gymsApi.getAll();
       gyms.value = response.data || [];
+    }
+
+    if (route.query.create === 'true') {
+      await openCreateModal();
+      if (route.query.role && allowedCreateRoles.value.includes(route.query.role)) {
+        createForm.rol = route.query.role;
+      }
     }
   } catch (err) {
     showError('No se pudieron cargar los datos');

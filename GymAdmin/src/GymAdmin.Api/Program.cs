@@ -36,6 +36,7 @@ builder.Services.AddScoped<IMembershipPlanService, MembershipPlanService>();
 builder.Services.AddScoped<IMembershipService, MembershipService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IIngresoService, IngresoService>();
+builder.Services.AddScoped<IEgresoService, EgresoService>();
 
 builder.Services.AddHostedService<StartupNotificationService>();
 
