@@ -22,9 +22,14 @@ public class UsersController : ControllerBase
 
     [HttpGet]
     [Authorize(Roles = "Superusuario,Administrativo")]
-    public async Task<ActionResult<List<UserDto>>> GetAll([FromQuery] int? page, [FromQuery] int? pageSize)
+    public async Task<ActionResult<List<UserDto>>> GetAll(
+        [FromQuery] string? search,
+        [FromQuery] string? rol,
+        [FromQuery] int? gymId,
+        [FromQuery] int? page,
+        [FromQuery] int? pageSize)
     {
-        var result = await _userService.GetAllUsersAsync(GetUserId(), page, pageSize);
+        var result = await _userService.GetAllUsersAsync(GetUserId(), search, rol, gymId, page, pageSize);
         AddPaginationHeaders(result.TotalCount, result.Page, result.PageSize);
         return Ok(result.Items);
     }

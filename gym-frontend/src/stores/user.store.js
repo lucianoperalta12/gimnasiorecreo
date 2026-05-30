@@ -24,8 +24,12 @@ export const useUserStore = defineStore('user', () => {
   const studentsServerPaginationEnabled = ref(false)
   const loading = ref(false)
 
+  const lastUsersParams = ref({})
+  const lastStudentsParams = ref({})
+
   async function fetchUsers(params = {}) {
     loading.value = true
+    lastUsersParams.value = params
     try {
       const response = await usersApi.getAll(params)
       const pagination = parsePaginatedResponse(response)
@@ -41,6 +45,7 @@ export const useUserStore = defineStore('user', () => {
 
   async function fetchStudents(params = {}) {
     loading.value = true
+    lastStudentsParams.value = params
     try {
       const response = await usersApi.getStudents(params)
       const pagination = parsePaginatedResponse(response)
@@ -63,7 +68,7 @@ export const useUserStore = defineStore('user', () => {
 
   async function createUser(payload) {
     const { data } = await usersApi.create(payload)
-    await fetchUsers()
+    await fetchUsers(lastUsersParams.value)
     return data
   }
 

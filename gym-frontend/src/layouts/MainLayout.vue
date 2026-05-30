@@ -200,19 +200,31 @@
     </div>
   </div>
 
-  <div v-else class="h-[100dvh] w-full overflow-hidden bg-dark-950 flex flex-col">
-    <header class="h-[65px] sm:h-[75px] bg-[#0c0c0c] border-b border-dark-900/60 flex items-center justify-between px-3 sm:px-8 shrink-0">
+  <div v-else class="h-[100dvh] w-full overflow-hidden flex flex-col relative terminal-layout">
+    <!-- Backdrop de fondo idéntico a /login -->
+    <div class="terminal-layout__backdrop" aria-hidden="true">
+      <div class="terminal-layout__base"></div>
+      <div class="terminal-layout__glows"></div>
+      <div class="terminal-layout__lines"></div>
+      <div class="terminal-layout__vignette"></div>
+      <div class="terminal-layout__noise"></div>
+    </div>
+
+    <header class="h-[65px] sm:h-[75px] bg-[#0c0c12]/60 border-b border-white/[0.06] backdrop-blur-md flex items-center justify-between px-3 sm:px-8 shrink-0 z-10 relative">
+      <!-- Glow superior -->
+      <div class="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-primary-500/25 to-transparent"></div>
+
       <div class="flex items-center gap-2 sm:gap-4 min-w-0">
         <img v-if="logoUrl" :src="logoUrl" alt="Logo" class="h-8 sm:h-10 w-auto object-contain opacity-90 flex-shrink-0" />
         <div class="min-w-0">
           <p class="text-sm sm:text-lg font-black text-white uppercase tracking-widest leading-none mb-1 truncate">{{ user?.gymNombre || 'Terminal' }}</p>
-          <p class="text-[9px] sm:text-[11px] text-dark-500 uppercase tracking-[0.2em] font-bold truncate">Terminal de asistencia</p>
+          <p class="text-[9px] sm:text-[11px] text-dark-400 uppercase tracking-[0.2em] font-bold truncate">Terminal de asistencia</p>
         </div>
       </div>
 
       <div class="flex items-center gap-3 sm:gap-6 flex-shrink-0">
         <div class="flex items-center gap-2 text-right">
-          <svg class="w-4 h-4 sm:w-5 sm:h-5 text-dark-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+          <svg class="w-4 h-4 sm:w-5 sm:h-5 text-dark-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
           </svg>
           <div>
@@ -221,9 +233,23 @@
           </div>
         </div>
 
+        <!-- Fullscreen Button -->
+        <button
+          @click="toggleFullscreen"
+          class="p-1.5 sm:p-2 rounded-lg text-dark-400 hover:text-white hover:bg-white/5 transition-all active:scale-90"
+          :title="isFullscreen ? 'Salir de pantalla completa' : 'Pantalla completa'"
+        >
+          <svg v-if="!isFullscreen" class="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M20.25 3.75v4.5m0-4.5h-4.5m4.5 0L15 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 20.25v-4.5m0 4.5h-4.5m4.5 0L15 15" />
+          </svg>
+          <svg v-else class="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 3.75v3c0 .414-.336.75-.75.75h-3m3.75-3.75L6 6.75M15 3.75v3c0 .414.336.75.75.75h3m-3.75-3.75l3 3M9 20.25v-3c0-.414-.336-.75-.75-.75h-3m3.75 3.75L6 17.25M15 20.25v-3c0-.414.336-.75.75-.75h3m-3.75 3.75l3-3" />
+          </svg>
+        </button>
+
         <button
           @click="handleLogout"
-          class="p-1.5 sm:p-2 rounded-lg text-primary-600 hover:bg-primary-600/10 transition-all active:scale-90"
+          class="p-1.5 sm:p-2 rounded-lg text-primary-500 hover:bg-primary-500/10 transition-all active:scale-90"
           title="Cerrar sesión"
         >
           <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -237,7 +263,7 @@
       </div>
     </header>
 
-    <main class="flex-1 flex flex-col p-4 sm:p-6 overflow-hidden">
+    <main class="flex-1 flex flex-col p-4 sm:p-6 overflow-hidden z-10 relative">
       <router-view />
     </main>
   </div>
@@ -287,6 +313,7 @@ const user = computed(() => authStore.user);
 
 const timeString = ref('');
 const dateString = ref('');
+const isFullscreen = ref(false);
 
 function updateClock() {
   const now = new Date();
@@ -294,14 +321,33 @@ function updateClock() {
   dateString.value = now.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().then(() => {
+      isFullscreen.value = true;
+    }).catch(err => {
+      console.error(`Error attempting to enable fullscreen: ${err.message}`);
+    });
+  } else {
+    document.exitFullscreen();
+    isFullscreen.value = false;
+  }
+}
+
+function onFullscreenChange() {
+  isFullscreen.value = !!document.fullscreenElement;
+}
+
 let clockInterval = null;
 onMounted(() => {
   updateClock();
   clockInterval = setInterval(updateClock, 1000);
+  document.addEventListener('fullscreenchange', onFullscreenChange);
 });
 
 onUnmounted(() => {
   if (clockInterval) clearInterval(clockInterval);
+  document.removeEventListener('fullscreenchange', onFullscreenChange);
 });
 
 // SVG icon components
@@ -542,5 +588,55 @@ async function handleLogout() {
 .notification-leave-to {
   opacity: 0;
   transform: translateX(40px);
+}
+
+/* styles same as /login backdrop */
+.terminal-layout {
+  background-color: #090b10;
+}
+
+.terminal-layout__backdrop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.terminal-layout__base {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #0d1016 0%, #121722 45%, #070809 100%);
+}
+
+.terminal-layout__glows {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 10% 10%, rgba(255, 115, 0, 0.15) 0%, transparent 35%),
+    radial-gradient(circle at 100% 85%, rgba(0, 90, 180, 0.05) 0%, transparent 35%),
+    radial-gradient(ellipse 70% 45% at 50% 0%, rgba(18, 22, 30, 0.85) 0%, transparent 60%);
+}
+
+.terminal-layout__lines {
+  position: absolute;
+  inset: 0;
+  opacity: 0.025;
+  background: repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.08) 0px, rgba(255, 255, 255, 0.08) 1px, transparent 1px, transparent 22px);
+}
+
+.terminal-layout__vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, transparent 45%, rgba(0, 0, 0, 0.45) 100%);
+}
+
+.terminal-layout__noise {
+  position: absolute;
+  inset: 0;
+  opacity: 0.02;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px 180px;
 }
 </style>

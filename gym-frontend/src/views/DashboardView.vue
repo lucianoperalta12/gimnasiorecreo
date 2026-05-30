@@ -1,40 +1,35 @@
 <template>
   <div class="animate-fade-in flex-1 flex flex-col h-full">
-    <div v-if="authStore.hasRole('Terminal') || isTerminalRoute" class="flex-1 flex flex-col items-center w-full relative">
+    <div v-if="authStore.hasRole('Terminal') || isTerminalRoute" class="flex-1 flex flex-col items-center w-full pt-6 sm:pt-8 relative" @click.once="requestAutoFullscreen">
+
       <!-- Header -->
-      <div class="w-full max-w-3xl text-center mb-6 sm:mb-8">
-        <div class="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-4 rounded-2xl bg-dark-900/60 border border-dark-800/50 flex items-center justify-center">
+      <div class="w-full max-w-3xl text-center mb-5 sm:mb-6 px-4">
+        <div class="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-3 rounded-2xl bg-dark-900/60 border border-dark-800/50 flex items-center justify-center">
           <svg class="w-6 h-6 sm:w-7 sm:h-7 text-primary-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z"
-            />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
           </svg>
         </div>
         <h2 class="text-base sm:text-lg font-black tracking-wide text-white">Ingresá tu DNI</h2>
         <p class="text-xs sm:text-sm text-dark-500 mt-1.5">Escaneá o escribí y presioná <span class="font-black text-white">ENTER</span></p>
       </div>
 
-      <!-- Input -->
-      <div class="w-full max-w-3xl">
-        <form @submit.prevent="registrarIngreso" class="space-y-4">
+      <!-- Input DNI — estilo original con glow naranja -->
+      <div class="w-full max-w-3xl px-4">
+        <form @submit.prevent="registrarIngreso">
           <div
-            class="flex items-center gap-3 sm:gap-4 px-4 py-3.5 sm:px-6 sm:py-5 rounded-2xl border-2 bg-[#0a0a0a]/70 backdrop-blur-md transition-all duration-300"
-            :class="inputFocused ? 'border-primary-500/80 shadow-[0_0_30px_rgba(255,102,0,0.12)]' : 'border-dark-800/60'"
+            class="flex items-center gap-3 sm:gap-4 px-4 py-4 sm:px-6 sm:py-5 rounded-2xl border-2 bg-[#0a0a0a]/80 backdrop-blur-md transition-all duration-300"
+            :class="inputFocused ? 'border-primary-500 shadow-[0_0_0_4px_rgba(255,108,19,0.12),0_0_40px_rgba(255,108,19,0.18)]' : 'border-dark-800/70'"
           >
-            <svg class="w-7 h-7 sm:w-9 sm:h-9 text-dark-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z"
-              />
+            <svg class="w-7 h-7 sm:w-9 sm:h-9 flex-shrink-0 transition-colors duration-300" :class="inputFocused ? 'text-primary-500/70' : 'text-dark-700'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z" />
             </svg>
             <input
               ref="dniInput"
               v-model="terminalDni"
               type="text"
-              class="w-full bg-transparent border-none text-white text-3xl sm:text-6xl font-black text-center tracking-[0.15em] focus:ring-0 focus:outline-none placeholder-dark-800 p-0"
+              inputmode="numeric"
+              pattern="[0-9]*"
+              class="w-full bg-transparent border-none text-white text-3xl sm:text-5xl font-black text-center tracking-[0.18em] focus:ring-0 focus:outline-none placeholder-dark-800 p-0"
               placeholder="00000000"
               autocomplete="off"
               @focus="inputFocused = true"
@@ -44,85 +39,119 @@
           <button type="submit" class="hidden" :disabled="terminalLoading || !terminalDni.trim()"></button>
         </form>
 
-        <!-- Tip -->
-        <div class="flex items-center justify-center gap-1.5 text-[10px] sm:text-xs text-dark-500 mt-4 sm:mt-5 tracking-wide">
-          <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-dark-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-          </svg>
-          Presioná <span class="font-black text-primary-500 mx-0.5">ENTER</span> para validar
+        <!-- Tip / Loading -->
+        <div class="flex items-center justify-center gap-1.5 mt-3 sm:mt-4">
+          <template v-if="terminalLoading">
+            <span class="w-3.5 h-3.5 border-2 border-primary-500/40 border-t-primary-500 rounded-full animate-spin"></span>
+            <span class="text-[10px] sm:text-xs font-bold uppercase tracking-widest text-dark-500">Verificando...</span>
+          </template>
+          <template v-else>
+            <svg class="w-3.5 h-3.5 sm:w-4 sm:h-4 text-dark-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+            </svg>
+            <span class="text-[10px] sm:text-xs text-dark-500 tracking-wide">Presioná <span class="font-black text-primary-500">ENTER</span> para validar</span>
+          </template>
         </div>
       </div>
-      <div class="flex-1 w-full max-w-3xl">
-        <!-- Result Card -->
+
+      <!-- Result Cards -->
+      <div class="w-full max-w-3xl px-4 mt-5">
         <Transition name="fade-slide">
-          <div v-if="terminalMessage" :key="terminalMessage" class="mt-6 sm:mt-8 animate-fade-in">
-            <!-- Success Card -->
-            <div
-              v-if="terminalSuccess && terminalData"
-              class="rounded-2xl overflow-hidden border backdrop-blur-md"
-              :class="terminalData.diasRestantes <= 7 ? 'border-amber-500/25 bg-[#1a1400]/60' : 'border-emerald-500/20 bg-[#0a1a0f]/60'"
-            >
+          <div v-if="terminalMessage && !terminalLoading" :key="terminalMessage" class="animate-fade-in">
+
+            <!-- SUCCESS: Acceso autorizado (membresía vigente) -->
+            <div v-if="terminalSuccess && terminalData && terminalData.diasRestantes > 7" class="terminal-result-success rounded-2xl overflow-hidden">
+              <div class="h-1 w-full bg-gradient-to-r from-emerald-500 to-emerald-400"></div>
               <div class="p-5 sm:p-6">
-                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-                  <!-- Left: Status + Name + Plan -->
-                  <div class="flex-1 min-w-0">
-                    <div class="flex items-center gap-2.5 mb-3">
-                      <div class="w-7 h-7 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                        <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                      <span class="text-xs sm:text-sm font-black uppercase tracking-[0.15em] text-emerald-400">ACCESO AUTORIZADO</span>
-                    </div>
-                    <h3 class="text-lg sm:text-xl font-black text-white mb-2.5 ml-0.5 truncate">{{ terminalData.nombre }}</h3>
-                    <div class="space-y-1.5 ml-0.5">
-                      <div class="flex items-center gap-2 text-xs text-dark-400">
-                        <span>{{ terminalData.tipoMembresia }}</span>
-                      </div>
-                    </div>
+                <div class="flex items-center gap-3 mb-4">
+                  <div class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
                   </div>
-                  <!-- Right: Time / Date / Days -->
-                  <div class="flex flex-row sm:flex-col gap-5 sm:gap-3 sm:text-right sm:items-end flex-shrink-0">
-                    <div>
-                      <p class="text-[10px] text-dark-500 uppercase tracking-wider font-bold mb-0.5">Ingreso</p>
-                      <p class="text-sm sm:text-base font-black text-primary-500">{{ terminalData.hora }}</p>
-                    </div>
-                    <div>
-                      <p class="text-[10px] text-dark-500 uppercase tracking-wider font-bold mb-0.5">Fecha</p>
-                      <p class="text-sm sm:text-base font-black text-white">{{ terminalData.fecha }}</p>
-                    </div>
-                    <div>
-                      <p class="text-[10px] text-dark-500 uppercase tracking-wider font-bold mb-0.5">Vence en</p>
-                      <p class="text-sm sm:text-base font-black" :class="terminalData.diasRestantes <= 7 ? 'text-amber-400' : 'text-emerald-400'">
-                        {{ terminalData.diasRestantes }} días
-                      </p>
-                    </div>
+                  <div>
+                    <p class="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500">Acceso autorizado</p>
+                    <h3 class="text-lg sm:text-xl font-black text-white leading-tight">{{ terminalData.nombre }}</h3>
+                  </div>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                  <div class="terminal-stat-box">
+                    <p class="terminal-stat-label">Ingreso</p>
+                    <p class="terminal-stat-value text-primary-500">{{ terminalData.hora }}</p>
+                  </div>
+                  <div class="terminal-stat-box">
+                    <p class="terminal-stat-label">Membresía</p>
+                    <p class="terminal-stat-value text-white text-xs sm:text-sm truncate">{{ terminalData.tipoMembresia }}</p>
+                  </div>
+                  <div class="terminal-stat-box">
+                    <p class="terminal-stat-label">Vence en</p>
+                    <p class="terminal-stat-value text-emerald-400">{{ terminalData.diasRestantes }} días</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- Error Card -->
-            <div v-else class="rounded-2xl border border-red-500/25 bg-red-500/5 backdrop-blur-md p-5 sm:p-6">
-              <div class="flex items-center gap-2.5">
-                <div class="w-7 h-7 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0">
-                  <svg class="w-4 h-4 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+            <!-- WARNING: Membresía por vencer (≤7 días) -->
+            <div v-else-if="terminalSuccess && terminalData && terminalData.diasRestantes <= 7" class="terminal-result-warning rounded-2xl overflow-hidden">
+              <div class="h-1 w-full bg-gradient-to-r from-amber-500 to-amber-400"></div>
+              <div class="p-5 sm:p-6">
+                <div class="flex items-center gap-3 mb-4">
+                  <div class="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p class="text-[10px] font-black uppercase tracking-[0.2em] text-amber-400">Membresía próxima a vencer</p>
+                    <h3 class="text-lg sm:text-xl font-black text-white leading-tight">{{ terminalData.nombre }}</h3>
+                  </div>
                 </div>
-                <span class="text-sm font-black text-red-400 uppercase tracking-wide">{{ terminalMessage }}</span>
+                <div class="grid grid-cols-3 gap-3">
+                  <div class="terminal-stat-box">
+                    <p class="terminal-stat-label">Ingreso</p>
+                    <p class="terminal-stat-value text-primary-500">{{ terminalData.hora }}</p>
+                  </div>
+                  <div class="terminal-stat-box">
+                    <p class="terminal-stat-label">Membresía</p>
+                    <p class="terminal-stat-value text-white text-xs sm:text-sm truncate">{{ terminalData.tipoMembresia }}</p>
+                  </div>
+                  <div class="terminal-stat-box">
+                    <p class="terminal-stat-label">Vence en</p>
+                    <p class="terminal-stat-value text-amber-400">{{ terminalData.diasRestantes }} días</p>
+                  </div>
+                </div>
               </div>
             </div>
+
+            <!-- ERROR: Acceso denegado -->
+            <div v-else class="terminal-result-error rounded-2xl overflow-hidden">
+              <div class="h-1 w-full bg-gradient-to-r from-red-600 to-red-500"></div>
+              <div class="p-5 sm:p-6">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0">
+                    <svg class="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p class="text-[10px] font-black uppercase tracking-[0.2em] text-red-500">Acceso denegado</p>
+                    <p class="text-sm sm:text-base font-black text-white">{{ terminalMessage }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </Transition>
       </div>
 
-      <!-- Footer Status Bar -->
+      <!-- Footer status -->
       <div class="absolute bottom-4 left-0 right-0 flex items-center justify-center gap-2 text-[10px] text-dark-600 tracking-wider">
-        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse flex-shrink-0"></span>
         Sistema en línea &bull; {{ terminalName }}
       </div>
     </div>
+
 
     <template v-else>
       <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -590,7 +619,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onMounted, ref, reactive } from 'vue';
+import { computed, nextTick, onMounted, onUnmounted, ref, reactive } from 'vue';
 import { useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/auth.store';
 import { useRoutineStore } from '@/stores/routine.store';
@@ -842,6 +871,12 @@ function formatTime(val) {
   return new Date(val).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
+function requestAutoFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  }
+}
+
 onMounted(async () => {
   if (authStore.hasRole('Terminal') || isTerminalRoute.value) {
     await nextTick();
@@ -1010,3 +1045,78 @@ function onMontoInput(event) {
   });
 }
 </script>
+
+<style scoped>
+
+/* ==============================
+   RESULT CARDS
+============================== */
+.terminal-result-success {
+  background: rgba(4, 18, 10, 0.65);
+  border: 1px solid rgba(52, 211, 153, 0.2);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 0 30px rgba(52, 211, 153, 0.05);
+}
+
+.terminal-result-warning {
+  background: rgba(20, 14, 0, 0.65);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 0 30px rgba(245, 158, 11, 0.05);
+}
+
+.terminal-result-error {
+  background: rgba(18, 4, 4, 0.65);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 0 30px rgba(239, 68, 68, 0.05);
+}
+
+/* ==============================
+   STAT BOXES dentro de result cards
+============================== */
+.terminal-stat-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 1rem;
+  padding: 0.625rem 0.75rem;
+  text-align: center;
+}
+
+.terminal-stat-label {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: rgba(115, 115, 115, 0.8);
+  margin-bottom: 0.25rem;
+}
+
+.terminal-stat-value {
+  font-size: 0.9rem;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+@media (min-width: 640px) {
+  .terminal-stat-value {
+    font-size: 1.05rem;
+  }
+}
+
+/* ==============================
+   TRANSITION
+============================== */
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
+}
+</style>

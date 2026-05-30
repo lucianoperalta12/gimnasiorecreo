@@ -8,12 +8,12 @@
           <div class="flex gap-2 text-xs font-medium text-dark-400">
             <span class="flex items-center gap-1">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-              {{ activeCount }} activos
+              {{ activeCountText }}
             </span>
             <span class="text-dark-600">•</span>
             <span class="flex items-center gap-1">
               <span class="w-1.5 h-1.5 rounded-full bg-dark-500"></span>
-              {{ inactiveCount }} inactivos
+              {{ inactiveCountText }}
             </span>
           </div>
         </div>
@@ -262,13 +262,12 @@
       </div>
 
       <!-- Pagination Controls -->
-      <div v-if="filteredUsers.length > pageSize" class="mt-6 flex items-center justify-between px-2">
+      <div v-if="totalCount > pageSize" class="mt-6 flex items-center justify-between px-2">
         <div class="text-xs text-dark-500 font-medium">
-          Mostrando {{ (currentPage - 1) * pageSize + 1 }} - {{ Math.min(currentPage * pageSize, filteredUsers.length) }} de
-          {{ filteredUsers.length }} registros
+          Mostrando {{ pageStart }} - {{ pageEnd }} de {{ totalCount }} registros
         </div>
         <div class="flex items-center gap-2">
-          <button class="btn-secondary !p-2 !rounded-lg" :disabled="currentPage === 1" @click="currentPage--">
+          <button class="btn-secondary !p-2 !rounded-lg" :disabled="currentPage === 1" @click="goToPage(currentPage - 1)">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15.75 19.5L8.25 12l7.5-7.5" />
             </svg>
@@ -278,7 +277,7 @@
             <button
               v-for="p in totalPages"
               :key="p"
-              @click="currentPage = p"
+              @click="goToPage(p)"
               class="w-8 h-8 rounded-lg text-xs font-black transition-all"
               :class="currentPage === p ? 'bg-primary-600 text-white' : 'bg-dark-800 text-dark-400 hover:bg-dark-700'"
             >
@@ -286,7 +285,7 @@
             </button>
           </div>
 
-          <button class="btn-secondary !p-2 !rounded-lg" :disabled="currentPage === totalPages" @click="currentPage++">
+          <button class="btn-secondary !p-2 !rounded-lg" :disabled="currentPage === totalPages" @click="goToPage(currentPage + 1)">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
             </svg>
@@ -465,6 +464,9 @@ const createGymOptions = computed(() => {
 });
 
 const filteredUsers = computed(() => {
+  if (userStore.usersServerPaginationEnabled) {
+    return userStore.users;
+  }
   const q = search.value.toLowerCase();
   const r = roleFilter.value;
   const g = gymFilter.value;
@@ -498,17 +500,60 @@ const inactiveCount = computed(() => {
   }).length;
 });
 
-const totalPages = computed(() => Math.ceil(filteredUsers.value.length / pageSize.value));
+const activeCountText = computed(() => {
+  const count = activeCount.value;
+  return userStore.usersServerPaginationEnabled ? `${count} activos en esta pág.` : `${count} activos`;
+});
+
+const inactiveCountText = computed(() => {
+  const count = inactiveCount.value;
+  return userStore.usersServerPaginationEnabled ? `${count} inactivos en esta pág.` : `${count} inactivos`;
+});
+
+const totalCount = computed(() => userStore.usersServerPaginationEnabled ? userStore.usersTotalCount : filteredUsers.value.length);
+const totalPages = computed(() => Math.ceil(totalCount.value / pageSize.value));
+const pageStart = computed(() => (userStore.users.length ? (currentPage.value - 1) * pageSize.value + 1 : 0));
+const pageEnd = computed(() => (userStore.users.length ? pageStart.value + userStore.users.length - 1 : 0));
 
 const paginatedUsers = computed(() => {
+  if (userStore.usersServerPaginationEnabled) {
+    return userStore.users;
+  }
   const start = (currentPage.value - 1) * pageSize.value;
   const end = start + pageSize.value;
   return filteredUsers.value.slice(start, end);
 });
 
-// Reset to first page when filters change
-watch([search, roleFilter, gymFilter], () => {
-  currentPage.value = 1;
+async function loadUsers(targetPage = 1) {
+  const params = {
+    page: targetPage,
+    pageSize: pageSize.value,
+  };
+  if (search.value.trim()) params.search = search.value.trim();
+  if (roleFilter.value) params.rol = roleFilter.value;
+  if (gymFilter.value) params.gymId = Number(gymFilter.value);
+
+  await userStore.fetchUsers(params);
+  currentPage.value = userStore.usersPage ?? targetPage;
+}
+
+async function goToPage(targetPage) {
+  if (targetPage < 1 || targetPage > totalPages.value || targetPage === currentPage.value) return;
+  await loadUsers(targetPage);
+}
+
+// Reset/reload when filters change
+let searchDebounce = null;
+
+watch([roleFilter, gymFilter], async () => {
+  await loadUsers(1);
+});
+
+watch(search, () => {
+  if (searchDebounce) clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(async () => {
+    await loadUsers(1);
+  }, 300);
 });
 
 const deleteModalCopy = computed(() => {
@@ -739,7 +784,7 @@ async function confirmPasswordChange() {
 
 onMounted(async () => {
   try {
-    await userStore.fetchUsers();
+    await loadUsers(1);
     if (authStore.hasRole('Superusuario')) {
       const response = await gymsApi.getAll();
       gyms.value = response.data || [];

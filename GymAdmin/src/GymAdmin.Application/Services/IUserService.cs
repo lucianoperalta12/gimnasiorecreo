@@ -5,7 +5,7 @@ namespace GymAdmin.Application.Services;
 
 public interface IUserService
 {
-    Task<PagedResult<UserDto>> GetAllUsersAsync(int requesterId, int? page = null, int? pageSize = null);
+    Task<PagedResult<UserDto>> GetAllUsersAsync(int requesterId, string? search = null, string? rol = null, int? gymId = null, int? page = null, int? pageSize = null);
     Task<UserDto?> GetUserByIdAsync(int requesterId, int id, int? gymId = null);
     Task<PagedResult<UserDto>> GetStudentsAsync(int requesterId, int? page = null, int? pageSize = null);
     Task<UserDto> CreateUserAsync(int requesterId, CreateUserRequest request);

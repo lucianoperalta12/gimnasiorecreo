@@ -18,10 +18,10 @@ public class UserService : IUserService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<PagedResult<UserDto>> GetAllUsersAsync(int requesterId, int? page = null, int? pageSize = null)
+    public async Task<PagedResult<UserDto>> GetAllUsersAsync(int requesterId, string? search = null, string? rol = null, int? gymId = null, int? page = null, int? pageSize = null)
     {
         var requester = await GetRequester(requesterId);
-        var gymId = requester.GymId;
+        var defaultGymId = requester.GymId;
 
         var query = _context.GymUsers.AsNoTracking()
             .Include(gu => gu.User)
@@ -35,12 +35,38 @@ public class UserService : IUserService
         else if (requester.Rol == UserRole.Administrativo)
         {
             query = query.Where(gu =>
-                gu.GymId == gymId &&
+                gu.GymId == defaultGymId &&
                 (gu.Rol == UserRole.Alumno || gu.Rol == UserRole.Profesor));
         }
         else
         {
             throw new UnauthorizedAccessException("No autorizado.");
+        }
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var cleanSearch = search.Trim().ToLower();
+            query = query.Where(gu =>
+                gu.User.Nombre.ToLower().Contains(cleanSearch) ||
+                gu.User.Apellido.ToLower().Contains(cleanSearch) ||
+                gu.User.Email.ToLower().Contains(cleanSearch) ||
+                gu.User.Dni.ToLower().Contains(cleanSearch));
+        }
+
+        if (!string.IsNullOrWhiteSpace(rol))
+        {
+            if (Enum.TryParse<UserRole>(rol, true, out var targetRole))
+            {
+                query = query.Where(gu => gu.Rol == targetRole);
+            }
+        }
+
+        if (gymId.HasValue)
+        {
+            if (requester.Rol == UserRole.Superusuario)
+            {
+                query = query.Where(gu => gu.GymId == gymId.Value);
+            }
         }
 
         var totalCount = await query.CountAsync();
