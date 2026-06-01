@@ -4,6 +4,7 @@
       v-if="authStore.hasRole('Terminal') || isTerminalRoute"
       class="flex-1 flex flex-col items-center w-full pt-6 sm:pt-8 relative"
       @click.once="requestAutoFullscreen"
+      @pointerdown="focusTerminalInput"
     >
       <!-- Header -->
       <div class="w-full max-w-3xl text-center mb-5 sm:mb-6 px-4">
@@ -57,6 +58,8 @@
               autocomplete="off"
               @focus="inputFocused = true"
               @blur="inputFocused = false"
+              @keydown="handleTerminalKey"
+              @keyup="handleTerminalKey"
             />
           </div>
           <button type="submit" class="hidden" :disabled="terminalLoading || !terminalDni.trim()"></button>
@@ -677,6 +680,8 @@ function updateDashboardStats() {
 }
 
 async function registrarIngreso() {
+  if (terminalLoading.value || !terminalDni.value.trim()) return;
+
   terminalLoading.value = true;
   terminalMessage.value = '';
   terminalData.value = null;
@@ -850,10 +855,22 @@ function requestAutoFullscreen() {
   }
 }
 
+function focusTerminalInput() {
+  dniInput.value?.focus();
+}
+
+function handleTerminalKey(event) {
+  const isEnter = event.key === 'Enter' || event.code === 'Enter' || event.code === 'NumpadEnter' || event.keyCode === 13 || event.which === 13;
+  if (!isEnter || event.repeat) return;
+
+  event.preventDefault();
+  registrarIngreso();
+}
+
 onMounted(async () => {
   if (authStore.hasRole('Terminal') || isTerminalRoute.value) {
     await nextTick();
-    dniInput.value?.focus();
+    focusTerminalInput();
     return;
   }
 

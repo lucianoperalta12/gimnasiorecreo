@@ -140,6 +140,7 @@ using (var scope = app.Services.CreateScope())
     }
 
     db.Database.Migrate();
+
 }
 
 // ===== Middleware Pipeline =====
