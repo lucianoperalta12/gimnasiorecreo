@@ -19,6 +19,7 @@ public class AppDbContext : DbContext
     public DbSet<MembershipPayment> MembershipPayments => Set<MembershipPayment>();
     public DbSet<Ingreso> Ingresos => Set<Ingreso>();
     public DbSet<Egreso> Egresos => Set<Egreso>();
+    public DbSet<ErrorLog> ErrorLogs => Set<ErrorLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

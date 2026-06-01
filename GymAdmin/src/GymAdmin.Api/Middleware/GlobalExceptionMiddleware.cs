@@ -1,6 +1,8 @@
 using System.Data.Common;
 using System.Net;
 using System.Text.Json;
+using GymAdmin.Domain.Entities;
+using GymAdmin.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace GymAdmin.Api.Middleware;
@@ -46,9 +48,14 @@ public class GlobalExceptionMiddleware
         };
 
         if (statusCode == HttpStatusCode.InternalServerError)
+        {
             _logger.LogError(exception, "Unhandled exception");
+            await LogInternalServerErrorAsync(context, exception);
+        }
         else
+        {
             _logger.LogWarning("Handled exception: {Message}", exception.Message);
+        }
 
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = (int)statusCode;
@@ -60,6 +67,42 @@ public class GlobalExceptionMiddleware
         });
 
         await context.Response.WriteAsync(response);
+    }
+
+    private async Task LogInternalServerErrorAsync(HttpContext context, Exception exception)
+    {
+        try
+        {
+            var dbContext = context.RequestServices.GetRequiredService<AppDbContext>();
+
+            dbContext.ErrorLogs.Add(new ErrorLog
+            {
+                Message = exception.Message,
+                StackTrace = exception.StackTrace,
+                Path = context.Request.Path.Value,
+                Method = context.Request.Method,
+                Timestamp = DateTime.UtcNow
+            });
+
+            await dbContext.SaveChangesAsync();
+
+            var oldestToKeep = await dbContext.ErrorLogs
+                .OrderByDescending(errorLog => errorLog.Id)
+                .Skip(99)
+                .Select(errorLog => errorLog.Id)
+                .FirstOrDefaultAsync();
+
+            if (oldestToKeep > 0)
+            {
+                await dbContext.ErrorLogs
+                    .Where(errorLog => errorLog.Id < oldestToKeep)
+                    .ExecuteDeleteAsync();
+            }
+        }
+        catch (Exception dbException)
+        {
+            _logger.LogError(dbException, "Failed to log exception to database");
+        }
     }
 
     private static bool IsAttendanceSchemaError(Exception exception)
