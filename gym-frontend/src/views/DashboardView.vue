@@ -303,36 +303,35 @@
             </button>
           </div>
 
-          <div class="flex-1 overflow-y-auto custom-scrollbar space-y-2.5">
+          <div class="flex-1 overflow-y-auto custom-scrollbar space-y-1.5">
             <div
-              v-for="ingreso in ingresosHoy.slice(0, 5)"
+              v-for="ingreso in ingresosHoy"
               :key="ingreso.id"
-              class="flex items-center justify-between p-3.5 rounded-2xl bg-dark-950/40 border border-dark-900/60 hover:border-primary-500/10 transition-all duration-300"
+              class="flex items-center justify-between px-3 py-2 rounded-xl border border-dark-900/50 bg-dark-950/30 hover:border-primary-500/20 transition-colors"
             >
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-primary-500/10 text-primary-500 flex items-center justify-center text-xs font-black">
-                  {{ ingreso.alumno?.charAt(0)?.toUpperCase() }}
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="flex items-center justify-center w-8 h-8 rounded-full bg-primary-500/10 text-primary-500 text-xs font-bold shrink-0">
+                  {{ ingreso.alumno?.[0]?.toUpperCase() }}
                 </div>
-                <div>
-                  <p class="text-xs font-black text-white leading-none mb-1">{{ ingreso.alumno }}</p>
-                  <p class="text-[10px] text-dark-500">Plan: {{ ingreso.tipoMembresia }}</p>
+
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="text-sm font-semibold text-white truncate">
+                    {{ ingreso.alumno }}
+                  </span>
+
+                  <span class="text-[11px] px-2 py-0.5 rounded-full bg-dark-800 text-dark-400 shrink-0">
+                    {{ ingreso.tipoMembresia }}
+                  </span>
                 </div>
               </div>
-              <div class="text-right">
-                <p class="text-xs font-black text-white">{{ formatTime(ingreso.fechaHora) }}</p>
-                <p class="text-[9px] text-dark-500 uppercase tracking-widest leading-none mt-0.5">{{ ingreso.terminal }}</p>
-              </div>
+
+              <span class="text-xs font-semibold text-white shrink-0">
+                {{ formatTime(ingreso.fechaHora) }}
+              </span>
             </div>
 
-            <div v-if="!ingresosHoy.length" class="h-full flex flex-col items-center justify-center text-center py-6">
-              <svg class="w-8 h-8 text-dark-700 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                />
-              </svg>
-              <p class="text-xs text-dark-500 font-bold">Sin ingresos registrados hoy aún.</p>
+            <div v-if="!ingresosHoy.length" class="flex items-center justify-center py-8">
+              <p class="text-sm font-semibold text-dark-500">Sin ingresos registrados hoy.</p>
             </div>
           </div>
         </div>
@@ -356,7 +355,7 @@
 
             <div class="flex-1 overflow-y-auto custom-scrollbar space-y-2">
               <div
-                v-for="membresia in membresiasPorVencer.slice(0, 3)"
+                v-for="membresia in membresiasPorVencer"
                 :key="membresia.id"
                 class="flex items-center justify-between p-2 rounded-xl bg-dark-950/40 border border-dark-900/60"
               >
@@ -402,7 +401,7 @@
 
         <template v-else>
           <!-- Móvil: tarjetas apiladas, sin scroll horizontal -->
-          <div v-if="alumnosMembresiaVencida.length" class="md:hidden max-h-[360px] overflow-y-auto custom-scrollbar space-y-2.5">
+          <div v-if="alumnosMembresiaVencida.length && isMobile" class="max-h-[360px] overflow-y-auto custom-scrollbar space-y-2.5">
             <div v-for="m in alumnosMembresiaVencida" :key="m.id" class="flex items-center gap-3 p-3.5 rounded-2xl bg-dark-950/40 border border-dark-900/60">
               <div class="w-9 h-9 rounded-full bg-red-500/10 text-red-400 flex items-center justify-center text-xs font-black flex-shrink-0">
                 {{ m.alumnoNombreCompleto?.charAt(0)?.toUpperCase() }}
@@ -440,7 +439,7 @@
           </div>
 
           <!-- Escritorio: tabla -->
-          <div v-if="alumnosMembresiaVencida.length" class="hidden md:block table-container max-h-[360px] overflow-y-auto custom-scrollbar">
+          <div v-else-if="alumnosMembresiaVencida.length" class="table-container max-h-[360px] overflow-y-auto custom-scrollbar">
             <table class="table">
               <thead class="sticky top-0 z-10 bg-dark-950">
                 <tr>
@@ -602,6 +601,7 @@
 
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, ref, reactive } from 'vue';
+import { useIsMobile } from '@/composables/useIsMobile';
 import { useRoute } from 'vue-router';
 import { useAuthStore } from '@/stores/auth.store';
 import { useRoutineStore } from '@/stores/routine.store';
@@ -618,6 +618,8 @@ import AppModal from '@/components/ui/AppModal.vue';
 import AppSearchSelect from '@/components/ui/AppSearchSelect.vue';
 import { useNotification } from '@/composables/useNotification';
 import { buildMembresiaVencidaWhatsAppMessage, buildWhatsAppUrl } from '@/utils/whatsapp';
+import { formatLocalDate } from '@/utils/date';
+const { isMobile } = useIsMobile();
 
 const route = useRoute();
 const isTerminalRoute = computed(() => route.path === '/terminal');
@@ -731,7 +733,7 @@ async function fetchIngresosHoy() {
   if (!authStore.hasRole('Superusuario', 'Administrativo')) return;
   loadingIngresos.value = true;
   try {
-    const hoy = new Date().toISOString().slice(0, 10);
+    const hoy = formatLocalDate();
     const { data } = await ingresosApi.getAll({ fechaDesde: hoy, fechaHasta: hoy });
     ingresosHoy.value = data || [];
   } catch (err) {
@@ -938,7 +940,7 @@ async function openRenewModal(m) {
     await membershipStore.fetchPlans();
   }
   renewForm.planId = activePlans.value[0]?.id || 0;
-  renewForm.fechaInicio = new Date().toISOString().slice(0, 10);
+  renewForm.fechaInicio = formatLocalDate();
   renewForm.notas = '';
   showRenewModal.value = true;
 }

@@ -68,7 +68,7 @@
 
     <template v-else>
       <div>
-        <div v-if="filteredPayments.length" class="md:hidden space-y-2">
+        <div v-if="filteredPayments.length && isMobile" class="space-y-2">
           <div v-for="p in paginatedPayments" :key="p.id" class="p-3.5 rounded-xl bg-dark-900/30 border border-dark-800/40 flex flex-col gap-2">
             <div class="flex items-start justify-between gap-2">
               <div class="min-w-0">
@@ -93,7 +93,7 @@
           </div>
         </div>
 
-        <div v-if="filteredPayments.length" class="hidden md:block table-container">
+        <div v-else-if="filteredPayments.length && !isMobile" class="table-container">
           <table class="table">
             <thead>
               <tr>
@@ -212,6 +212,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue';
+import { useIsMobile } from '@/composables/useIsMobile';
 import { useRouter } from 'vue-router';
 import { useMembershipStore } from '@/stores/membership.store';
 import { useAuthStore } from '@/stores/auth.store';
@@ -223,11 +224,13 @@ import AppInput from '@/components/ui/AppInput.vue';
 import AppModal from '@/components/ui/AppModal.vue';
 import AppSearchSelect from '@/components/ui/AppSearchSelect.vue';
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
+import { formatLocalDate } from '@/utils/date';
 
 const router = useRouter();
 const store = useMembershipStore();
 const authStore = useAuthStore();
 const { success, error: showError } = useNotification();
+const { isMobile } = useIsMobile();
 
 const selectedGymId = ref(null);
 const gyms = ref([]);
@@ -237,8 +240,12 @@ const saving = ref(false);
 const editingPayment = ref(null);
 const deletingPayment = ref(null);
 
-const defaultDateFrom = () => new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().slice(0, 10);
-const defaultDateTo = () => new Date().toISOString().slice(0, 10);
+const defaultDateFrom = () => {
+  const date = new Date();
+  date.setMonth(date.getMonth() - 1);
+  return formatLocalDate(date);
+};
+const defaultDateTo = () => formatLocalDate(new Date());
 
 const search = ref('');
 const dateFrom = ref(defaultDateFrom());

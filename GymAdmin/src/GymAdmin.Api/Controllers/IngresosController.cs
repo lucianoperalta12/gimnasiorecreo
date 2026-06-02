@@ -32,6 +32,11 @@ public class IngresosController : ControllerBase
         return Ok(result.Items);
     }
 
+    [HttpGet("today")]
+    [Authorize(Roles = "Superusuario,Administrativo")]
+    public async Task<ActionResult<List<IngresoHoyItemDto>>> GetToday([FromQuery] int? gymId) =>
+        Ok(await _ingresoService.GetTodayAsync(GetUserId(), gymId));
+
     [HttpPost("registrar")]
     [Authorize(Roles = "Terminal,Administrativo,Superusuario")]
     public async Task<ActionResult<RegistrarIngresoResponse>> Registrar([FromBody] RegistrarIngresoRequest request) =>

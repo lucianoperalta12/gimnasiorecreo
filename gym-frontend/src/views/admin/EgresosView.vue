@@ -11,9 +11,8 @@
             </span>
             <span class="flex items-center gap-1 text-rose-400">
               <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
-              {{ formatCurrency(totalAmount) }}
-            </span>
-            filtrados
+              {{ formatCurrency(totalAmount) }} </span
+            >,¶ filtrados
           </div>
         </div>
         <p class="page-subtitle">Registro de egresos del gimnasio</p>
@@ -69,7 +68,7 @@
     <template v-else>
       <div>
         <!-- Mobile cards -->
-        <div v-if="filteredEgresos.length" class="md:hidden space-y-2">
+        <div v-if="filteredEgresos.length && isMobile" class="space-y-2">
           <div v-for="e in paginatedEgresos" :key="e.id" class="p-3.5 rounded-xl bg-dark-900/30 border border-dark-800/40 flex flex-col gap-2">
             <div class="flex items-start justify-between gap-2">
               <div class="min-w-0">
@@ -90,7 +89,7 @@
         </div>
 
         <!-- Desktop table -->
-        <div v-if="filteredEgresos.length" class="hidden md:block table-container">
+        <div v-else-if="filteredEgresos.length && !isMobile" class="table-container">
           <table class="table">
             <thead>
               <tr>
@@ -200,6 +199,7 @@
 
 <script setup>
 import { ref, reactive, computed, watch, onMounted, nextTick } from 'vue';
+import { useIsMobile } from '@/composables/useIsMobile';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth.store';
 import { useNotification } from '@/composables/useNotification';
@@ -211,10 +211,12 @@ import AppInput from '@/components/ui/AppInput.vue';
 import AppModal from '@/components/ui/AppModal.vue';
 import AppSearchSelect from '@/components/ui/AppSearchSelect.vue';
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
+import { formatLocalDate } from '@/utils/date';
 
 const router = useRouter();
 const authStore = useAuthStore();
 const { success, error: showError } = useNotification();
+const { isMobile } = useIsMobile();
 
 const CATEGORIAS = ['Sueldos', 'Alquiler', 'Servicios', 'Impuestos', 'Mantenimiento', 'Equipamiento', 'Otros'];
 
@@ -231,8 +233,12 @@ const saving = ref(false);
 const editingEgreso = ref(null);
 const deletingEgreso = ref(null);
 
-const defaultDateFrom = () => new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().slice(0, 10);
-const defaultDateTo = () => new Date().toISOString().slice(0, 10);
+const defaultDateFrom = () => {
+  const date = new Date();
+  date.setMonth(date.getMonth() - 1);
+  return formatLocalDate(date);
+};
+const defaultDateTo = () => formatLocalDate(new Date());
 
 const search = ref('');
 const dateFrom = ref(defaultDateFrom());
@@ -246,7 +252,7 @@ const form = reactive({
   descripcion: '',
   categoria: 'Sueldos',
   monto: '',
-  fecha: new Date().toISOString().slice(0, 10),
+  fecha: formatLocalDate(new Date()),
   observaciones: '',
 });
 
@@ -296,7 +302,7 @@ function openCreateModal() {
     descripcion: '',
     categoria: 'Sueldos',
     monto: '',
-    fecha: new Date().toISOString().slice(0, 10),
+    fecha: formatLocalDate(new Date()),
     observaciones: '',
   });
   showModal.value = true;
@@ -308,7 +314,7 @@ function openEditModal(e) {
     descripcion: e.descripcion,
     categoria: e.categoria,
     monto: formatNumberWithDots(e.monto),
-    fecha: e.fecha ? new Date(e.fecha).toISOString().slice(0, 10) : '',
+    fecha: e.fecha ? formatLocalDate(new Date(e.fecha)) : '',
     observaciones: e.observaciones || '',
   });
   showModal.value = true;

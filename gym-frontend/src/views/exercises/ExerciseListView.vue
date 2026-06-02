@@ -50,7 +50,7 @@
       <!-- Responsive List -->
       <div v-if="filteredExercises.length">
         <!-- Desktop Table -->
-        <div class="hidden md:block table-container">
+        <div v-if="!isMobile" class="table-container">
           <table class="table">
             <thead>
               <tr>
@@ -83,7 +83,7 @@
         </div>
 
         <!-- Mobile Cards -->
-        <div class="md:hidden space-y-4">
+        <div v-else class="space-y-4">
           <div v-for="exercise in filteredExercises" :key="exercise.id" class="card p-4 space-y-3">
             <div class="flex items-start justify-between">
               <div>
@@ -149,6 +149,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useIsMobile } from '@/composables/useIsMobile'
 import { useRouter } from 'vue-router'
 import { useRoutineStore } from '@/stores/routine.store'
 import { useAuthStore } from '@/stores/auth.store'
@@ -162,6 +163,7 @@ const router = useRouter()
 const store = useRoutineStore()
 const authStore = useAuthStore()
 const { success, error: showError } = useNotification()
+const { isMobile } = useIsMobile()
 
 const search = ref('')
 const gymFilter = ref(0)

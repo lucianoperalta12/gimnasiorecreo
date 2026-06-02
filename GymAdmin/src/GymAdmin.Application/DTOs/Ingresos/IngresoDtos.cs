@@ -25,3 +25,10 @@ public record IngresoListItemDto(
     string Terminal,
     string TipoMembresia
 );
+
+public record IngresoHoyItemDto(
+    int Id,
+    string Alumno,
+    string TipoMembresia,
+    DateTime FechaHora
+);

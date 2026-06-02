@@ -144,15 +144,14 @@ public class IngresoService : IIngresoService
         {
             var desde = fechaDesde ?? DateOnly.FromDateTime(DateTime.UtcNow);
             var hasta = fechaHasta ?? desde;
-            var inicio = DateTime.SpecifyKind(desde.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
-            var fin = DateTime.SpecifyKind(hasta.ToDateTime(TimeOnly.MaxValue), DateTimeKind.Utc);
-            query = query.Where(x => x.FechaHora >= inicio && x.FechaHora <= fin);
+            var (inicio, fin) = GetLocalDateRangeAsUtc(desde, hasta);
+            query = query.Where(x => x.FechaHora >= inicio && x.FechaHora < fin);
         }
         else if (!alumnoId.HasValue)
         {
-            var hoy = DateOnly.FromDateTime(DateTime.UtcNow);
-            var inicio = DateTime.SpecifyKind(hoy.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
-            var fin = inicio.AddDays(1);
+            var argentinaTimeZone = GetArgentinaTimeZone();
+            var hoy = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, argentinaTimeZone));
+            var (inicio, fin) = GetLocalDateRangeAsUtc(hoy, hoy);
             query = query.Where(x => x.FechaHora >= inicio && x.FechaHora < fin);
         }
 
@@ -172,6 +171,61 @@ public class IngresoService : IIngresoService
             .ToListAsync();
 
         return new PagedResult<IngresoListItemDto>(items, totalCount, page, NormalizePageSize(pageSize));
+    }
+
+    public async Task<List<IngresoHoyItemDto>> GetTodayAsync(int requesterId, int? gymId = null)
+    {
+        var requester = await GetRequesterAsync(requesterId);
+
+        if (requester.Rol is not (UserRole.Superusuario or UserRole.Administrativo))
+            throw new UnauthorizedAccessException("No autorizado.");
+
+        var query = _context.Ingresos
+            .AsNoTracking()
+            .AsQueryable();
+
+        if (requester.Rol != UserRole.Superusuario)
+            query = query.Where(x => x.GymId == requester.GymId);
+        else if (gymId.HasValue)
+            query = query.Where(x => x.GymId == gymId.Value);
+
+        var argentinaTimeZone = GetArgentinaTimeZone();
+        var today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, argentinaTimeZone));
+        var (inicio, fin) = GetLocalDateRangeAsUtc(today, today);
+
+        return await query
+            .Where(x => x.FechaHora >= inicio && x.FechaHora < fin)
+            .OrderByDescending(x => x.FechaHora)
+            .Select(x => new IngresoHoyItemDto(
+                x.Id,
+                (x.Alumno.Nombre + " " + x.Alumno.Apellido).Trim(),
+                x.Membership.Plan.Nombre,
+                x.FechaHora
+            ))
+            .ToListAsync();
+    }
+
+    private static (DateTime Inicio, DateTime Fin) GetLocalDateRangeAsUtc(DateOnly desde, DateOnly hasta)
+    {
+        var argentinaTimeZone = GetArgentinaTimeZone();
+        var inicioLocal = DateTime.SpecifyKind(desde.ToDateTime(TimeOnly.MinValue), DateTimeKind.Unspecified);
+        var finLocal = DateTime.SpecifyKind(hasta.AddDays(1).ToDateTime(TimeOnly.MinValue), DateTimeKind.Unspecified);
+        return (
+            TimeZoneInfo.ConvertTimeToUtc(inicioLocal, argentinaTimeZone),
+            TimeZoneInfo.ConvertTimeToUtc(finLocal, argentinaTimeZone)
+        );
+    }
+
+    private static TimeZoneInfo GetArgentinaTimeZone()
+    {
+        try
+        {
+            return TimeZoneInfo.FindSystemTimeZoneById("Argentina Standard Time");
+        }
+        catch (TimeZoneNotFoundException)
+        {
+            return TimeZoneInfo.FindSystemTimeZoneById("America/Argentina/Buenos_Aires");
+        }
     }
 
     private static int CalcularIngresosDisponibles(Membership membership)

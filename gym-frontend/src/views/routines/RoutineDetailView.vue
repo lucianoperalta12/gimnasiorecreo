@@ -111,7 +111,7 @@
           </div>
 
           <div v-else>
-            <div class="hidden md:block table-container">
+            <div class="table-container" v-if="!isMobile">
               <table class="table">
                 <thead>
                   <tr>
@@ -159,7 +159,7 @@
               </table>
             </div>
 
-            <div class="md:hidden space-y-2.5">
+            <div v-else class="space-y-2.5">
               <div v-for="ej in currentSection.ejercicios" :key="ej.id" class="p-3.5 rounded-2xl bg-dark-900/60 border border-dark-800/50 shadow-lg space-y-3.5 relative overflow-hidden group">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-primary-600/5 rounded-full blur-2xl group-hover:bg-primary-600/10 transition-colors" />
 
@@ -232,6 +232,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useIsMobile } from '@/composables/useIsMobile'
 import { useRoute, useRouter } from 'vue-router'
 import { useRoutineStore } from '@/stores/routine.store'
 import { useAuthStore } from '@/stores/auth.store'
@@ -243,6 +244,7 @@ const route = useRoute()
 const router = useRouter()
 const store = useRoutineStore()
 const authStore = useAuthStore()
+const { isMobile } = useIsMobile()
 const loading = ref(true)
 const routine = ref(null)
 const activeTab = ref('calentamientoInicial')

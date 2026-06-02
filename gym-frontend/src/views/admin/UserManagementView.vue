@@ -61,8 +61,8 @@
     </div>
 
     <template v-else>
-      <!-- Mobile Cards (visible < md) -->
-      <div class="md:hidden space-y-3">
+      <!-- Mobile Cards -->
+      <div v-if="isMobile" class="space-y-3">
         <div
           v-for="u in paginatedUsers"
           :key="userStore.rowKey(u)"
@@ -151,8 +151,8 @@
         </div>
       </div>
 
-      <!-- Desktop Table (visible md+) -->
-      <div class="hidden md:block overflow-x-auto rounded-xl border border-dark-700/50">
+      <!-- Desktop Table -->
+      <div v-else class="overflow-x-auto rounded-xl border border-dark-700/50">
         <table class="w-full text-sm text-left">
           <thead class="bg-dark-800/80 border-b border-dark-700">
             <tr>
@@ -383,6 +383,7 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue';
+import { useIsMobile } from '@/composables/useIsMobile';
 import { useRouter, useRoute } from 'vue-router';
 import { useUserStore } from '@/stores/user.store';
 import { useAuthStore } from '@/stores/auth.store';
@@ -399,6 +400,7 @@ const route = useRoute();
 const userStore = useUserStore();
 const authStore = useAuthStore();
 const { success, error: showError } = useNotification();
+const { isMobile } = useIsMobile();
 const search = ref('');
 const roleFilter = ref('');
 const gymFilter = ref('');

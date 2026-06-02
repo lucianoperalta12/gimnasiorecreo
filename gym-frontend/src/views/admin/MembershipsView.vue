@@ -45,7 +45,8 @@
     <LoadingSpinner v-if="store.loading" />
 
     <template v-else>
-      <div class="md:hidden space-y-3">
+      <!-- Mobile Cards -->
+      <div v-if="isMobile" class="space-y-3">
         <div v-for="m in store.memberships" :key="m.id" class="p-4 rounded-2xl bg-dark-900/40 border border-dark-800/50 flex flex-col gap-3">
           <div class="flex items-center justify-between">
             <h3 class="font-semibold text-white">{{ m.alumnoNombreCompleto }}</h3>
@@ -80,7 +81,7 @@
         </div>
       </div>
 
-      <div v-if="store.memberships.length" class="hidden md:block table-container">
+      <div v-else-if="store.memberships.length" class="table-container">
         <table class="table">
           <thead>
             <tr>
@@ -261,6 +262,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, nextTick, watch } from 'vue'
+import { useIsMobile } from '@/composables/useIsMobile'
 import { useRouter } from 'vue-router'
 import { useMembershipStore } from '@/stores/membership.store'
 import { useUserStore } from '@/stores/user.store'
@@ -280,12 +282,14 @@ import AppInput from '@/components/ui/AppInput.vue'
 import AppModal from '@/components/ui/AppModal.vue'
 import AppSearchSelect from '@/components/ui/AppSearchSelect.vue'
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
+import { formatLocalDate } from '@/utils/date'
 
 const router = useRouter()
 const store = useMembershipStore()
 const userStore = useUserStore()
 const authStore = useAuthStore()
 const { success, error: showError } = useNotification()
+const { isMobile } = useIsMobile()
 
 const search = ref('')
 const filterEstado = ref('Activa')
@@ -307,7 +311,7 @@ const pageSize = ref(15)
 const currentPage = ref(1)
 let searchDebounce = null
 
-const createForm = reactive({ alumnoId: null, planId: 0, fechaInicio: new Date().toISOString().slice(0, 10), notas: '' })
+const createForm = reactive({ alumnoId: null, planId: 0, fechaInicio: formatLocalDate(), notas: '' })
 const renewForm = reactive({ planId: 0, fechaInicio: '', notas: '' })
 
 const paymentForm = reactive({
@@ -382,7 +386,7 @@ function canRenew(m) {
 function openCreateModal() {
   createForm.alumnoId = null
   createForm.planId = activePlans.value[0]?.id || 0
-  createForm.fechaInicio = new Date().toISOString().slice(0, 10)
+  createForm.fechaInicio = formatLocalDate()
   createForm.notas = ''
   showCreateModal.value = true
 }
@@ -390,7 +394,7 @@ function openCreateModal() {
 function openRenewModal(m) {
   renewingMembership.value = m
   renewForm.planId = activePlans.value[0]?.id || 0
-  renewForm.fechaInicio = new Date().toISOString().slice(0, 10)
+  renewForm.fechaInicio = formatLocalDate()
   renewForm.notas = ''
   showRenewModal.value = true
 }

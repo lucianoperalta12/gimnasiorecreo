@@ -185,6 +185,7 @@ import { gymsApi } from '@/api/gyms.api';
 import { useAuthStore } from '@/stores/auth.store';
 import { useNotification } from '@/composables/useNotification';
 import AppSearchSelect from '@/components/ui/AppSearchSelect.vue';
+import { formatLocalDate } from '@/utils/date';
 
 const { error: showError } = useNotification();
 const authStore = useAuthStore();
@@ -233,9 +234,7 @@ function obtenerRangoFechas(id) {
     hasta = new Date(hoy.getFullYear(), hoy.getMonth(), 0); // Último día del mes anterior
   }
 
-  // Formato YYYY-MM-DD
-  const format = (d) => d.toISOString().slice(0, 10);
-  return { desde: format(desde), hasta: format(hasta) };
+  return { desde: formatLocalDate(desde), hasta: formatLocalDate(hasta) };
 }
 
 async function cargarEstadisticas() {

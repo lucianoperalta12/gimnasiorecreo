@@ -48,8 +48,8 @@
     <LoadingSpinner v-if="loading" />
 
     <template v-else>
-      <!-- Mobile Cards (visible < md) -->
-      <div v-if="items.length" class="md:hidden space-y-3">
+      <!-- Mobile Cards -->
+      <div v-if="items.length && isMobile" class="space-y-3">
         <div v-for="item in items" :key="item.id" class="p-4 rounded-2xl bg-dark-900/40 border border-dark-800/50 flex flex-col gap-2">
           <div class="flex items-center justify-between">
             <h3 class="font-semibold text-white text-sm">{{ item.alumno }}</h3>
@@ -76,8 +76,8 @@
         </div>
       </div>
 
-      <!-- Desktop Table (visible md+) -->
-      <div v-if="items.length" class="hidden md:block table-container">
+      <!-- Desktop Table -->
+      <div v-else-if="items.length && !isMobile" class="table-container">
         <table class="table">
           <thead>
             <tr>
@@ -150,6 +150,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
+import { useIsMobile } from '@/composables/useIsMobile'
 import { useRouter } from 'vue-router'
 import AppSearchSelect from '@/components/ui/AppSearchSelect.vue'
 import AppButton from '@/components/ui/AppButton.vue'
@@ -160,9 +161,11 @@ import { useUserStore } from '@/stores/user.store'
 import { useAuthStore } from '@/stores/auth.store'
 import { useNotification } from '@/composables/useNotification'
 import { parsePaginatedResponse } from '@/utils/pagination'
+import { formatLocalDate } from '@/utils/date'
 
 const router = useRouter()
 const { error: showError } = useNotification()
+const { isMobile } = useIsMobile()
 const userStore = useUserStore()
 const authStore = useAuthStore()
 const loading = ref(false)
@@ -172,7 +175,7 @@ const serverPaginationEnabled = ref(false)
 const alumnoId = ref('')
 const gymId = ref('')
 const gyms = ref([])
-const fecha = ref(new Date().toISOString().slice(0, 10))
+const fecha = ref(formatLocalDate(new Date()))
 const page = ref(1)
 const pageSize = 15
 

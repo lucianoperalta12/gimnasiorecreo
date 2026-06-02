@@ -34,8 +34,8 @@
     </div>
 
     <template v-else>
-      <!-- Mobile Cards (< md) -->
-      <div class="md:hidden space-y-3">
+      <!-- Mobile Cards -->
+      <div v-if="isMobile" class="space-y-3">
         <div v-for="gym in gyms" :key="gym.id" class="p-4 rounded-2xl bg-dark-900/40 border border-dark-800/50" :class="{ 'opacity-50': !gym.activo }">
           <div class="flex items-center gap-3 mb-3">
             <img v-if="gym.logoUrl" :src="gym.logoUrl" alt="" class="w-10 h-10 rounded object-cover bg-dark-900" />
@@ -65,8 +65,8 @@
         </div>
       </div>
 
-      <!-- Desktop Table (md+) -->
-      <div class="hidden md:block overflow-x-auto rounded-xl border border-dark-700/50">
+      <!-- Desktop Table -->
+      <div v-else class="overflow-x-auto rounded-xl border border-dark-700/50">
         <table class="w-full text-sm text-left">
           <thead class="bg-dark-800/80 border-b border-dark-700">
             <tr>
@@ -163,6 +163,7 @@
 
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
+import { useIsMobile } from '@/composables/useIsMobile'
 import { useRouter } from 'vue-router'
 import { gymsApi } from '@/api/gyms.api'
 import { useNotification } from '@/composables/useNotification'
@@ -173,6 +174,7 @@ import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
 
 const router = useRouter()
 const { success, error: showError } = useNotification()
+const { isMobile } = useIsMobile()
 const gyms = ref([])
 const loading = ref(false)
 const saving = ref(false)

@@ -35,7 +35,9 @@
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         <!-- KPI 1: Recaudación Mes Actual -->
         <div class="p-4 sm:p-6 rounded-2xl sm:rounded-[2rem] bg-dark-900/40 border border-dark-800/50 backdrop-blur-md relative overflow-hidden group">
-          <div class="absolute -right-4 -bottom-4 w-12 sm:w-24 h-12 sm:h-24 bg-emerald-500/5 rounded-full blur-xl group-hover:bg-emerald-500/10 transition-all duration-500"></div>
+          <div
+            class="absolute -right-4 -bottom-4 w-12 sm:w-24 h-12 sm:h-24 bg-emerald-500/5 rounded-full blur-xl group-hover:bg-emerald-500/10 transition-all duration-500"
+          ></div>
           <p class="text-[10px] sm:text-[10px] text-dark-500 uppercase tracking-[0.15em] sm:tracking-[0.2em] font-black">Recaudación</p>
           <p class="text-xl sm:text-2xl font-black text-emerald-400 mt-1.5 sm:mt-2 tracking-tight leading-none">
             {{ formatMoneda(recaudacionMesActual) }}
@@ -53,7 +55,9 @@
 
         <!-- KPI 2: Membresías Activas -->
         <div class="p-4 sm:p-6 rounded-2xl sm:rounded-[2rem] bg-dark-900/40 border border-dark-800/50 backdrop-blur-md relative overflow-hidden group">
-          <div class="absolute -right-4 -bottom-4 w-12 sm:w-24 h-12 sm:h-24 bg-primary-500/5 rounded-full blur-xl group-hover:bg-primary-500/10 transition-all duration-500"></div>
+          <div
+            class="absolute -right-4 -bottom-4 w-12 sm:w-24 h-12 sm:h-24 bg-primary-500/5 rounded-full blur-xl group-hover:bg-primary-500/10 transition-all duration-500"
+          ></div>
           <p class="text-[10px] sm:text-[10px] text-dark-500 uppercase tracking-[0.15em] sm:tracking-[0.2em] font-black">Activas</p>
           <p class="text-xl sm:text-4xl font-black text-white mt-1.5 sm:mt-3 tracking-tight leading-none">
             {{ membershipsActivasCount }}
@@ -63,7 +67,9 @@
 
         <!-- KPI 3: Ticket Promedio -->
         <div class="p-4 sm:p-6 rounded-2xl sm:rounded-[2rem] bg-dark-900/40 border border-dark-800/50 backdrop-blur-md relative overflow-hidden group">
-          <div class="absolute -right-4 -bottom-4 w-12 sm:w-24 h-12 sm:h-24 bg-blue-500/5 rounded-full blur-xl group-hover:bg-blue-500/10 transition-all duration-500"></div>
+          <div
+            class="absolute -right-4 -bottom-4 w-12 sm:w-24 h-12 sm:h-24 bg-blue-500/5 rounded-full blur-xl group-hover:bg-blue-500/10 transition-all duration-500"
+          ></div>
           <p class="text-[10px] sm:text-[10px] text-dark-500 uppercase tracking-[0.15em] sm:tracking-[0.2em] font-black">Cobro Prom.</p>
           <p class="text-xl sm:text-4xl font-black text-white mt-1.5 sm:mt-3 tracking-tight leading-none">
             {{ formatMoneda(ticketPromedio) }}
@@ -161,7 +167,7 @@
               <tr>
                 <th>Alumno</th>
                 <th class="hidden sm:table-cell">Fecha de Pago</th>
-                <th>Concepto / Plan</th>
+                <th>Plan</th>
                 <th>Monto</th>
               </tr>
             </thead>
@@ -192,6 +198,7 @@ import { gymsApi } from '@/api/gyms.api';
 import { useAuthStore } from '@/stores/auth.store';
 import { useNotification } from '@/composables/useNotification';
 import AppSearchSelect from '@/components/ui/AppSearchSelect.vue';
+import { formatLocalDate } from '@/utils/date';
 
 const { error: showError } = useNotification();
 const authStore = useAuthStore();
@@ -221,8 +228,8 @@ async function cargarDatos() {
   loading.value = true;
   try {
     const hoy = new Date();
-    const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1).toISOString().slice(0, 10);
-    const finMes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).toISOString().slice(0, 10);
+    const inicioMes = formatLocalDate(new Date(hoy.getFullYear(), hoy.getMonth(), 1));
+    const finMes = formatLocalDate(new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0));
 
     const params = {};
     if (authStore.hasRole('Superusuario') && gymId.value) {

@@ -27,6 +27,8 @@ public class PaymentService : IPaymentService
             .AsNoTracking()
             .Include(p => p.Membresia)
                 .ThenInclude(m => m.Alumno)
+            .Include(p => p.Membresia)
+                .ThenInclude(m => m.Plan)
             .AsQueryable();
 
         query = ApplyGymFilter(query, requester, gymId);
@@ -42,6 +44,7 @@ public class PaymentService : IPaymentService
                 p.Id,
                 p.MembresiaId,
                 (p.Membresia.Alumno.Nombre + " " + p.Membresia.Alumno.Apellido).Trim(),
+                p.Membresia.Plan.Nombre,
                 p.Monto,
                 p.FechaPago,
                 p.Estado.ToString(),
@@ -125,6 +128,8 @@ public class PaymentService : IPaymentService
         var payment = await _context.MembershipPayments
             .Include(p => p.Membresia)
                 .ThenInclude(m => m.Alumno)
+            .Include(p => p.Membresia)
+                .ThenInclude(m => m.Plan)
             .Include(p => p.Gym)
             .FirstOrDefaultAsync(p => p.Id == id)
             ?? throw new KeyNotFoundException("Pago no encontrado.");
@@ -161,6 +166,8 @@ public class PaymentService : IPaymentService
             .AsNoTracking()
             .Include(p => p.Membresia)
                 .ThenInclude(m => m.Alumno)
+            .Include(p => p.Membresia)
+                .ThenInclude(m => m.Plan)
             .Include(p => p.Gym)
             .FirstOrDefaultAsync(p => p.Id == id);
 
@@ -172,6 +179,7 @@ public class PaymentService : IPaymentService
             p.MembresiaId,
             p.Membresia.AlumnoId,
             (p.Membresia.Alumno.Nombre + " " + p.Membresia.Alumno.Apellido).Trim(),
+            p.Membresia.Plan.Nombre,
             p.Monto,
             p.FechaPago,
             p.MetodoPago,

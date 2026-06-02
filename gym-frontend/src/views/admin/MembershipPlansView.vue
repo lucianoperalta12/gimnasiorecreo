@@ -39,8 +39,8 @@
         <input v-model="search" type="text" placeholder="Buscar plan..." class="input max-w-sm" />
       </div>
 
-      <!-- Mobile List (< md) -->
-      <div class="md:hidden space-y-3">
+      <!-- Mobile List -->
+      <div v-if="isMobile" class="space-y-3">
         <div v-for="plan in filteredPlans" :key="plan.id" class="p-4 rounded-2xl bg-dark-900/40 border border-dark-800/50 flex flex-col gap-3">
           <div class="flex items-center justify-between">
             <h3 class="font-semibold text-white">{{ plan.nombre }}</h3>
@@ -63,8 +63,8 @@
         </div>
       </div>
 
-      <!-- Desktop Table (md+) -->
-      <div v-if="filteredPlans.length" class="hidden md:block table-container">
+      <!-- Desktop Table -->
+      <div v-else-if="filteredPlans.length" class="table-container">
         <table class="table">
           <thead>
             <tr>
@@ -166,6 +166,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted, nextTick } from 'vue'
+import { useIsMobile } from '@/composables/useIsMobile'
 import { useRouter } from 'vue-router'
 import { useMembershipStore } from '@/stores/membership.store'
 import { useAuthStore } from '@/stores/auth.store'
@@ -181,6 +182,7 @@ const router = useRouter()
 const store = useMembershipStore()
 const authStore = useAuthStore()
 const { success, error: showError } = useNotification()
+const { isMobile } = useIsMobile()
 
 const search = ref('')
 const gyms = ref([])

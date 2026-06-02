@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="animate-fade-in">
     <LoadingSpinner v-if="loading" />
 
@@ -124,7 +124,7 @@
 
             <div v-else>
               <!-- Desktop Table -->
-              <div class="hidden md:block table-container">
+              <div v-if="!isMobile" class="table-container">
                 <table class="table">
                   <thead>
                     <tr>
@@ -170,8 +170,8 @@
                 </table>
               </div>
 
-              <!-- Mobile Cards (Enhanced) -->
-              <div class="md:hidden space-y-2.5">
+              <!-- Mobile Cards -->
+              <div v-else class="space-y-2.5">
                 <div v-for="ej in currentSection.ejercicios" :key="ej.id" class="p-3.5 rounded-2xl bg-dark-900/60 border border-dark-800/50 shadow-lg space-y-3.5 relative overflow-hidden group">
                   <!-- Background Decoration -->
                   <div class="absolute -right-4 -top-4 w-24 h-24 bg-primary-600/5 rounded-full blur-2xl group-hover:bg-primary-600/10 transition-colors" />
@@ -246,6 +246,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { useIsMobile } from '@/composables/useIsMobile'
 import { useRouter } from 'vue-router'
 import { useRoutineStore } from '@/stores/routine.store'
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
@@ -254,6 +255,7 @@ import { groupRoutineExercises } from '@/constants/routineSections'
 
 const router = useRouter()
 const store = useRoutineStore()
+const { isMobile } = useIsMobile()
 const loading = ref(true)
 const routines = computed(() => store.myRoutines)
 
