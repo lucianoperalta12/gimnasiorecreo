@@ -7,7 +7,7 @@ public class Ingreso
     public int AlumnoId { get; set; }
     public int TerminalId { get; set; }
     public int MembershipId { get; set; }
-    public DateTime FechaHora { get; set; } = DateTime.UtcNow;
+    public DateTime FechaHora { get; set; } = DateTime.Now;
 
     public Gym Gym { get; set; } = null!;
     public User Alumno { get; set; } = null!;

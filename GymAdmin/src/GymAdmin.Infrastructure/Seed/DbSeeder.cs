@@ -52,7 +52,7 @@ public static class DbSeeder
                 GymId = gym.Id,
                 Rol = UserRole.Superusuario,
                 Activo = true,
-                FechaAsociacion = DateTime.UtcNow
+                FechaAsociacion = DateTime.Now
             });
             await context.SaveChangesAsync();
         }
@@ -79,7 +79,7 @@ public static class DbSeeder
                 GymId = gymNorte.Id,
                 Rol = UserRole.Administrativo,
                 Activo = true,
-                FechaAsociacion = DateTime.UtcNow
+                FechaAsociacion = DateTime.Now
             });
             await context.SaveChangesAsync();
         }

@@ -9,7 +9,7 @@ public class Egreso
     public decimal Monto { get; set; }
     public DateTime Fecha { get; set; }
     public string? Observaciones { get; set; }
-    public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
+    public DateTime FechaCreacion { get; set; } = DateTime.Now;
 
     public Gym Gym { get; set; } = null!;
 }

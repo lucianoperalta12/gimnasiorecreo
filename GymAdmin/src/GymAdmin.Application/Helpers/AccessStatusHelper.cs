@@ -14,7 +14,7 @@ public static class AccessStatusHelper
         bool hasPendingPayments = false,
         DateTime? utcNow = null)
     {
-        var now = utcNow ?? DateTime.UtcNow;
+        var now = utcNow ?? DateTime.Now;
 
         if (membresia is null)
             return AccessStatus.SinMembresia;
@@ -40,7 +40,7 @@ public static class AccessStatusHelper
 
     public static int DiasRestantes(Membership membresia, DateTime? utcNow = null)
     {
-        var now = (utcNow ?? DateTime.UtcNow).Date;
+        var now = (utcNow ?? DateTime.Now).Date;
         var vencimiento = membresia.FechaVencimiento.Date;
         return Math.Max(0, (vencimiento - now).Days);
     }

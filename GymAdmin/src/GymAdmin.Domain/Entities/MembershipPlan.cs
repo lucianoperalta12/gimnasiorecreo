@@ -11,7 +11,7 @@ public class MembershipPlan
     public bool PaseLibre { get; set; } = true;
     public int? DiasPorSemana { get; set; }
     public bool Activo { get; set; } = true;
-    public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
+    public DateTime FechaCreacion { get; set; } = DateTime.Now;
 
     public Gym Gym { get; set; } = null!;
     public ICollection<Membership> Membresias { get; set; } = new List<Membership>();

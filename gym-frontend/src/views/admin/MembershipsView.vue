@@ -282,7 +282,7 @@ import AppInput from '@/components/ui/AppInput.vue'
 import AppModal from '@/components/ui/AppModal.vue'
 import AppSearchSelect from '@/components/ui/AppSearchSelect.vue'
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
-import { formatLocalDate } from '@/utils/date'
+import { formatLocalDate, localDateTimeString } from '@/utils/date'
 
 const router = useRouter()
 const store = useMembershipStore()
@@ -319,7 +319,7 @@ const paymentForm = reactive({
   alumnoNombre: '',
   planNombre: '',
   monto: '',
-  fechaPago: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16),
+  fechaPago: localDateTimeString(),
   metodoPago: 'Efectivo',
   estado: 'Completado',
   notas: ''
@@ -439,7 +439,7 @@ async function handleCreate(andPay = false) {
       paymentForm.alumnoNombre = `${created.alumnoNombre} ${created.alumnoApellido}`.trim()
       paymentForm.planNombre = created.planNombre
       paymentForm.monto = formatNumberWithDots(created.planPrecio)
-      paymentForm.fechaPago = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+      paymentForm.fechaPago = localDateTimeString()
       paymentForm.metodoPago = 'Efectivo'
       paymentForm.estado = 'Completado'
       paymentForm.notas = ''
@@ -489,7 +489,7 @@ async function handleRenew(andPay = false) {
       paymentForm.alumnoNombre = `${renewed.alumnoNombre} ${renewed.alumnoApellido}`.trim()
       paymentForm.planNombre = renewed.planNombre
       paymentForm.monto = formatNumberWithDots(renewed.planPrecio)
-      paymentForm.fechaPago = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)
+      paymentForm.fechaPago = localDateTimeString()
       paymentForm.metodoPago = 'Efectivo'
       paymentForm.estado = 'Completado'
       paymentForm.notas = ''

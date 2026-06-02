@@ -10,7 +10,7 @@ public class Gym
     public bool Activo { get; set; } = true;
     public string Moneda { get; set; } = "ARS"; // ARS o USD
     public bool VeRutinas { get; set; } = true;
-    public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
+    public DateTime FechaCreacion { get; set; } = DateTime.Now;
 
     public ICollection<GymUser> GymUsers { get; set; } = new List<GymUser>();
     public ICollection<Exercise> Exercises { get; set; } = new List<Exercise>();

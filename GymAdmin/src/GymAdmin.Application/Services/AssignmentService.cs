@@ -50,7 +50,7 @@ public class AssignmentService : IAssignmentService
             GymId = student.GymId,
             AlumnoId = request.AlumnoId,
             RutinaId = request.RutinaId,
-            FechaAsignacion = DateTime.UtcNow,
+            FechaAsignacion = DateTime.Now,
             Activa = true
         };
 

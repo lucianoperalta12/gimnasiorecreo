@@ -208,7 +208,15 @@ const periodos = [
 ];
 
 function formatDateTime(val) {
-  return new Date(val).toLocaleString('es-AR');
+  if (!val) return '—';
+  return new Date(val).toLocaleString('es-AR', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false
+  });
 }
 
 // Cambiar de período y fetch

@@ -7,5 +7,5 @@ public class ErrorLog
     public string? StackTrace { get; set; }
     public string? Path { get; set; }
     public string? Method { get; set; }
-    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    public DateTime Timestamp { get; set; } = DateTime.Now;
 }

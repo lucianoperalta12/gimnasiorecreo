@@ -618,7 +618,7 @@ import AppModal from '@/components/ui/AppModal.vue';
 import AppSearchSelect from '@/components/ui/AppSearchSelect.vue';
 import { useNotification } from '@/composables/useNotification';
 import { buildMembresiaVencidaWhatsAppMessage, buildWhatsAppUrl } from '@/utils/whatsapp';
-import { formatLocalDate } from '@/utils/date';
+import { formatLocalDate, localDateTimeString } from '@/utils/date';
 const { isMobile } = useIsMobile();
 
 const route = useRoute();
@@ -701,7 +701,7 @@ async function registrarIngreso() {
       nombre: data.alumnoNombreCompleto,
       tipoMembresia: data.tipoMembresia,
       paseLibre: data.paseLibre,
-      hora: fechaHora.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+      hora: fechaHora.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }),
       fecha: fechaHora.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' }),
       diasRestantes,
     };
@@ -848,7 +848,7 @@ function formatMoneda(val) {
 }
 
 function formatTime(val) {
-  return new Date(val).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  return new Date(val).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false });
 }
 
 function requestAutoFullscreen() {
@@ -963,7 +963,7 @@ async function handleRenew(andPay = false) {
       paymentForm.alumnoNombre = `${renewed.alumnoNombre} ${renewed.alumnoApellido}`.trim();
       paymentForm.planNombre = renewed.planNombre;
       paymentForm.monto = formatNumberWithDots(renewed.planPrecio);
-      paymentForm.fechaPago = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      paymentForm.fechaPago = localDateTimeString();
       paymentForm.metodoPago = 'Efectivo';
       paymentForm.estado = 'Completado';
       paymentForm.notas = '';

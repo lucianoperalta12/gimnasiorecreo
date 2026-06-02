@@ -7,11 +7,7 @@
         <p class="page-subtitle">Registros de accesos desde terminales</p>
       </div>
       <div>
-        <AppButton 
-          variant="secondary" 
-          @click="router.push('/dashboard')"
-          class="md:px-4 px-2.5 !rounded-xl md:!rounded-lg"
-        >
+        <AppButton variant="secondary" @click="router.push('/dashboard')" class="md:px-4 px-2.5 !rounded-xl md:!rounded-lg">
           <svg class="w-5 h-5 md:w-3 md:h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
             <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
           </svg>
@@ -24,13 +20,7 @@
     <div class="flex flex-col sm:flex-row gap-3 mb-4 items-end">
       <div class="w-full sm:max-w-[180px]">
         <label class="label">Fecha</label>
-        <input 
-          v-model="fecha" 
-          type="date" 
-          class="input w-full text-sm" 
-          :disabled="!!alumnoId" 
-          :class="{ 'opacity-50 cursor-not-allowed': !!alumnoId }" 
-        />
+        <input v-model="fecha" type="date" class="input w-full text-sm" :disabled="!!alumnoId" :class="{ 'opacity-50 cursor-not-allowed': !!alumnoId }" />
       </div>
       <div class="w-full sm:max-w-md">
         <label class="label">Alumno</label>
@@ -106,22 +96,17 @@
 
       <!-- Pagination Controls -->
       <div v-if="serverPaginationEnabled && totalCount > pageSize" class="mt-6 flex items-center justify-between px-2">
-        <div class="text-xs text-dark-500 font-medium">
-          Mostrando {{ pageStart }} - {{ pageEnd }}
-          de {{ totalCount }} registros
-        </div>
+        <div class="text-xs text-dark-500 font-medium">Mostrando {{ pageStart }} - {{ pageEnd }} de {{ totalCount }} registros</div>
         <div class="flex items-center gap-2">
-          <button 
-            class="btn-secondary !p-2 !rounded-lg" 
-            :disabled="page === 1"
-            @click="goToPage(page - 1)"
-          >
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
+          <button class="btn-secondary !p-2 !rounded-lg" :disabled="page === 1" @click="goToPage(page - 1)">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15.75 19.5L8.25 12l7.5-7.5" />
+            </svg>
           </button>
-          
+
           <div class="flex items-center gap-1">
-            <button 
-              v-for="p in totalPages" 
+            <button
+              v-for="p in totalPages"
               :key="p"
               @click="goToPage(p)"
               class="w-8 h-8 rounded-lg text-xs font-black transition-all"
@@ -131,12 +116,10 @@
             </button>
           </div>
 
-          <button 
-            class="btn-secondary !p-2 !rounded-lg" 
-            :disabled="page === totalPages"
-            @click="goToPage(page + 1)"
-          >
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>
+          <button class="btn-secondary !p-2 !rounded-lg" :disabled="page === totalPages" @click="goToPage(page + 1)">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
           </button>
         </div>
       </div>
@@ -149,100 +132,107 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import { useIsMobile } from '@/composables/useIsMobile'
-import { useRouter } from 'vue-router'
-import AppSearchSelect from '@/components/ui/AppSearchSelect.vue'
-import AppButton from '@/components/ui/AppButton.vue'
-import LoadingSpinner from '@/components/shared/LoadingSpinner.vue'
-import { ingresosApi } from '@/api/ingresos.api'
-import { gymsApi } from '@/api/gyms.api'
-import { useUserStore } from '@/stores/user.store'
-import { useAuthStore } from '@/stores/auth.store'
-import { useNotification } from '@/composables/useNotification'
-import { parsePaginatedResponse } from '@/utils/pagination'
-import { formatLocalDate } from '@/utils/date'
+import { computed, onMounted, ref } from 'vue';
+import { useIsMobile } from '@/composables/useIsMobile';
+import { useRouter } from 'vue-router';
+import AppSearchSelect from '@/components/ui/AppSearchSelect.vue';
+import AppButton from '@/components/ui/AppButton.vue';
+import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
+import { ingresosApi } from '@/api/ingresos.api';
+import { gymsApi } from '@/api/gyms.api';
+import { useUserStore } from '@/stores/user.store';
+import { useAuthStore } from '@/stores/auth.store';
+import { useNotification } from '@/composables/useNotification';
+import { parsePaginatedResponse } from '@/utils/pagination';
+import { formatLocalDate } from '@/utils/date';
 
-const router = useRouter()
-const { error: showError } = useNotification()
-const { isMobile } = useIsMobile()
-const userStore = useUserStore()
-const authStore = useAuthStore()
-const loading = ref(false)
-const items = ref([])
-const totalCount = ref(0)
-const serverPaginationEnabled = ref(false)
-const alumnoId = ref('')
-const gymId = ref('')
-const gyms = ref([])
-const fecha = ref(formatLocalDate(new Date()))
-const page = ref(1)
-const pageSize = 15
+const router = useRouter();
+const { error: showError } = useNotification();
+const { isMobile } = useIsMobile();
+const userStore = useUserStore();
+const authStore = useAuthStore();
+const loading = ref(false);
+const items = ref([]);
+const totalCount = ref(0);
+const serverPaginationEnabled = ref(false);
+const alumnoId = ref('');
+const gymId = ref('');
+const gyms = ref([]);
+const fecha = ref(formatLocalDate(new Date()));
+const page = ref(1);
+const pageSize = 15;
 
 const studentOptions = computed(() => [
   { id: '', label: 'Todos los alumnos' },
-  ...userStore.students.map(s => ({ id: s.id, label: `${s.nombre} ${s.apellido}`.trim(), subLabel: s.dni }))
-])
+  ...userStore.students.map((s) => ({ id: s.id, label: `${s.nombre} ${s.apellido}`.trim(), subLabel: s.dni })),
+]);
 
-const gymOptions = computed(() => [
-  { id: '', label: 'Todos los gimnasios' },
-  ...gyms.value.map(g => ({ id: g.id, label: g.nombre }))
-])
+const gymOptions = computed(() => [{ id: '', label: 'Todos los gimnasios' }, ...gyms.value.map((g) => ({ id: g.id, label: g.nombre }))]);
 
-const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize)))
-const pageStart = computed(() => (items.value.length ? (page.value - 1) * pageSize + 1 : 0))
-const pageEnd = computed(() => (items.value.length ? pageStart.value + items.value.length - 1 : 0))
+const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize)));
+const pageStart = computed(() => (items.value.length ? (page.value - 1) * pageSize + 1 : 0));
+const pageEnd = computed(() => (items.value.length ? pageStart.value + items.value.length - 1 : 0));
 
 function formatDateTime(value) {
-  return new Date(value).toLocaleString()
+  if (!value) return '—'
+  return new Date(value).toLocaleString('es-AR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
 }
 
 async function buscar(targetPage = 1) {
-  const pageNum = typeof targetPage === 'number' ? targetPage : 1
-  loading.value = true
+  const pageNum = typeof targetPage === 'number' ? targetPage : 1;
+  loading.value = true;
   try {
     const params = {
       page: pageNum,
-      pageSize
-    }
+      pageSize,
+    };
     if (alumnoId.value) {
-      params.alumnoId = alumnoId.value
+      params.alumnoId = alumnoId.value;
     } else {
-      params.fechaDesde = fecha.value
-      params.fechaHasta = fecha.value
+      params.fechaDesde = fecha.value;
+      params.fechaHasta = fecha.value;
     }
-    
+
     if (authStore.hasRole('Superusuario') && gymId.value) {
-      params.gymId = gymId.value
+      params.gymId = gymId.value;
     }
-    
-    const response = await ingresosApi.getAll(params)
-    const pagination = parsePaginatedResponse(response)
-    items.value = pagination.items
-    totalCount.value = pagination.totalCount
-    serverPaginationEnabled.value = pagination.serverPaginationEnabled
-    page.value = pagination.page ?? targetPage
+
+    const response = await ingresosApi.getAll(params);
+    const pagination = parsePaginatedResponse(response);
+    items.value = pagination.items;
+    totalCount.value = pagination.totalCount;
+    serverPaginationEnabled.value = pagination.serverPaginationEnabled;
+    page.value = pagination.page ?? targetPage;
   } catch (err) {
-    showError(err.response?.data?.error || 'No se pudieron cargar los registros de asistencia')
+    showError(err.response?.data?.error || 'No se pudieron cargar los registros de asistencia');
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 onMounted(async () => {
-  const promises = [userStore.fetchStudents()]
+  const promises = [userStore.fetchStudents()];
   if (authStore.hasRole('Superusuario')) {
-    promises.push(gymsApi.getAll().then(res => {
-      gyms.value = res.data || []
-    }))
+    promises.push(
+      gymsApi.getAll().then((res) => {
+        gyms.value = res.data || [];
+      })
+    );
   }
-  promises.push(buscar())
-  await Promise.allSettled(promises)
-})
+  promises.push(buscar());
+  await Promise.allSettled(promises);
+});
 
 async function goToPage(targetPage) {
-  if (!serverPaginationEnabled.value) return
-  if (targetPage < 1 || targetPage > totalPages.value || targetPage === page.value) return
-  await buscar(targetPage)
+  if (!serverPaginationEnabled.value) return;
+  if (targetPage < 1 || targetPage > totalPages.value || targetPage === page.value) return;
+  await buscar(targetPage);
 }
 </script>

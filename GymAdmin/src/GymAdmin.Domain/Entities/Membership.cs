@@ -13,7 +13,7 @@ public class Membership
     public MembershipStatus Estado { get; set; } = MembershipStatus.Activa;
     public int IngresosUtilizados { get; set; }
     public string? Notas { get; set; }
-    public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
+    public DateTime FechaCreacion { get; set; } = DateTime.Now;
 
     public Gym Gym { get; set; } = null!;
     public User Alumno { get; set; } = null!;

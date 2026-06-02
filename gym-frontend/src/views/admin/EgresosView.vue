@@ -12,7 +12,7 @@
             <span class="flex items-center gap-1 text-rose-400">
               <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span>
               {{ formatCurrency(totalAmount) }} </span
-            >,¶ filtrados
+            >, filtrados
           </div>
         </div>
         <p class="page-subtitle">Registro de egresos del gimnasio</p>
@@ -74,7 +74,7 @@
               <div class="min-w-0">
                 <h3 class="font-bold text-sm text-white truncate">{{ e.descripcion }}</h3>
                 <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1 text-[11px] text-dark-500">
-                  <span>{{ formatDate(e.fecha) }}</span>
+                  <span>{{ formatDateTime(e.fecha) }}</span>
                   <span class="text-dark-700">•</span>
                   <span>{{ e.categoria }}</span>
                 </div>
@@ -105,7 +105,7 @@
                 <td class="text-white">{{ e.descripcion }}</td>
                 <td>{{ e.categoria }}</td>
                 <td class="font-black text-rose-400">{{ formatCurrency(e.monto) }}</td>
-                <td>{{ formatDate(e.fecha) }}</td>
+                <td>{{ formatDateTime(e.fecha) }}</td>
                 <td class="text-right">
                   <div class="flex items-center justify-end gap-2">
                     <button class="btn-ghost btn-sm" @click="openEditModal(e)">Editar</button>
@@ -176,7 +176,7 @@
           <AppInput v-model="form.monto" label="Monto" type="text" @input="onMontoInput" />
         </div>
 
-        <AppInput v-model="form.fecha" label="Fecha" type="date" />
+        <AppInput v-model="form.fecha" label="Fecha" type="datetime-local" />
 
         <textarea v-model="form.observaciones" rows="2" class="input" placeholder="Observaciones (opcional)" />
       </form>
@@ -205,13 +205,13 @@ import { useAuthStore } from '@/stores/auth.store';
 import { useNotification } from '@/composables/useNotification';
 import { gymsApi } from '@/api/gyms.api';
 import { egresosApi } from '@/api/egresos.api';
-import { formatCurrency, formatDate } from '@/constants/membershipStatus';
+import { formatCurrency, formatDate, formatDateTime } from '@/constants/membershipStatus';
 import AppButton from '@/components/ui/AppButton.vue';
 import AppInput from '@/components/ui/AppInput.vue';
 import AppModal from '@/components/ui/AppModal.vue';
 import AppSearchSelect from '@/components/ui/AppSearchSelect.vue';
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
-import { formatLocalDate } from '@/utils/date';
+import { formatLocalDate, localDateTimeString } from '@/utils/date';
 
 const router = useRouter();
 const authStore = useAuthStore();
@@ -252,7 +252,7 @@ const form = reactive({
   descripcion: '',
   categoria: 'Sueldos',
   monto: '',
-  fecha: formatLocalDate(new Date()),
+  fecha: localDateTimeString(),
   observaciones: '',
 });
 
@@ -302,7 +302,7 @@ function openCreateModal() {
     descripcion: '',
     categoria: 'Sueldos',
     monto: '',
-    fecha: formatLocalDate(new Date()),
+    fecha: localDateTimeString(),
     observaciones: '',
   });
   showModal.value = true;
@@ -314,7 +314,7 @@ function openEditModal(e) {
     descripcion: e.descripcion,
     categoria: e.categoria,
     monto: formatNumberWithDots(e.monto),
-    fecha: e.fecha ? formatLocalDate(new Date(e.fecha)) : '',
+    fecha: e.fecha ? localDateTimeString(new Date(e.fecha)) : '',
     observaciones: e.observaciones || '',
   });
   showModal.value = true;
@@ -331,7 +331,7 @@ async function handleSubmit() {
     const payload = {
       ...form,
       monto: parseFormattedNumber(form.monto),
-      fecha: new Date(form.fecha + 'T12:00:00').toISOString(),
+      fecha: form.fecha,
     };
     if (editingEgreso.value) {
       await egresosApi.update(editingEgreso.value.id, payload);

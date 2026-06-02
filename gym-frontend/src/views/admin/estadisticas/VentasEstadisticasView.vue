@@ -221,7 +221,15 @@ function formatMoneda(val) {
 }
 
 function formatDateTime(val) {
-  return new Date(val).toLocaleDateString('es-AR');
+  if (!val) return '—';
+  return new Date(val).toLocaleString('es-AR', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
 }
 
 async function cargarDatos() {

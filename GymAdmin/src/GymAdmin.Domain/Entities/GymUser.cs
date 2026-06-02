@@ -10,7 +10,7 @@ public class GymUser
     public int UserId { get; set; }
     public UserRole Rol { get; set; }
     public bool Activo { get; set; } = true;
-    public DateTime FechaAsociacion { get; set; } = DateTime.UtcNow;
+    public DateTime FechaAsociacion { get; set; } = DateTime.Now;
 
     // Navigation properties
     public Gym Gym { get; set; } = null!;

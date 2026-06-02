@@ -327,7 +327,7 @@ const isFullscreen = ref(false);
 
 function updateClock() {
   const now = new Date();
-  timeString.value = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  timeString.value = now.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hour12: false });
   dateString.value = now.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
@@ -504,8 +504,8 @@ const menuGroups = computed(() => {
         children: [
           { to: '/estadisticas/asistencia', label: 'Asistencia' },
           { to: '/estadisticas/balance', label: 'Balance' },
-          { to: '/estadisticas/ventas', label: 'Ventas y Membresías' },
           { to: '/estadisticas/retencion', label: 'Retención y Deserción' },
+          { to: '/estadisticas/ventas', label: 'Ventas y Membresías' },
         ],
       },
     ].filter((item) => !item.roles || authStore.hasRole(...item.roles)),

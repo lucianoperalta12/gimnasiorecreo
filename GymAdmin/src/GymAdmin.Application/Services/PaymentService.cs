@@ -103,7 +103,7 @@ public class PaymentService : IPaymentService
             GymId = membership.GymId,
             MembresiaId = membership.Id,
             Monto = request.Monto,
-            FechaPago = request.FechaPago.ToUniversalTime(),
+            FechaPago = request.FechaPago,
             MetodoPago = request.MetodoPago?.Trim(),
             Estado = estado,
             Referencia = request.Referencia?.Trim(),
@@ -137,7 +137,7 @@ public class PaymentService : IPaymentService
         EnsureSameGym(requester, payment.GymId);
 
         payment.Monto = request.Monto;
-        payment.FechaPago = request.FechaPago.ToUniversalTime();
+        payment.FechaPago = request.FechaPago;
         payment.MetodoPago = request.MetodoPago?.Trim();
         payment.Estado = estado;
         payment.Referencia = request.Referencia?.Trim();

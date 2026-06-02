@@ -13,7 +13,7 @@ public class MembershipPayment
     public PaymentStatus Estado { get; set; } = PaymentStatus.Completado;
     public string? Referencia { get; set; }
     public string? Notas { get; set; }
-    public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
+    public DateTime FechaCreacion { get; set; } = DateTime.Now;
 
     public Gym Gym { get; set; } = null!;
     public Membership Membresia { get; set; } = null!;

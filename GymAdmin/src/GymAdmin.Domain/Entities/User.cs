@@ -17,7 +17,7 @@ public class User
     public bool DebeCambiarPassword { get; set; } = true;
     [System.ComponentModel.DataAnnotations.Schema.NotMapped]
     public int GymId { get; set; }
-    public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
+    public DateTime FechaCreacion { get; set; } = DateTime.Now;
     public string? RefreshToken { get; set; }
     public DateTime? RefreshTokenExpiracion { get; set; }
     public DateTime? FechaNacimiento { get; set; }

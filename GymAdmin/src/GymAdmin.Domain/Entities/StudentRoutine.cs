@@ -6,7 +6,7 @@ public class StudentRoutine
     public int GymId { get; set; }
     public int AlumnoId { get; set; }
     public int RutinaId { get; set; }
-    public DateTime FechaAsignacion { get; set; } = DateTime.UtcNow;
+    public DateTime FechaAsignacion { get; set; } = DateTime.Now;
     public bool Activa { get; set; } = true;
 
     // Navigation properties

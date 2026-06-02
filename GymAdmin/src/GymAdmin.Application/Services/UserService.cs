@@ -207,7 +207,7 @@ public class UserService : IUserService
                 UserId = existingUser.Id,
                 Rol = newRole,
                 Activo = true,
-                FechaAsociacion = DateTime.UtcNow
+                FechaAsociacion = DateTime.Now
             };
             _context.GymUsers.Add(association);
             await _context.SaveChangesAsync();
@@ -237,7 +237,7 @@ public class UserService : IUserService
             UserId = user.Id,
             Rol = newRole,
             Activo = true,
-            FechaAsociacion = DateTime.UtcNow
+            FechaAsociacion = DateTime.Now
         };
         _context.GymUsers.Add(newAssociation);
         await _context.SaveChangesAsync();
@@ -269,7 +269,7 @@ public class UserService : IUserService
         if (string.IsNullOrWhiteSpace(request.Nombre) || string.IsNullOrWhiteSpace(request.Apellido))
             throw new ArgumentException("Nombre y Apellido son requeridos.");
 
-        if (request.FechaNacimiento.HasValue && request.FechaNacimiento.Value > DateTime.UtcNow)
+        if (request.FechaNacimiento.HasValue && request.FechaNacimiento.Value > DateTime.Now)
             throw new ArgumentException("La fecha de nacimiento no puede ser una fecha futura.");
 
         user.Nombre = request.Nombre.Trim();

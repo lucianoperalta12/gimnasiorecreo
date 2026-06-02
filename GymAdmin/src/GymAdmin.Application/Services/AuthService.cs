@@ -77,7 +77,7 @@ public class AuthService : IAuthService
                 .ThenInclude(gu => gu.Gym)
             .FirstOrDefaultAsync(u => u.RefreshToken == refreshToken);
 
-        if (user == null || user.RefreshTokenExpiracion < DateTime.UtcNow)
+        if (user == null || user.RefreshTokenExpiracion < DateTime.Now)
             throw new UnauthorizedAccessException("Refresh token inválido o expirado.");
 
         if (!user.Activo) throw new UnauthorizedAccessException("Tu cuenta ha sido desactivada.");
@@ -150,7 +150,7 @@ public class AuthService : IAuthService
         var accessToken = GenerateAccessToken(user, association.GymId, association.Rol);
         var refreshToken = GenerateRefreshToken();
         user.RefreshToken = refreshToken;
-        user.RefreshTokenExpiracion = DateTime.UtcNow.AddDays(30);
+        user.RefreshTokenExpiracion = DateTime.Now.AddDays(30);
         await _context.SaveChangesAsync();
 
         return new AuthResponse(
@@ -212,7 +212,7 @@ public class AuthService : IAuthService
             issuer: _configuration["Jwt:Issuer"],
             audience: _configuration["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddDays(5),
+            expires: DateTime.Now.AddDays(5),
             signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
         );
 

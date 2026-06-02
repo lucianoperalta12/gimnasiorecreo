@@ -67,7 +67,7 @@ public class EgresoService : IEgresoService
             Descripcion = request.Descripcion.Trim(),
             Categoria = request.Categoria.Trim(),
             Monto = request.Monto,
-            Fecha = request.Fecha.ToUniversalTime(),
+            Fecha = request.Fecha,
             Observaciones = request.Observaciones?.Trim()
         };
 
@@ -97,7 +97,7 @@ public class EgresoService : IEgresoService
         egreso.Descripcion = request.Descripcion.Trim();
         egreso.Categoria = request.Categoria.Trim();
         egreso.Monto = request.Monto;
-        egreso.Fecha = request.Fecha.ToUniversalTime();
+        egreso.Fecha = request.Fecha;
         egreso.Observaciones = request.Observaciones?.Trim();
 
         await _context.SaveChangesAsync();

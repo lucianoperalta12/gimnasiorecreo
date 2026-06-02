@@ -129,7 +129,7 @@ public class RoutineService : IRoutineService
             Activa = true,
             IsByDays = request.IsByDays,
             DaysCount = request.IsByDays ? request.DaysCount : 1,
-            FechaCreacion = DateTime.UtcNow,
+            FechaCreacion = DateTime.Now,
             Ejercicios = BuildRoutineExercises(request)
         };
 

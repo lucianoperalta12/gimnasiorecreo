@@ -224,7 +224,7 @@ import AppInput from '@/components/ui/AppInput.vue';
 import AppModal from '@/components/ui/AppModal.vue';
 import AppSearchSelect from '@/components/ui/AppSearchSelect.vue';
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
-import { formatLocalDate } from '@/utils/date';
+import { formatLocalDate, localDateTimeString } from '@/utils/date';
 
 const router = useRouter();
 const store = useMembershipStore();
@@ -258,7 +258,7 @@ const currentPage = ref(1);
 const form = reactive({
   membresiaId: null,
   monto: '',
-  fechaPago: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16),
+  fechaPago: localDateTimeString(),
   metodoPago: 'Efectivo',
   estado: 'Completado',
   notas: '',
@@ -365,7 +365,7 @@ function openCreateModal() {
   Object.assign(form, {
     membresiaId: null,
     monto: '',
-    fechaPago: new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16),
+    fechaPago: localDateTimeString(),
     metodoPago: 'Efectivo',
     estado: 'Completado',
     notas: '',
@@ -378,7 +378,7 @@ function openEditModal(p) {
   Object.assign(form, {
     membresiaId: p.membresiaId,
     monto: formatNumberWithDots(p.monto),
-    fechaPago: p.fechaPago ? new Date(new Date(p.fechaPago).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16) : '',
+    fechaPago: p.fechaPago ? localDateTimeString(new Date(p.fechaPago)) : '',
     metodoPago: p.metodoPago || 'Efectivo',
     estado: p.estado,
     notas: p.notas || '',

@@ -59,7 +59,7 @@ public class IngresoService : IIngresoService
         if (membership is null)
             throw new InvalidOperationException("El alumno no tiene una membresía activa.");
 
-        if (membership.FechaVencimiento < DateTime.UtcNow)
+        if (membership.FechaVencimiento < DateTime.Now)
             throw new InvalidOperationException("La membresía del alumno está vencida.");
 
         if (!membership.Plan.PaseLibre)
@@ -70,7 +70,7 @@ public class IngresoService : IIngresoService
 
             if (membership.Plan.DiasPorSemana.HasValue && membership.Plan.DiasPorSemana.Value > 0)
             {
-                var today = DateTime.UtcNow.Date;
+                var today = DateTime.Now.Date;
                 var diff = (7 + (today.DayOfWeek - DayOfWeek.Monday)) % 7;
                 var startOfWeek = today.AddDays(-1 * diff);
 
@@ -90,7 +90,7 @@ public class IngresoService : IIngresoService
             AlumnoId = alumno.Id,
             TerminalId = terminalEntity.Id,
             MembershipId = membership.Id,
-            FechaHora = DateTime.UtcNow
+            FechaHora = DateTime.Now
         };
 
         if (!membership.Plan.PaseLibre)
@@ -142,7 +142,7 @@ public class IngresoService : IIngresoService
 
         if (fechaDesde.HasValue || fechaHasta.HasValue)
         {
-            var desde = fechaDesde ?? DateOnly.FromDateTime(DateTime.UtcNow);
+            var desde = fechaDesde ?? DateOnly.FromDateTime(DateTime.Now);
             var hasta = fechaHasta ?? desde;
             var (inicio, fin) = GetLocalDateRangeAsUtc(desde, hasta);
             query = query.Where(x => x.FechaHora >= inicio && x.FechaHora < fin);
@@ -150,7 +150,7 @@ public class IngresoService : IIngresoService
         else if (!alumnoId.HasValue)
         {
             var argentinaTimeZone = GetArgentinaTimeZone();
-            var hoy = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, argentinaTimeZone));
+            var hoy = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(DateTime.Now, argentinaTimeZone));
             var (inicio, fin) = GetLocalDateRangeAsUtc(hoy, hoy);
             query = query.Where(x => x.FechaHora >= inicio && x.FechaHora < fin);
         }
@@ -190,7 +190,7 @@ public class IngresoService : IIngresoService
             query = query.Where(x => x.GymId == gymId.Value);
 
         var argentinaTimeZone = GetArgentinaTimeZone();
-        var today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, argentinaTimeZone));
+        var today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(DateTime.Now, argentinaTimeZone));
         var (inicio, fin) = GetLocalDateRangeAsUtc(today, today);
 
         return await query

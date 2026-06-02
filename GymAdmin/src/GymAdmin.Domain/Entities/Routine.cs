@@ -7,7 +7,7 @@ public class Routine
     public string Nombre { get; set; } = string.Empty;
     public string? Descripcion { get; set; }
     public int ProfesorId { get; set; }
-    public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
+    public DateTime FechaCreacion { get; set; } = DateTime.Now;
     public bool Activa { get; set; } = true;
     public bool IsByDays { get; set; } = false;
     public int DaysCount { get; set; } = 1;
