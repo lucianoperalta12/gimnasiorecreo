@@ -332,6 +332,9 @@ async function handleSubmit() {
       ...form,
       monto: parseFormattedNumber(form.monto),
       fecha: form.fecha + ':00',
+    };
+    if (editingEgreso.value) {
+      await egresosApi.update(editingEgreso.value.id, payload);
       success('Egreso actualizado');
     } else {
       await egresosApi.create(payload);
