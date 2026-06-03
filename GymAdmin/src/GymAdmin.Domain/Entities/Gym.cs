@@ -20,4 +20,5 @@ public class Gym
     public ICollection<Membership> Memberships { get; set; } = new List<Membership>();
     public ICollection<MembershipPayment> MembershipPayments { get; set; } = new List<MembershipPayment>();
     public ICollection<Ingreso> Ingresos { get; set; } = new List<Ingreso>();
+    public ICollection<Egreso> Egresos { get; set; } = new List<Egreso>();
 }

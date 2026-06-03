@@ -11,6 +11,7 @@ public class PaymentService : IPaymentService
 {
     private readonly AppDbContext _context;
     private readonly Microsoft.AspNetCore.Http.IHttpContextAccessor _httpContextAccessor;
+    private static readonly TimeZoneInfo ArgentinaTimeZone = ResolveArgentinaTimeZone();
 
     public PaymentService(AppDbContext context, Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor)
     {
@@ -103,7 +104,7 @@ public class PaymentService : IPaymentService
             GymId = membership.GymId,
             MembresiaId = membership.Id,
             Monto = request.Monto,
-            FechaPago = request.FechaPago,
+            FechaPago = NormalizeLocalDateTime(request.FechaPago),
             MetodoPago = request.MetodoPago?.Trim(),
             Estado = estado,
             Referencia = request.Referencia?.Trim(),
@@ -137,7 +138,7 @@ public class PaymentService : IPaymentService
         EnsureSameGym(requester, payment.GymId);
 
         payment.Monto = request.Monto;
-        payment.FechaPago = request.FechaPago;
+        payment.FechaPago = NormalizeLocalDateTime(request.FechaPago);
         payment.MetodoPago = request.MetodoPago?.Trim();
         payment.Estado = estado;
         payment.Referencia = request.Referencia?.Trim();
@@ -181,13 +182,42 @@ public class PaymentService : IPaymentService
             (p.Membresia.Alumno.Nombre + " " + p.Membresia.Alumno.Apellido).Trim(),
             p.Membresia.Plan.Nombre,
             p.Monto,
-            p.FechaPago,
+            NormalizeLocalDateTime(p.FechaPago),
             p.MetodoPago,
             p.Estado.ToString(),
             p.Referencia,
             p.Notas,
-            p.FechaCreacion
+            NormalizeLocalDateTime(p.FechaCreacion)
         );
+
+    private static DateTime NormalizeLocalDateTime(DateTime value)
+    {
+        if (value.Kind == DateTimeKind.Utc)
+        {
+            value = TimeZoneInfo.ConvertTimeFromUtc(value, ArgentinaTimeZone);
+        }
+
+        return DateTime.SpecifyKind(value, DateTimeKind.Unspecified);
+    }
+
+    private static TimeZoneInfo ResolveArgentinaTimeZone()
+    {
+        foreach (var timeZoneId in new[] { "America/Argentina/Buenos_Aires", "Argentina Standard Time" })
+        {
+            try
+            {
+                return TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+            }
+            catch (TimeZoneNotFoundException)
+            {
+            }
+            catch (InvalidTimeZoneException)
+            {
+            }
+        }
+
+        return TimeZoneInfo.Utc;
+    }
 
     private static IQueryable<MembershipPayment> ApplyGymFilter(
         IQueryable<MembershipPayment> query,

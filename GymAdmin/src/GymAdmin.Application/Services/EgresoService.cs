@@ -12,6 +12,7 @@ public class EgresoService : IEgresoService
 {
     private readonly AppDbContext _context;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private static readonly TimeZoneInfo ArgentinaTimeZone = ResolveArgentinaTimeZone();
 
     public EgresoService(AppDbContext context, IHttpContextAccessor httpContextAccessor)
     {
@@ -67,7 +68,7 @@ public class EgresoService : IEgresoService
             Descripcion = request.Descripcion.Trim(),
             Categoria = request.Categoria.Trim(),
             Monto = request.Monto,
-            Fecha = request.Fecha,
+            Fecha = NormalizeLocalDateTime(request.Fecha),
             Observaciones = request.Observaciones?.Trim()
         };
 
@@ -97,7 +98,7 @@ public class EgresoService : IEgresoService
         egreso.Descripcion = request.Descripcion.Trim();
         egreso.Categoria = request.Categoria.Trim();
         egreso.Monto = request.Monto;
-        egreso.Fecha = request.Fecha;
+        egreso.Fecha = NormalizeLocalDateTime(request.Fecha);
         egreso.Observaciones = request.Observaciones?.Trim();
 
         await _context.SaveChangesAsync();
@@ -119,7 +120,44 @@ public class EgresoService : IEgresoService
     }
 
     private static EgresoDto MapToDto(Egreso e) =>
-        new(e.Id, e.GymId, e.Descripcion, e.Categoria, e.Monto, e.Fecha, e.Observaciones, e.FechaCreacion);
+        new(
+            e.Id,
+            e.GymId,
+            e.Descripcion,
+            e.Categoria,
+            e.Monto,
+            NormalizeLocalDateTime(e.Fecha),
+            e.Observaciones,
+            NormalizeLocalDateTime(e.FechaCreacion));
+
+    private static DateTime NormalizeLocalDateTime(DateTime value)
+    {
+        if (value.Kind == DateTimeKind.Utc)
+        {
+            value = TimeZoneInfo.ConvertTimeFromUtc(value, ArgentinaTimeZone);
+        }
+
+        return DateTime.SpecifyKind(value, DateTimeKind.Unspecified);
+    }
+
+    private static TimeZoneInfo ResolveArgentinaTimeZone()
+    {
+        foreach (var timeZoneId in new[] { "America/Argentina/Buenos_Aires", "Argentina Standard Time" })
+        {
+            try
+            {
+                return TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+            }
+            catch (TimeZoneNotFoundException)
+            {
+            }
+            catch (InvalidTimeZoneException)
+            {
+            }
+        }
+
+        return TimeZoneInfo.Utc;
+    }
 
     private static IQueryable<Egreso> ApplyGymFilter(IQueryable<Egreso> query, User requester, int? gymId)
     {

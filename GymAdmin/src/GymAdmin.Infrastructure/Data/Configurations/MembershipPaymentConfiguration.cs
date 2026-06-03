@@ -28,6 +28,9 @@ public class MembershipPaymentConfiguration : IEntityTypeConfiguration<Membershi
         builder.Property(p => p.Notas)
             .HasMaxLength(1000);
 
+        builder.Property(p => p.FechaPago)
+            .HasColumnType("timestamp without time zone");
+
         builder.Property(p => p.FechaCreacion)
             .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
