@@ -328,17 +328,10 @@ function confirmDelete(e) {
 async function handleSubmit() {
   saving.value = true;
   try {
-    // Convertir fecha-hora local a UTC antes de enviar
-    const fechaLocal = new Date(form.fecha);
-    const fechaUTC = new Date(fechaLocal.getTime() - fechaLocal.getTimezoneOffset() * 60000);
-
     const payload = {
       ...form,
       monto: parseFormattedNumber(form.monto),
-      fecha: fechaUTC.toISOString(),
-    };
-    if (editingEgreso.value) {
-      await egresosApi.update(editingEgreso.value.id, payload);
+      fecha: form.fecha + ':00',
       success('Egreso actualizado');
     } else {
       await egresosApi.create(payload);

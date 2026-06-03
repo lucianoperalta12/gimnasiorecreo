@@ -394,13 +394,9 @@ function confirmDelete(p) {
 async function handleSubmit() {
   saving.value = true;
   try {
-    // Convertir fecha-hora local a UTC antes de enviar
-    const fechaLocal = new Date(form.fechaPago);
-    const fechaUTC = new Date(fechaLocal.getTime() - fechaLocal.getTimezoneOffset() * 60000);
-
     const payload = {
       ...form,
-      fechaPago: fechaUTC.toISOString(),
+      fechaPago: form.fechaPago + ':00',
       monto: parseFormattedNumber(form.monto),
       membresiaId: Number(form.membresiaId),
     };
