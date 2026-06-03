@@ -441,7 +441,7 @@
           <!-- Escritorio: tabla -->
           <div v-else-if="alumnosMembresiaVencida.length" class="table-container max-h-[360px] overflow-y-auto custom-scrollbar">
             <table class="table">
-              <thead class="sticky top-0 z-10 bg-dark-950">
+              <thead class="sticky top-0 z-20" style="background: #050505; opacity: 1">
                 <tr>
                   <th>Alumno</th>
                   <th>Dni</th>
@@ -554,9 +554,10 @@
       <AppModal v-model="showRenewModal" title="Renovar membresía">
         <form class="space-y-4" @submit.prevent="handleRenew">
           <p class="text-sm text-dark-400">
-            Alumno: <strong class="text-white">{{ renewingMembership?.alumnoNombreCompleto }}</strong>
+            Alumno: <strong class="text-white">{{ renewingMembership?.alumnoNombreCompleto }} </strong> - DNI:
+            <strong class="text-white">{{ renewingMembership?.alumnoDni }}</strong>
           </p>
-          <label class="label">Plan</label>
+          <label class="label">Plan:</label>
           <AppSearchSelect v-model.number="renewForm.planId" :options="planOptions" placeholder="Seleccionar plan" />
           <AppInput v-model="renewForm.fechaInicio" label="Fecha de inicio (opcional)" type="date" />
           <textarea v-model="renewForm.notas" rows="2" class="input" placeholder="Notas" />
