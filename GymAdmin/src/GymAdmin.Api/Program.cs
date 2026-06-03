@@ -141,7 +141,7 @@ using (var scope = app.Services.CreateScope())
         }
     }
 
-    db.Database.Migrate();
+    //db.Database.Migrate();
 
 }
 
