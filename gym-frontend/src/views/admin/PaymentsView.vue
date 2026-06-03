@@ -74,6 +74,8 @@
               <div class="min-w-0">
                 <h3 class="font-bold text-sm text-white truncate">{{ p.alumnoNombreCompleto }}</h3>
                 <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1 text-[11px] text-dark-500">
+                  <span>DNI: {{ p.alumnoDni || '—' }}</span>
+                  <span class="text-dark-700">•</span>
                   <span>{{ formatDate(p.fechaPago) }}</span>
                   <span class="text-dark-700">•</span>
                   <span>{{ p.metodoPago || '—' }}</span>
@@ -98,8 +100,12 @@
             <thead>
               <tr>
                 <th>Alumno</th>
+                <th>DNI</th>
                 <th>Monto</th>
-                <th>Fecha</th>
+                <th @click="toggleSort('fechaPago')" class="cursor-pointer hover:text-white select-none transition-colors">
+                  Fecha
+                  <span v-if="sortBy === 'fechaPago'">{{ sortDesc ? '↓' : '↑' }}</span>
+                </th>
                 <th>Estado</th>
                 <th>Método</th>
                 <th class="text-right">Acciones</th>
@@ -108,11 +114,15 @@
             <tbody>
               <tr v-for="p in paginatedPayments" :key="p.id">
                 <td class="text-white">{{ p.alumnoNombreCompleto }}</td>
-                <td>{{ formatCurrency(p.monto) }}</td>
+                <td>{{ p.alumnoDni || '—' }}</td>
+                <td>
+                  {{ formatCurrency(p.monto) }}
+                </td>
                 <td>{{ formatDateTime(p.fechaPago) }}</td>
                 <td>
                   <span :class="membershipEstadoBadgeClass(p.estado)">{{ p.estado }}</span>
                 </td>
+
                 <td>{{ p.metodoPago || '—' }}</td>
                 <td class="text-right">
                   <div class="flex items-center justify-end gap-2">
@@ -255,6 +265,25 @@ const selectedPaymentMethod = ref('Todos');
 const pageSize = ref(15);
 const currentPage = ref(1);
 
+const sortBy = ref('fechaPago');
+const sortDesc = ref(true);
+
+function toggleSort(field) {
+  if (sortBy.value === field) {
+    sortDesc.value = !sortDesc.value;
+  } else {
+    sortBy.value = field;
+    sortDesc.value = true;
+  }
+}
+
+function resetFilters() {
+  search.value = '';
+  dateFrom.value = defaultDateFrom();
+  dateTo.value = defaultDateTo();
+  selectedPaymentMethod.value = 'Todos';
+}
+
 const form = reactive({
   membresiaId: null,
   monto: '',
@@ -280,11 +309,21 @@ const filteredPayments = computed(() => {
     to = new Date(y, m - 1, d, 23, 59, 59, 999).getTime();
   }
 
-  return store.payments.filter((p) => {
+  const items = store.payments.filter((p) => {
     const d = new Date(p.fechaPago).getTime();
     const matchesMethod = paymentMethod === 'Todos' || (p.metodoPago || '') === paymentMethod;
-    return d >= from && d <= to && matchesMethod && p.alumnoNombreCompleto.toLowerCase().includes(q);
+    return d >= from && d <= to && matchesMethod && (p.alumnoNombreCompleto.toLowerCase().includes(q) || (p.alumnoDni || '').toLowerCase().includes(q));
   });
+
+  if (sortBy.value === 'fechaPago') {
+    items.sort((a, b) => {
+      const dateA = new Date(a.fechaPago).getTime();
+      const dateB = new Date(b.fechaPago).getTime();
+      return sortDesc.value ? dateB - dateA : dateA - dateB;
+    });
+  }
+
+  return items;
 });
 
 const totalAmount = computed(() => {
@@ -298,7 +337,7 @@ const paginatedPayments = computed(() => {
   return filteredPayments.value.slice(start, start + pageSize.value);
 });
 
-watch([search, dateFrom, dateTo, selectedGymId, selectedPaymentMethod], () => {
+watch([search, dateFrom, dateTo, selectedGymId, selectedPaymentMethod, sortBy, sortDesc], () => {
   currentPage.value = 1;
 });
 
@@ -483,12 +522,5 @@ function onMontoInput(event) {
     const newCursorPos = selectionStart + diff;
     input.setSelectionRange(newCursorPos, newCursorPos);
   });
-}
-
-function resetFilters() {
-  search.value = '';
-  selectedPaymentMethod.value = 'Todos';
-  dateFrom.value = defaultDateFrom();
-  dateTo.value = defaultDateTo();
 }
 </script>

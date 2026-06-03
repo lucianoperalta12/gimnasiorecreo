@@ -28,12 +28,15 @@ public class MembershipService : IMembershipService
         string? sortBy = null,
         bool? sortDesc = null,
         int? page = null,
-        int? pageSize = null)
+        int? pageSize = null,
+        DateTime? fechaVencimientoDesde = null,
+        DateTime? fechaVencimientoHasta = null,
+        bool? sinActiva = null)
     {
         var requester = await GetRequesterAsync(requesterId);
         await ExpireOverdueMembershipsAsync(requester, gymId);
 
-        var query = BuildMembershipQuery(requester, gymId, alumnoId, estado, search, sortBy, sortDesc);
+        var query = BuildMembershipQuery(requester, gymId, alumnoId, estado, search, sortBy, sortDesc, fechaVencimientoDesde, fechaVencimientoHasta, sinActiva);
         var totalCount = await query.CountAsync();
         query = ApplyPagination(query, page, pageSize);
         var items = await query.ToListAsync();
@@ -189,7 +192,10 @@ public class MembershipService : IMembershipService
         string? estado,
         string? search,
         string? sortBy,
-        bool? sortDesc)
+        bool? sortDesc,
+        DateTime? fechaVencimientoDesde = null,
+        DateTime? fechaVencimientoHasta = null,
+        bool? sinActiva = null)
     {
         var query = _context.Memberships
             .AsNoTracking()
@@ -214,6 +220,26 @@ public class MembershipService : IMembershipService
             && Enum.TryParse<MembershipStatus>(estado, true, out var status))
         {
             query = query.Where(m => m.Estado == status);
+        }
+
+        if (fechaVencimientoDesde.HasValue)
+        {
+            var desde = fechaVencimientoDesde.Value.Date;
+            query = query.Where(m => m.FechaVencimiento >= desde);
+        }
+
+        if (fechaVencimientoHasta.HasValue)
+        {
+            var hasta = fechaVencimientoHasta.Value.Date.AddDays(1).AddTicks(-1);
+            query = query.Where(m => m.FechaVencimiento <= hasta);
+        }
+
+        if (sinActiva == true)
+        {
+            var alumnosConActiva = _context.Memberships
+                .Where(m => m.Estado == MembershipStatus.Activa)
+                .Select(m => m.AlumnoId);
+            query = query.Where(m => !alumnosConActiva.Contains(m.AlumnoId));
         }
 
         if (!string.IsNullOrWhiteSpace(search))
@@ -313,7 +339,8 @@ public class MembershipService : IMembershipService
                 m.IngresosUtilizados,
                 m.Plan.PaseLibre,
                 m.Plan.DiasPorSemana,
-                puedeRenovar
+                puedeRenovar,
+                m.Alumno.Telefono
             ));
         }
         return result;

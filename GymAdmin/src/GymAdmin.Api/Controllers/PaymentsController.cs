@@ -19,13 +19,24 @@ public class PaymentsController : ControllerBase
 
     [HttpGet]
     public async Task<ActionResult<List<PaymentListDto>>> GetAll(
-        [FromQuery] int? gymId,
-        [FromQuery] int? membresiaId,
-        [FromQuery] int? page,
-        [FromQuery] int? pageSize)
+      [FromQuery] int? gymId,
+      [FromQuery] int? membresiaId,
+      [FromQuery] DateOnly? fechaDesde,
+      [FromQuery] DateOnly? fechaHasta,
+      [FromQuery] int? page,
+      [FromQuery] int? pageSize)
     {
-        var result = await _paymentService.GetAllAsync(GetUserId(), gymId, membresiaId, page, pageSize);
+        var result = await _paymentService.GetAllAsync(
+            GetUserId(),
+            gymId,
+            membresiaId,
+            fechaDesde,
+            fechaHasta,
+            page,
+            pageSize);
+
         AddPaginationHeaders(result.TotalCount, result.Page, result.PageSize);
+
         return Ok(result.Items);
     }
 

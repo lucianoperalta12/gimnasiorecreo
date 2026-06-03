@@ -19,7 +19,14 @@ public class PaymentService : IPaymentService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<PagedResult<PaymentListDto>> GetAllAsync(int requesterId, int? gymId = null, int? membresiaId = null, int? page = null, int? pageSize = null)
+    public async Task<PagedResult<PaymentListDto>> GetAllAsync(
+    int requesterId,
+    int? gymId = null,
+    int? membresiaId = null,
+    DateOnly? fechaDesde = null,
+    DateOnly? fechaHasta = null,
+    int? page = null,
+    int? pageSize = null)
     {
         var requester = await GetRequesterAsync(requesterId);
         EnsureCanManagePayments(requester);
@@ -37,14 +44,27 @@ public class PaymentService : IPaymentService
         if (membresiaId.HasValue)
             query = query.Where(p => p.MembresiaId == membresiaId.Value);
 
+        if (fechaDesde.HasValue)
+            query = query.Where(p =>
+                DateOnly.FromDateTime(p.FechaPago) >= fechaDesde.Value);
+
+        if (fechaHasta.HasValue)
+            query = query.Where(p =>
+                DateOnly.FromDateTime(p.FechaPago) <= fechaHasta.Value);
+
         var totalCount = await query.CountAsync();
-        var pagedQuery = ApplyPagination(query.OrderByDescending(p => p.FechaPago), page, pageSize);
+
+        var pagedQuery = ApplyPagination(
+            query.OrderByDescending(p => p.FechaPago),
+            page,
+            pageSize);
 
         var items = await pagedQuery
             .Select(p => new PaymentListDto(
                 p.Id,
                 p.MembresiaId,
                 (p.Membresia.Alumno.Nombre + " " + p.Membresia.Alumno.Apellido).Trim(),
+                p.Membresia.Alumno.Dni,
                 p.Membresia.Plan.Nombre,
                 p.Monto,
                 p.FechaPago,
@@ -52,7 +72,11 @@ public class PaymentService : IPaymentService
                 p.MetodoPago))
             .ToListAsync();
 
-        return new PagedResult<PaymentListDto>(items, totalCount, page, NormalizePageSize(pageSize));
+        return new PagedResult<PaymentListDto>(
+            items,
+            totalCount,
+            page,
+            NormalizePageSize(pageSize));
     }
 
     public async Task<PaymentDto?> GetByIdAsync(int requesterId, int id)
@@ -180,6 +204,7 @@ public class PaymentService : IPaymentService
             p.MembresiaId,
             p.Membresia.AlumnoId,
             (p.Membresia.Alumno.Nombre + " " + p.Membresia.Alumno.Apellido).Trim(),
+            p.Membresia.Alumno.Dni,
             p.Membresia.Plan.Nombre,
             p.Monto,
             NormalizeLocalDateTime(p.FechaPago),

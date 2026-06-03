@@ -80,9 +80,12 @@ export const useMembershipStore = defineStore('membership', () => {
     return data
   }
 
-  async function renewMembership(studentId, payload) {
+  async function renewMembership(studentId, payload, options = {}) {
+    const { refreshMemberships = true } = options
     const { data } = await membershipsApi.renew(studentId, payload)
-    await fetchMemberships()
+    if (refreshMemberships) {
+      await fetchMemberships()
+    }
     return data
   }
 

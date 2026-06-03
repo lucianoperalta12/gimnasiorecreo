@@ -610,7 +610,6 @@ import { useMembershipStore } from '@/stores/membership.store';
 import { accessStatusBadgeClass, formatDate, formatCurrency, PAYMENT_ESTADOS } from '@/constants/membershipStatus';
 import { ingresosApi } from '@/api/ingresos.api';
 import { membershipsApi } from '@/api/memberships.api';
-import { paymentsApi } from '@/api/payments.api';
 import AppButton from '@/components/ui/AppButton.vue';
 import LoadingSpinner from '@/components/shared/LoadingSpinner.vue';
 import AppInput from '@/components/ui/AppInput.vue';
@@ -629,7 +628,6 @@ const userStore = useUserStore();
 const membershipStore = useMembershipStore();
 const myAccess = computed(() => membershipStore.myAccess);
 const user = computed(() => authStore.user);
-const assignmentSummary = computed(() => routineStore.assignmentSummary);
 const myRoutines = computed(() => routineStore.myRoutines);
 const veRutinas = computed(() => authStore.user?.gymVeRutinas !== false);
 const dniInput = ref(null);
@@ -647,9 +645,10 @@ const terminalName = computed(() => {
 
 const ingresosHoy = ref([]);
 const loadingIngresos = ref(false);
-const pagosMesVal = ref(0);
 const membershipsVencidasRaw = ref([]);
 const loadingVencidas = ref(false);
+const membresiasPorVencerRaw = ref([]);
+const loadingPorVencer = ref(false);
 
 const greetingMessage = computed(() => {
   const role = user.value?.rol;
@@ -660,26 +659,7 @@ const greetingMessage = computed(() => {
   return 'Revisa tus rutinas de entrenamiento';
 });
 
-const stats = ref([
-  { icon: '🏋️', label: 'Ejercicios', value: '-', bgColor: 'bg-primary-500/10 text-primary-400', path: '/exercises' },
-  { icon: '📋', label: 'Rutinas', value: '-', bgColor: 'bg-primary-600/10 text-primary-400', path: '/routines' },
-]);
 
-if (authStore.hasRole('Superusuario', 'Administrativo')) {
-  stats.value.push(
-    { icon: '👥', label: 'Alumnos', value: '-', bgColor: 'bg-primary-700/10 text-primary-400', path: '/users' },
-    { icon: '🪪', label: 'Membresías activas', value: '-', bgColor: 'bg-amber-500/10 text-amber-400', path: '/memberships' }
-  );
-}
-
-function updateDashboardStats() {
-  stats.value[0].value = assignmentSummary.value.ejerciciosCount || routineStore.exercises.length;
-  stats.value[1].value = assignmentSummary.value.rutinasCount || routineStore.routines.length;
-  if (authStore.hasRole('Superusuario', 'Administrativo') && stats.value.length > 2) {
-    stats.value[2].value = userStore.users.filter((x) => x.rol === 'Alumno' && x.activo).length;
-    stats.value[3].value = membershipStore.memberships.length;
-  }
-}
 
 async function registrarIngreso() {
   if (terminalLoading.value || !terminalDni.value.trim()) return;
@@ -730,11 +710,11 @@ async function registrarIngreso() {
 }
 
 async function fetchIngresosHoy() {
-  if (!authStore.hasRole('Superusuario', 'Administrativo')) return;
+  if (!authStore.hasRole('Superusuario', 'Administrativo') || loadingIngresos.value) return;
   loadingIngresos.value = true;
   try {
-    const hoy = formatLocalDate();
-    const { data } = await ingresosApi.getAll({ fechaDesde: hoy, fechaHasta: hoy });
+    const params = authStore.user?.gymId ? { gymId: authStore.user.gymId } : {};
+    const { data } = await ingresosApi.getToday(params);
     ingresosHoy.value = data || [];
   } catch (err) {
     console.error(err);
@@ -743,47 +723,38 @@ async function fetchIngresosHoy() {
   }
 }
 
-async function fetchPagosMes() {
-  if (!authStore.hasRole('Superusuario', 'Administrativo')) return;
-  try {
-    const { data } = await paymentsApi.getAll();
-    const hoy = new Date();
-    const mes = hoy.getMonth();
-    const año = hoy.getFullYear();
-    const esteMes = (data || []).filter((p) => {
-      const d = new Date(p.fechaPago);
-      return d.getMonth() === mes && d.getFullYear() === año;
-    });
-    pagosMesVal.value = esteMes.reduce((acc, p) => acc + p.monto, 0);
-  } catch (err) {
-    console.error(err);
-  }
-}
-
 const membresiasPorVencer = computed(() => {
-  if (!authStore.hasRole('Superusuario', 'Administrativo')) return [];
-  const hoy = new Date();
-  const limite = new Date();
-  limite.setDate(hoy.getDate() + 7);
-  return membershipStore.memberships
-    .filter((m) => {
-      if (!m.fechaVencimiento || m.estado !== 'Activa') return false;
-      const v = new Date(m.fechaVencimiento);
-      return v >= hoy && v <= limite;
-    })
+  return [...membresiasPorVencerRaw.value]
     .sort((a, b) => new Date(a.fechaVencimiento) - new Date(b.fechaVencimiento));
 });
 
-const gymNombreWhatsApp = computed(() => authStore.user?.gymNombre || authStore.selectedGym?.gymNombre || 'Gimnasio');
-
-function getAlumnoTelefono(alumnoId) {
-  const gymId = authStore.user?.gymId;
-  const alumno = userStore.users.find((u) => u.id === alumnoId && u.rol === 'Alumno' && (!gymId || u.gymId === gymId));
-  return alumno?.telefono ?? null;
+async function fetchMembresiasPorVencer() {
+  if (!authStore.hasRole('Superusuario', 'Administrativo') || loadingPorVencer.value) return;
+  loadingPorVencer.value = true;
+  try {
+    const hoy = new Date();
+    const limite = new Date();
+    limite.setDate(hoy.getDate() + 7);
+    const params = {
+      estado: 'Activa',
+      fechaVencimientoDesde: formatLocalDate(hoy),
+      fechaVencimientoHasta: formatLocalDate(limite),
+      pageSize: 100
+    };
+    if (authStore.user?.gymId) params.gymId = authStore.user.gymId;
+    const { data } = await membershipsApi.getAll(params);
+    membresiasPorVencerRaw.value = data || [];
+  } catch (err) {
+    console.error(err);
+  } finally {
+    loadingPorVencer.value = false;
+  }
 }
 
+const gymNombreWhatsApp = computed(() => authStore.user?.gymNombre || authStore.selectedGym?.gymNombre || 'Gimnasio');
+
 function buildWhatsAppUrlForMembresia(m) {
-  const telefono = getAlumnoTelefono(m.alumnoId);
+  const telefono = m.alumnoTelefono;
   if (!telefono) return null;
   const message = buildMembresiaVencidaWhatsAppMessage(m.alumnoNombreCompleto, gymNombreWhatsApp.value);
   return buildWhatsAppUrl(telefono, message);
@@ -792,20 +763,8 @@ function buildWhatsAppUrlForMembresia(m) {
 const alumnosMembresiaVencida = computed(() => {
   if (!authStore.hasRole('Superusuario', 'Administrativo')) return [];
 
-  const hoy = new Date();
-  hoy.setHours(23, 59, 59, 999);
-  const haceUnMes = new Date();
-  haceUnMes.setMonth(haceUnMes.getMonth() - 1);
-  haceUnMes.setHours(0, 0, 0, 0);
-
-  const activosPorAlumno = new Set(membershipStore.memberships.filter((m) => m.estado === 'Activa').map((m) => m.alumnoId));
-
   const porAlumno = new Map();
   for (const m of membershipsVencidasRaw.value) {
-    if (m.estado !== 'Vencida' || activosPorAlumno.has(m.alumnoId)) continue;
-    const v = new Date(m.fechaVencimiento);
-    if (v < haceUnMes || v > hoy) continue;
-
     const prev = porAlumno.get(m.alumnoId);
     if (!prev || new Date(m.fechaVencimiento) > new Date(prev.fechaVencimiento)) {
       porAlumno.set(m.alumnoId, m);
@@ -821,10 +780,18 @@ const alumnosMembresiaVencida = computed(() => {
 });
 
 async function fetchMembresiasVencidas() {
-  if (!authStore.hasRole('Superusuario', 'Administrativo')) return;
+  if (!authStore.hasRole('Superusuario', 'Administrativo') || loadingVencidas.value) return;
   loadingVencidas.value = true;
   try {
-    const params = { estado: 'Vencida' };
+    const hoy = new Date();
+    const haceUnMes = new Date();
+    haceUnMes.setMonth(haceUnMes.getMonth() - 1);
+    const params = {
+      estado: 'Vencida',
+      fechaVencimientoDesde: formatLocalDate(haceUnMes),
+      fechaVencimientoHasta: formatLocalDate(hoy),
+      sinActiva: true
+    };
     if (authStore.user?.gymId) params.gymId = authStore.user.gymId;
     const { data } = await membershipsApi.getAll(params);
     membershipsVencidasRaw.value = data || [];
@@ -841,10 +808,6 @@ function diasDesdeVencimiento(fechaVencimiento) {
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
   return Math.max(0, Math.floor((hoy - v) / (1000 * 60 * 60 * 24)));
-}
-
-function formatMoneda(val) {
-  return new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', minimumFractionDigits: 0 }).format(val);
 }
 
 function formatTime(val) {
@@ -878,20 +841,11 @@ onMounted(async () => {
 
   if (authStore.hasRole('Superusuario', 'Administrativo')) {
     await Promise.allSettled([
-      routineStore.fetchExercises(),
-      routineStore.fetchRoutines(),
-      routineStore.fetchAssignmentSummary(),
-      userStore.fetchUsers(),
-      membershipStore.fetchMemberships({ estado: 'Activa' }),
       membershipStore.fetchPlans(),
       fetchIngresosHoy(),
-      fetchPagosMes(),
       fetchMembresiasVencidas(),
+      fetchMembresiasPorVencer(),
     ]);
-    updateDashboardStats();
-  } else if (authStore.hasRole('Profesor')) {
-    await Promise.allSettled([routineStore.fetchExercises(), routineStore.fetchRoutines(), routineStore.fetchAssignmentSummary()]);
-    updateDashboardStats();
   } else if (authStore.hasRole('Alumno')) {
     await membershipStore.fetchMyAccess();
     if (veRutinas.value) {
@@ -952,11 +906,14 @@ async function handleRenew(andPay = false) {
       planId: renewForm.planId,
       fechaInicio: renewForm.fechaInicio || null,
       notas: renewForm.notas || null,
-    });
+    }, { refreshMemberships: false });
     success('Membresía renovada');
     showRenewModal.value = false;
 
-    await Promise.all([membershipStore.fetchMemberships({ estado: 'Activa' }), fetchMembresiasVencidas()]);
+    await Promise.all([
+      fetchMembresiasVencidas(),
+      fetchMembresiasPorVencer(),
+    ]);
 
     if (andPay && renewed) {
       paymentForm.membresiaId = renewed.id;

@@ -27,9 +27,24 @@ public class MembershipsController : ControllerBase
         [FromQuery] string? sortBy,
         [FromQuery] bool? sortDesc,
         [FromQuery] int? page,
-        [FromQuery] int? pageSize)
+        [FromQuery] int? pageSize,
+        [FromQuery] DateTime? fechaVencimientoDesde,
+        [FromQuery] DateTime? fechaVencimientoHasta,
+        [FromQuery] bool? sinActiva)
     {
-        var result = await _membershipService.GetAllAsync(GetUserId(), gymId, alumnoId, estado, search, sortBy, sortDesc, page, pageSize);
+        var result = await _membershipService.GetAllAsync(
+            GetUserId(),
+            gymId,
+            alumnoId,
+            estado,
+            search,
+            sortBy,
+            sortDesc,
+            page,
+            pageSize,
+            fechaVencimientoDesde,
+            fechaVencimientoHasta,
+            sinActiva);
         AddPaginationHeaders(result.TotalCount, result.Page, result.PageSize);
         return Ok(result.Items);
     }
