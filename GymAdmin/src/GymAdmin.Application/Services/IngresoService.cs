@@ -189,8 +189,8 @@ public class IngresoService : IIngresoService
         else if (gymId.HasValue)
             query = query.Where(x => x.GymId == gymId.Value);
 
-        var argentinaTimeZone = GetArgentinaTimeZone();
-        var today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(DateTime.Now, argentinaTimeZone));
+        var today = DateOnly.FromDateTime(DateTime.Now);
+
         var (inicio, fin) = GetLocalDateRangeAsUtc(today, today);
 
         return await query
