@@ -394,7 +394,16 @@ function confirmDelete(p) {
 async function handleSubmit() {
   saving.value = true;
   try {
-    const payload = { ...form, monto: parseFormattedNumber(form.monto), membresiaId: Number(form.membresiaId) };
+    // Convertir fecha-hora local a UTC antes de enviar
+    const fechaLocal = new Date(form.fechaPago);
+    const fechaUTC = new Date(fechaLocal.getTime() - fechaLocal.getTimezoneOffset() * 60000);
+
+    const payload = {
+      ...form,
+      fechaPago: fechaUTC.toISOString(),
+      monto: parseFormattedNumber(form.monto),
+      membresiaId: Number(form.membresiaId),
+    };
     if (editingPayment.value) {
       await store.updatePayment(editingPayment.value.id, payload);
       success('Pago actualizado');
