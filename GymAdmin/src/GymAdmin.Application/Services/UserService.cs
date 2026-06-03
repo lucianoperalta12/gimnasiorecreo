@@ -269,15 +269,38 @@ public class UserService : IUserService
         if (string.IsNullOrWhiteSpace(request.Nombre) || string.IsNullOrWhiteSpace(request.Apellido))
             throw new ArgumentException("Nombre y Apellido son requeridos.");
 
+        if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Dni))
+            throw new ArgumentException("Email y DNI son requeridos.");
+
         if (request.FechaNacimiento.HasValue && request.FechaNacimiento.Value > DateTime.Now)
             throw new ArgumentException("La fecha de nacimiento no puede ser una fecha futura.");
 
+        var normalizedEmail = request.Email.Trim();
+        var normalizedDni = request.Dni.Trim();
+
+        var duplicateExists = await _context.Users.AnyAsync(u =>
+            u.Id != userId &&
+            (u.Email == normalizedEmail || u.Dni == normalizedDni));
+
+        if (duplicateExists)
+            throw new InvalidOperationException("Ya existe otro usuario con ese email o DNI.");
+
+        var dniChanged = !string.Equals(user.Dni, normalizedDni, StringComparison.Ordinal);
+
         user.Nombre = request.Nombre.Trim();
         user.Apellido = request.Apellido.Trim();
+        user.Email = normalizedEmail;
+        user.Dni = normalizedDni;
         user.FechaNacimiento = request.FechaNacimiento.HasValue ? DateTime.SpecifyKind(request.FechaNacimiento.Value, DateTimeKind.Utc) : null;
         user.Domicilio = request.Domicilio;
         user.Telefono = request.Telefono;
         user.Observaciones = request.Observaciones;
+
+        if (dniChanged)
+        {
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(normalizedDni);
+            user.DebeCambiarPassword = true;
+        }
 
         await _context.SaveChangesAsync();
         return (await GetUserByIdAsync(requesterId, user.Id))!;

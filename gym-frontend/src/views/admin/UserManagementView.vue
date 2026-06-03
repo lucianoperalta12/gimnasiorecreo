@@ -303,10 +303,9 @@
           v-model="createForm.email"
           label="Correo electrónico"
           type="email"
-          :required="!userToEdit"
-          :disabled="!!userToEdit"
+          required
         />
-        <AppInput v-model="createForm.dni" label="DNI" :required="!userToEdit" :disabled="!!userToEdit" />
+        <AppInput v-model="createForm.dni" label="DNI" required />
         <AppInput v-model="createForm.fechaNacimiento" label="Fecha de Nacimiento" type="date" required />
         <AppInput v-model="createForm.domicilio" label="Domicilio" />
         <AppInput v-model="createForm.telefono" label="Teléfono" />
@@ -712,15 +711,18 @@ async function editUser() {
   formError.value = '';
   creating.value = true;
   try {
+    const dniChanged = userToEdit.value.dni !== createForm.dni;
     await userStore.updateUser(userToEdit.value.id, {
       nombre: createForm.nombre,
       apellido: createForm.apellido,
+      email: createForm.email,
+      dni: createForm.dni,
       fechaNacimiento: createForm.fechaNacimiento || null,
       domicilio: createForm.domicilio,
       telefono: createForm.telefono,
       observaciones: createForm.observaciones,
     });
-    success('Usuario actualizado correctamente.');
+    success(dniChanged ? 'Usuario actualizado. La nueva clave inicial ahora es el DNI informado.' : 'Usuario actualizado correctamente.');
     showCreateModal.value = false;
   } catch (err) {
     formError.value = err.response?.data?.error || 'No se pudo actualizar el usuario';

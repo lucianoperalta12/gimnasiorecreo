@@ -34,6 +34,15 @@ public record UpdateUserRequest(
     [StringLength(100, ErrorMessage = "El apellido no puede superar los 100 caracteres.")]
     string Apellido,
 
+    [Required(ErrorMessage = "El correo electronico es requerido.")]
+    [EmailAddress(ErrorMessage = "El correo electronico no es valido.")]
+    [StringLength(150, ErrorMessage = "El correo electronico no puede superar los 150 caracteres.")]
+    string Email,
+
+    [Required(ErrorMessage = "El DNI es requerido.")]
+    [StringLength(20, ErrorMessage = "El DNI no puede superar los 20 caracteres.")]
+    string Dni,
+
     DateTime? FechaNacimiento,
 
     [StringLength(200, ErrorMessage = "El domicilio no puede superar los 200 caracteres.")]
