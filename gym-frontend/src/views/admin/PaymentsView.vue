@@ -100,7 +100,6 @@
             <thead>
               <tr>
                 <th>Alumno</th>
-                <th>DNI</th>
                 <th>Monto</th>
                 <th @click="toggleSort('fechaPago')" class="cursor-pointer hover:text-white select-none transition-colors">
                   Fecha
@@ -108,13 +107,13 @@
                 </th>
                 <th>Estado</th>
                 <th>Método</th>
+                <th>DNI</th>
                 <th class="text-right">Acciones</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="p in paginatedPayments" :key="p.id">
                 <td class="text-white">{{ p.alumnoNombreCompleto }}</td>
-                <td>{{ p.alumnoDni || '—' }}</td>
                 <td>
                   {{ formatCurrency(p.monto) }}
                 </td>
@@ -124,6 +123,7 @@
                 </td>
 
                 <td>{{ p.metodoPago || '—' }}</td>
+                <td>{{ p.alumnoDni || '—' }}</td>
                 <td class="text-right">
                   <div class="flex items-center justify-end gap-2">
                     <button class="btn-ghost btn-sm" @click="openEditModal(p)">Editar</button>

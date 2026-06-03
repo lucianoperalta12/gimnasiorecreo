@@ -330,6 +330,7 @@ public class MembershipService : IMembershipService
                 m.GymId,
                 m.AlumnoId,
                 $"{m.Alumno.Nombre} {m.Alumno.Apellido}".Trim(),
+                m.Alumno.Dni,
                 m.Plan.Nombre,
                 m.FechaInicio,
                 m.FechaVencimiento,

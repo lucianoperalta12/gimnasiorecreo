@@ -444,6 +444,7 @@
               <thead class="sticky top-0 z-10 bg-dark-950">
                 <tr>
                   <th>Alumno</th>
+                  <th>Dni</th>
                   <th>Plan</th>
                   <th>Vencimiento</th>
                   <th>Hace</th>
@@ -453,6 +454,7 @@
               <tbody>
                 <tr v-for="m in alumnosMembresiaVencida" :key="m.id">
                   <td class="font-medium text-white">{{ m.alumnoNombreCompleto }}</td>
+                  <td class="font-medium text-white">{{ m.alumnoDni }}</td>
                   <td>{{ m.planNombre }}</td>
                   <td>{{ formatDate(m.fechaVencimiento) }}</td>
                   <td class="text-dark-400">{{ diasDesdeVencimiento(m.fechaVencimiento) }} días</td>
@@ -659,8 +661,6 @@ const greetingMessage = computed(() => {
   return 'Revisa tus rutinas de entrenamiento';
 });
 
-
-
 async function registrarIngreso() {
   if (terminalLoading.value || !terminalDni.value.trim()) return;
 
@@ -724,8 +724,7 @@ async function fetchIngresosHoy() {
 }
 
 const membresiasPorVencer = computed(() => {
-  return [...membresiasPorVencerRaw.value]
-    .sort((a, b) => new Date(a.fechaVencimiento) - new Date(b.fechaVencimiento));
+  return [...membresiasPorVencerRaw.value].sort((a, b) => new Date(a.fechaVencimiento) - new Date(b.fechaVencimiento));
 });
 
 async function fetchMembresiasPorVencer() {
@@ -739,7 +738,7 @@ async function fetchMembresiasPorVencer() {
       estado: 'Activa',
       fechaVencimientoDesde: formatLocalDate(hoy),
       fechaVencimientoHasta: formatLocalDate(limite),
-      pageSize: 100
+      pageSize: 100,
     };
     if (authStore.user?.gymId) params.gymId = authStore.user.gymId;
     const { data } = await membershipsApi.getAll(params);
@@ -790,7 +789,7 @@ async function fetchMembresiasVencidas() {
       estado: 'Vencida',
       fechaVencimientoDesde: formatLocalDate(haceUnMes),
       fechaVencimientoHasta: formatLocalDate(hoy),
-      sinActiva: true
+      sinActiva: true,
     };
     if (authStore.user?.gymId) params.gymId = authStore.user.gymId;
     const { data } = await membershipsApi.getAll(params);
@@ -840,12 +839,7 @@ onMounted(async () => {
   }
 
   if (authStore.hasRole('Superusuario', 'Administrativo')) {
-    await Promise.allSettled([
-      membershipStore.fetchPlans(),
-      fetchIngresosHoy(),
-      fetchMembresiasVencidas(),
-      fetchMembresiasPorVencer(),
-    ]);
+    await Promise.allSettled([fetchIngresosHoy(), fetchMembresiasVencidas(), fetchMembresiasPorVencer()]);
   } else if (authStore.hasRole('Alumno')) {
     await membershipStore.fetchMyAccess();
     if (veRutinas.value) {
@@ -902,18 +896,19 @@ async function openRenewModal(m) {
 async function handleRenew(andPay = false) {
   saving.value = true;
   try {
-    const renewed = await membershipStore.renewMembership(renewingMembership.value.alumnoId, {
-      planId: renewForm.planId,
-      fechaInicio: renewForm.fechaInicio || null,
-      notas: renewForm.notas || null,
-    }, { refreshMemberships: false });
+    const renewed = await membershipStore.renewMembership(
+      renewingMembership.value.alumnoId,
+      {
+        planId: renewForm.planId,
+        fechaInicio: renewForm.fechaInicio || null,
+        notas: renewForm.notas || null,
+      },
+      { refreshMemberships: false }
+    );
     success('Membresía renovada');
     showRenewModal.value = false;
 
-    await Promise.all([
-      fetchMembresiasVencidas(),
-      fetchMembresiasPorVencer(),
-    ]);
+    await Promise.all([fetchMembresiasVencidas(), fetchMembresiasPorVencer()]);
 
     if (andPay && renewed) {
       paymentForm.membresiaId = renewed.id;

@@ -27,6 +27,7 @@ public record MembershipListDto(
     int GymId,
     int AlumnoId,
     string AlumnoNombreCompleto,
+    string AlumnoDni,
     string PlanNombre,
     DateTime FechaInicio,
     DateTime FechaVencimiento,
