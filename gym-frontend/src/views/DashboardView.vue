@@ -386,7 +386,7 @@
             <h2 class="text-sm font-bold text-white uppercase tracking-wider">Membresías vencidas</h2>
             <p class="text-xs text-dark-500">Alumnos sin membresía activa que vencieron en el último mes</p>
           </div>
-          <button type="button" class="p-2 rounded-lg text-dark-400 hover:text-white hover:bg-dark-900/60 transition-colors" @click="fetchMembresiasVencidas">
+          <button type="button" class="p-2 rounded-lg text-dark-400 hover:text-white hover:bg-dark-900/60 transition-colors" @click="fetchDashboardSummary">
             <svg class="w-4 h-4" :class="{ 'animate-spin': loadingVencidas }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path
                 stroke-linecap="round"
@@ -649,9 +649,11 @@ const terminalName = computed(() => {
 const ingresosHoy = ref([]);
 const loadingIngresos = ref(false);
 const membershipsVencidasRaw = ref([]);
-const loadingVencidas = ref(false);
 const membresiasPorVencerRaw = ref([]);
-const loadingPorVencer = ref(false);
+const loadingDashboard = ref(false);
+// Alias para los spinners individuales de cada card (comparten el mismo estado)
+const loadingVencidas = loadingDashboard;
+const loadingPorVencer = loadingDashboard;
 
 const greetingMessage = computed(() => {
   const role = user.value?.rol;
@@ -724,32 +726,7 @@ async function fetchIngresosHoy() {
   }
 }
 
-const membresiasPorVencer = computed(() => {
-  return [...membresiasPorVencerRaw.value].sort((a, b) => new Date(a.fechaVencimiento) - new Date(b.fechaVencimiento));
-});
-
-async function fetchMembresiasPorVencer() {
-  if (!authStore.hasRole('Superusuario', 'Administrativo') || loadingPorVencer.value) return;
-  loadingPorVencer.value = true;
-  try {
-    const hoy = new Date();
-    const limite = new Date();
-    limite.setDate(hoy.getDate() + 7);
-    const params = {
-      estado: 'Activa',
-      fechaVencimientoDesde: formatLocalDate(hoy),
-      fechaVencimientoHasta: formatLocalDate(limite),
-      pageSize: 100,
-    };
-    if (authStore.user?.gymId) params.gymId = authStore.user.gymId;
-    const { data } = await membershipsApi.getAll(params);
-    membresiasPorVencerRaw.value = data || [];
-  } catch (err) {
-    console.error(err);
-  } finally {
-    loadingPorVencer.value = false;
-  }
-}
+const membresiasPorVencer = computed(() => membresiasPorVencerRaw.value);
 
 const gymNombreWhatsApp = computed(() => authStore.user?.gymNombre || authStore.selectedGym?.gymNombre || 'Gimnasio');
 
@@ -760,45 +737,27 @@ function buildWhatsAppUrlForMembresia(m) {
   return buildWhatsAppUrl(telefono, message);
 }
 
+// Datos ya vienen deduplicados desde el backend; solo agregamos whatsappUrl
 const alumnosMembresiaVencida = computed(() => {
   if (!authStore.hasRole('Superusuario', 'Administrativo')) return [];
-
-  const porAlumno = new Map();
-  for (const m of membershipsVencidasRaw.value) {
-    const prev = porAlumno.get(m.alumnoId);
-    if (!prev || new Date(m.fechaVencimiento) > new Date(prev.fechaVencimiento)) {
-      porAlumno.set(m.alumnoId, m);
-    }
-  }
-
-  return Array.from(porAlumno.values())
-    .sort((a, b) => new Date(b.fechaVencimiento) - new Date(a.fechaVencimiento))
-    .map((m) => ({
-      ...m,
-      whatsappUrl: buildWhatsAppUrlForMembresia(m),
-    }));
+  return membershipsVencidasRaw.value.map((m) => ({
+    ...m,
+    whatsappUrl: buildWhatsAppUrlForMembresia(m),
+  }));
 });
 
-async function fetchMembresiasVencidas() {
-  if (!authStore.hasRole('Superusuario', 'Administrativo') || loadingVencidas.value) return;
-  loadingVencidas.value = true;
+async function fetchDashboardSummary() {
+  if (!authStore.hasRole('Superusuario', 'Administrativo') || loadingDashboard.value) return;
+  loadingDashboard.value = true;
   try {
-    const hoy = new Date();
-    const haceUnMes = new Date();
-    haceUnMes.setMonth(haceUnMes.getMonth() - 1);
-    const params = {
-      estado: 'Vencida',
-      fechaVencimientoDesde: formatLocalDate(haceUnMes),
-      fechaVencimientoHasta: formatLocalDate(hoy),
-      sinActiva: true,
-    };
-    if (authStore.user?.gymId) params.gymId = authStore.user.gymId;
-    const { data } = await membershipsApi.getAll(params);
-    membershipsVencidasRaw.value = data || [];
+    const params = authStore.user?.gymId ? { gymId: authStore.user.gymId } : {};
+    const { data } = await membershipsApi.getDashboardSummary(params);
+    membresiasPorVencerRaw.value = data.porVencer || [];
+    membershipsVencidasRaw.value = data.vencidas || [];
   } catch (err) {
     console.error(err);
   } finally {
-    loadingVencidas.value = false;
+    loadingDashboard.value = false;
   }
 }
 
@@ -840,7 +799,7 @@ onMounted(async () => {
   }
 
   if (authStore.hasRole('Superusuario', 'Administrativo')) {
-    await Promise.allSettled([fetchIngresosHoy(), fetchMembresiasVencidas(), fetchMembresiasPorVencer()]);
+    await Promise.allSettled([fetchIngresosHoy(), fetchDashboardSummary()]);
   } else if (authStore.hasRole('Alumno')) {
     await membershipStore.fetchMyAccess();
     if (veRutinas.value) {
@@ -909,7 +868,7 @@ async function handleRenew(andPay = false) {
     success('Membresía renovada');
     showRenewModal.value = false;
 
-    await Promise.all([fetchMembresiasVencidas(), fetchMembresiasPorVencer()]);
+    await fetchDashboardSummary();
 
     if (andPay && renewed) {
       paymentForm.membresiaId = renewed.id;

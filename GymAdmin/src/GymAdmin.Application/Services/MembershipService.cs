@@ -185,6 +185,78 @@ public class MembershipService : IMembershipService
         return await MapToDtoAsync(membership);
     }
 
+    public async Task<DashboardMembershipSummaryDto> GetDashboardSummaryAsync(int requesterId, int? gymId)
+    {
+        var requester = await GetRequesterAsync(requesterId);
+        await ExpireOverdueMembershipsAsync(requester, gymId);
+
+        var effectiveGymId = requester.Rol == UserRole.Superusuario
+            ? gymId
+            : (int?)requester.GymId;
+
+        var now = DateTime.UtcNow.Date;
+        var limite7 = now.AddDays(7).AddDays(1).AddTicks(-1);
+        var haceUnMes = now.AddMonths(-1);
+        var finHoy = now.AddDays(1).AddTicks(-1);
+
+        // Query 1: Activas que vencen en los próximos 7 días
+        var porVencerQuery = _context.Memberships
+            .AsNoTracking()
+            .Where(m => m.Estado == MembershipStatus.Activa
+                     && m.FechaVencimiento >= now
+                     && m.FechaVencimiento <= limite7);
+
+        if (effectiveGymId.HasValue)
+            porVencerQuery = porVencerQuery.Where(m => m.GymId == effectiveGymId.Value);
+
+        var porVencer = await porVencerQuery
+            .OrderBy(m => m.FechaVencimiento)
+            .Select(m => new DashboardMembershipItemDto(
+                m.Id,
+                m.AlumnoId,
+                (m.Alumno.Nombre + " " + m.Alumno.Apellido).Trim(),
+                m.Alumno.Dni,
+                m.Alumno.Telefono,
+                m.Plan.Nombre,
+                m.FechaVencimiento))
+            .ToListAsync();
+
+        // Query 2: Vencidas en el último mes, sin membresía activa vigente
+        var alumnosConActiva = _context.Memberships
+            .Where(m => m.Estado == MembershipStatus.Activa)
+            .Select(m => m.AlumnoId);
+
+        var vencidasQuery = _context.Memberships
+            .AsNoTracking()
+            .Where(m => m.Estado == MembershipStatus.Vencida
+                     && m.FechaVencimiento >= haceUnMes
+                     && m.FechaVencimiento <= finHoy
+                     && !alumnosConActiva.Contains(m.AlumnoId));
+
+        if (effectiveGymId.HasValue)
+            vencidasQuery = vencidasQuery.Where(m => m.GymId == effectiveGymId.Value);
+
+        var vencidasRaw = await vencidasQuery
+            .Select(m => new DashboardMembershipItemDto(
+                m.Id,
+                m.AlumnoId,
+                (m.Alumno.Nombre + " " + m.Alumno.Apellido).Trim(),
+                m.Alumno.Dni,
+                m.Alumno.Telefono,
+                m.Plan.Nombre,
+                m.FechaVencimiento))
+            .ToListAsync();
+
+        // Deduplicar por alumno: queda la membresía más reciente
+        var vencidas = vencidasRaw
+            .GroupBy(m => m.AlumnoId)
+            .Select(g => g.OrderByDescending(m => m.FechaVencimiento).First())
+            .OrderByDescending(m => m.FechaVencimiento)
+            .ToList();
+
+        return new DashboardMembershipSummaryDto(porVencer, vencidas);
+    }
+
     private IQueryable<Membership> BuildMembershipQuery(
         User requester,
         int? gymId,

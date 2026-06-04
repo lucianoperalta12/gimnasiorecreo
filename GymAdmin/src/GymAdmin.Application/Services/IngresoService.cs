@@ -65,7 +65,6 @@ public class IngresoService : IIngresoService
 
         if (!membership.Plan.PaseLibre)
         {
-
             var ingresosDisponibles = CalcularIngresosDisponibles(membership);
             if (membership.IngresosUtilizados >= ingresosDisponibles)
                 throw new InvalidOperationException("El alumno no posee ingresos disponibles según su membresía.");
@@ -180,19 +179,14 @@ public class IngresoService : IIngresoService
 
     public async Task<List<IngresoHoyItemDto>> GetTodayAsync(int requesterId, int? gymId = null)
     {
-        var requester = await GetRequesterAsync(requesterId);
-
-        if (requester.Rol is not (UserRole.Superusuario or UserRole.Administrativo))
-            throw new UnauthorizedAccessException("No autorizado.");
-
         var query = _context.Ingresos
             .AsNoTracking()
             .AsQueryable();
 
-        if (requester.Rol != UserRole.Superusuario)
-            query = query.Where(x => x.GymId == requester.GymId);
-        else if (gymId.HasValue)
+        if (gymId > 0)
+        {
             query = query.Where(x => x.GymId == gymId.Value);
+        }
 
         var argentinaTimeZone = GetArgentinaTimeZone();
         var today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, argentinaTimeZone));
@@ -247,33 +241,54 @@ public class IngresoService : IIngresoService
 
     private async Task<User> GetRequesterAsync(int requesterId)
     {
-        var user = await _context.Users
-            .Include(u => u.GymUsers)
-                .ThenInclude(gu => gu.Gym)
-            .FirstOrDefaultAsync(u => u.Id == requesterId)
-            ?? throw new UnauthorizedAccessException("Usuario inválido.");
-
         var httpContext = _httpContextAccessor.HttpContext;
+
+        int gymIdFromClaim = 0;
+
         if (httpContext != null)
         {
             var gymIdClaim = httpContext.User.FindFirst("gymId")?.Value;
-            if (int.TryParse(gymIdClaim, out var gymId))
-            {
-                user.GymId = gymId;
-            }
-
-            var activeAssociation = user.GymUsers.FirstOrDefault(gu => gu.GymId == user.GymId && gu.Activo) ?? user.GymUsers.FirstOrDefault(gu => gu.Activo);
-            if (activeAssociation != null)
-            {
-                user.Rol = activeAssociation.Rol;
-                if (user.GymId == 0)
-                {
-                    user.GymId = activeAssociation.GymId;
-                }
-            }
+            int.TryParse(gymIdClaim, out gymIdFromClaim);
         }
 
-        return user;
+        var userData = await _context.Users
+            .AsNoTracking()
+            .Where(u => u.Id == requesterId)
+            .Select(u => new
+            {
+                u.Id,
+                u.Nombre,
+                u.Apellido,
+                GymUsers = u.GymUsers
+                    .Where(gu => gu.Activo)
+                    .Select(gu => new
+                    {
+                        gu.GymId,
+                        gu.Rol
+                    })
+                    .ToList()
+            })
+            .FirstOrDefaultAsync()
+            ?? throw new UnauthorizedAccessException("Usuario inválido.");
+
+        var activeAssociation =
+            gymIdFromClaim > 0
+                ? userData.GymUsers.FirstOrDefault(x => x.GymId == gymIdFromClaim)
+                : null;
+
+        activeAssociation ??= userData.GymUsers.FirstOrDefault();
+
+        if (activeAssociation == null)
+            throw new UnauthorizedAccessException("Usuario sin asociación activa.");
+
+        return new User
+        {
+            Id = userData.Id,
+            Nombre = userData.Nombre,
+            Apellido = userData.Apellido,
+            GymId = activeAssociation.GymId,
+            Rol = activeAssociation.Rol
+        };
     }
 
     private static IQueryable<T> ApplyPagination<T>(IQueryable<T> query, int? page, int? pageSize)

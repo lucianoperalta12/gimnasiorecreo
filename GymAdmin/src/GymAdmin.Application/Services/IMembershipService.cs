@@ -18,6 +18,7 @@ public interface IMembershipService
         DateTime? fechaVencimientoDesde = null,
         DateTime? fechaVencimientoHasta = null,
         bool? sinActiva = null);
+    Task<DashboardMembershipSummaryDto> GetDashboardSummaryAsync(int requesterId, int? gymId);
     Task<MembershipDto?> GetByIdAsync(int requesterId, int id);
     Task<List<MembershipListDto>> GetByStudentIdAsync(int requesterId, int studentId);
     Task<StudentAccessDto> GetStudentAccessAsync(int requesterId, int studentId);

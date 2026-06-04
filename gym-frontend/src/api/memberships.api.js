@@ -4,6 +4,9 @@ export const membershipsApi = {
   getAll(params = {}) {
     return api.get('/memberships', { params })
   },
+  getDashboardSummary(params = {}) {
+    return api.get('/memberships/dashboard-summary', { params })
+  },
   getById(id) {
     return api.get(`/memberships/${id}`)
   },

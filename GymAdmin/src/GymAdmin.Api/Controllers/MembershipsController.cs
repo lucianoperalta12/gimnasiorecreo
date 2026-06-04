@@ -49,6 +49,14 @@ public class MembershipsController : ControllerBase
         return Ok(result.Items);
     }
 
+    [HttpGet("dashboard-summary")]
+    [Authorize(Roles = "Superusuario,Administrativo")]
+    public async Task<ActionResult<DashboardMembershipSummaryDto>> GetDashboardSummary([FromQuery] int? gymId)
+    {
+        var result = await _membershipService.GetDashboardSummaryAsync(GetUserId(), gymId);
+        return Ok(result);
+    }
+
     [HttpGet("{id}")]
     [Authorize(Roles = "Alumno,Profesor,Superusuario,Administrativo")]
     public async Task<ActionResult<MembershipDto>> GetById(int id)

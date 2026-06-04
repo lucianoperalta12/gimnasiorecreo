@@ -56,6 +56,21 @@ public record RenewMembershipRequest(
 
 public record CancelMembershipRequest(string? Motivo);
 
+public record DashboardMembershipItemDto(
+    int Id,
+    int AlumnoId,
+    string AlumnoNombreCompleto,
+    string? AlumnoDni,
+    string? AlumnoTelefono,
+    string PlanNombre,
+    DateTime FechaVencimiento
+);
+
+public record DashboardMembershipSummaryDto(
+    IReadOnlyList<DashboardMembershipItemDto> PorVencer,
+    IReadOnlyList<DashboardMembershipItemDto> Vencidas
+);
+
 public record StudentAccessDto(
     int AlumnoId,
     string AlumnoNombre,
