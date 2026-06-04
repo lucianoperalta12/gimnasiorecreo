@@ -137,7 +137,7 @@ public class MembershipService : IMembershipService
         await ExpireOverdueMembershipsAsync(requester, student.GymId);
         await CloseActiveMembershipsAsync(student.Id);
 
-        var fechaInicio = NormalizeDate(request.FechaInicio ?? DateTime.Now);
+        var fechaInicio = NormalizeDate(request.FechaInicio ?? DateTime.UtcNow);
         var membership = new Membership
         {
             GymId = student.GymId,
@@ -392,7 +392,7 @@ public class MembershipService : IMembershipService
 
     private async Task ExpireOverdueMembershipsAsync(User? requester, int? gymId)
     {
-        var now = DateTime.Now;
+        var now = DateTime.UtcNow;
         var query = _context.Memberships
             .Where(m => m.Estado == MembershipStatus.Activa && m.FechaVencimiento < now);
 

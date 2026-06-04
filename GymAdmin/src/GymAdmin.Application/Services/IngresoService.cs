@@ -59,25 +59,29 @@ public class IngresoService : IIngresoService
         if (membership is null)
             throw new InvalidOperationException("El alumno no tiene una membresía activa.");
 
-        if (membership.FechaVencimiento < DateTime.Now)
+        var utcNow = DateTime.UtcNow;
+        if (membership.FechaVencimiento < utcNow)
             throw new InvalidOperationException("La membresía del alumno está vencida.");
 
         if (!membership.Plan.PaseLibre)
         {
+
             var ingresosDisponibles = CalcularIngresosDisponibles(membership);
             if (membership.IngresosUtilizados >= ingresosDisponibles)
                 throw new InvalidOperationException("El alumno no posee ingresos disponibles según su membresía.");
 
             if (membership.Plan.DiasPorSemana.HasValue && membership.Plan.DiasPorSemana.Value > 0)
             {
-                var today = DateTime.Now.Date;
+                var argentinaTimeZone = GetArgentinaTimeZone();
+                var today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(utcNow, argentinaTimeZone));
                 var diff = (7 + (today.DayOfWeek - DayOfWeek.Monday)) % 7;
                 var startOfWeek = today.AddDays(-1 * diff);
+                var (inicioSemana, _) = GetLocalDateRangeAsUtc(startOfWeek, startOfWeek);
 
                 var ingresosEstaSemana = await _context.Ingresos
                     .CountAsync(x => x.AlumnoId == alumno.Id
                                   && x.MembershipId == membership.Id
-                                  && x.FechaHora >= startOfWeek);
+                                  && x.FechaHora >= inicioSemana);
 
                 if (ingresosEstaSemana >= membership.Plan.DiasPorSemana.Value)
                     throw new InvalidOperationException($"El alumno ya superó el límite de {membership.Plan.DiasPorSemana.Value} ingresos para esta semana.");
@@ -90,7 +94,7 @@ public class IngresoService : IIngresoService
             AlumnoId = alumno.Id,
             TerminalId = terminalEntity.Id,
             MembershipId = membership.Id,
-            FechaHora = DateTime.Now
+            FechaHora = DateTime.UtcNow
         };
 
         if (!membership.Plan.PaseLibre)
@@ -142,7 +146,8 @@ public class IngresoService : IIngresoService
 
         if (fechaDesde.HasValue || fechaHasta.HasValue)
         {
-            var desde = fechaDesde ?? DateOnly.FromDateTime(DateTime.Now);
+            var argentinaTimeZone = GetArgentinaTimeZone();
+            var desde = fechaDesde ?? DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, argentinaTimeZone));
             var hasta = fechaHasta ?? desde;
             var (inicio, fin) = GetLocalDateRangeAsUtc(desde, hasta);
             query = query.Where(x => x.FechaHora >= inicio && x.FechaHora < fin);
@@ -150,7 +155,7 @@ public class IngresoService : IIngresoService
         else if (!alumnoId.HasValue)
         {
             var argentinaTimeZone = GetArgentinaTimeZone();
-            var hoy = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(DateTime.Now, argentinaTimeZone));
+            var hoy = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, argentinaTimeZone));
             var (inicio, fin) = GetLocalDateRangeAsUtc(hoy, hoy);
             query = query.Where(x => x.FechaHora >= inicio && x.FechaHora < fin);
         }
@@ -189,7 +194,8 @@ public class IngresoService : IIngresoService
         else if (gymId.HasValue)
             query = query.Where(x => x.GymId == gymId.Value);
 
-        var today = DateOnly.FromDateTime(DateTime.Now);
+        var argentinaTimeZone = GetArgentinaTimeZone();
+        var today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, argentinaTimeZone));
 
         var (inicio, fin) = GetLocalDateRangeAsUtc(today, today);
 
