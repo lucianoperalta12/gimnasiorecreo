@@ -41,6 +41,7 @@ builder.Services.AddScoped<IIngresoService, IngresoService>();
 builder.Services.AddScoped<IEgresoService, EgresoService>();
 
 builder.Services.AddHostedService<StartupNotificationService>();
+builder.Services.AddHostedService<MembershipExpirationService>();
 
 // ===== Authentication =====
 builder.Services.AddAuthentication(options =>

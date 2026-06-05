@@ -34,7 +34,6 @@ public class MembershipService : IMembershipService
         bool? sinActiva = null)
     {
         var requester = await GetRequesterAsync(requesterId);
-        await ExpireOverdueMembershipsAsync(requester, gymId);
 
         var query = BuildMembershipQuery(requester, gymId, alumnoId, estado, search, sortBy, sortDesc, fechaVencimientoDesde, fechaVencimientoHasta, sinActiva);
         var totalCount = await query.CountAsync();
@@ -52,10 +51,8 @@ public class MembershipService : IMembershipService
         if (membership is null) return null;
 
         EnsureCanViewMembership(requester, membership);
-        await ExpireOverdueMembershipsAsync(requester, membership.GymId);
 
-        membership = await LoadMembershipAsync(id);
-        return membership is null ? null : await MapToDtoAsync(membership);
+        return await MapToDtoAsync(membership);
     }
 
     public async Task<List<MembershipListDto>> GetByStudentIdAsync(int requesterId, int studentId)
@@ -63,7 +60,6 @@ public class MembershipService : IMembershipService
         var requester = await GetRequesterAsync(requesterId);
         var student = await GetStudentAsync(studentId);
         EnsureCanViewStudent(requester, student);
-        await ExpireOverdueMembershipsAsync(requester, student.GymId);
 
         var items = await _context.Memberships
             .AsNoTracking()
@@ -188,7 +184,6 @@ public class MembershipService : IMembershipService
     public async Task<DashboardMembershipSummaryDto> GetDashboardSummaryAsync(int requesterId, int? gymId)
     {
         var requester = await GetRequesterAsync(requesterId);
-        await ExpireOverdueMembershipsAsync(requester, gymId);
 
         var effectiveGymId = requester.Rol == UserRole.Superusuario
             ? gymId
@@ -328,7 +323,6 @@ public class MembershipService : IMembershipService
     private async Task<StudentAccessDto> BuildStudentAccessDtoAsync(User student)
     {
         var gym = await _context.Gyms.FindAsync(student.GymId);
-        await ExpireOverdueMembershipsAsync(null, student.GymId);
 
         var active = await _context.Memberships
             .AsNoTracking()

@@ -320,7 +320,7 @@
                   </span>
 
                   <span class="text-[11px] px-2 py-0.5 rounded-full bg-dark-800 text-dark-400 shrink-0">
-                    {{ ingreso.tipoMembresia }}
+                    {{ isMobile ? abreviarPlan(ingreso.tipoMembresia) : ingreso.tipoMembresia }}
                   </span>
                 </div>
               </div>
@@ -944,6 +944,17 @@ function onMontoInput(event) {
     const newCursorPos = selectionStart + diff;
     input.setSelectionRange(newCursorPos, newCursorPos);
   });
+}
+function abreviarPlan(texto) {
+  if (!texto) return '';
+
+  const abreviacion = texto
+    .split(' ')
+    .filter((palabra) => palabra.trim() !== '')
+    .map((palabra) => palabra.charAt(0).toUpperCase())
+    .join('');
+
+  return abreviacion.startsWith('P') || abreviacion.startsWith('p') ? abreviacion.substring(1) : abreviacion;
 }
 </script>
 
