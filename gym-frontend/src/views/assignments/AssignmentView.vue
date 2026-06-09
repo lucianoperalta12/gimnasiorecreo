@@ -117,12 +117,12 @@ const assigning = ref(false)
 const studentOptions = computed(() => {
   return [...students.value]
     .filter(s => s.activo)
-    .sort((a, b) => a.nombre.localeCompare(b.nombre))
     .map(s => ({
       id: s.id,
-      label: s.nombre,
+      label: `${s.nombre} ${s.apellido || ''}`.trim(),
       subLabel: s.email
     }))
+    .sort((a, b) => a.label.localeCompare(b.label))
 })
 
 const routineOptions = computed(() => {

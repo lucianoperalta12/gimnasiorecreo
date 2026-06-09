@@ -67,8 +67,8 @@
               <span class="text-dark-300">{{ formatDate(m.fechaVencimiento) }}</span>
             </div>
             <div class="flex items-center justify-between text-xs">
-              <span class="text-dark-400">Acceso:</span>
-              <span :class="accessStatusBadgeClass(m.estadoAcceso)">{{ m.estadoAcceso }}</span>
+              <span class="text-dark-400">DNI:</span>
+              <span class="text-dark-300">{{ m.alumnoDni || '—' }}</span>
             </div>
           </div>
           <div class="flex items-center gap-2 mt-1">
@@ -99,7 +99,7 @@
                 <span v-if="sortBy === 'fechaVencimiento'">{{ sortDesc ? '↓' : '↑' }}</span>
               </th>
               <th>Estado</th>
-              <th>Acceso</th>
+              <th>DNI</th>
               <th class="text-right">Acciones</th>
             </tr>
           </thead>
@@ -117,7 +117,7 @@
               <td>{{ formatDate(m.fechaInicio) }}</td>
               <td>{{ formatDate(m.fechaVencimiento) }}</td>
               <td><span :class="membershipEstadoBadgeClass(m.estado)">{{ m.estado }}</span></td>
-              <td><span :class="accessStatusBadgeClass(m.estadoAcceso)">{{ m.estadoAcceso }}</span></td>
+              <td>{{ m.alumnoDni || '—' }}</td>
               <td class="text-right">
                 <div class="flex items-center justify-end gap-2">
                   <button v-if="canRenew(m)" class="btn-ghost btn-sm" @click="openRenewModal(m)">Renovar</button>

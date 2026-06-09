@@ -40,7 +40,11 @@
           <p class="text-xl sm:text-2xl font-black text-emerald-400 mt-1.5 sm:mt-2 tracking-tight leading-none">
             {{ formatMoneda(kpiMesActual.ingresos) }}
           </p>
-          <p class="text-[10px] text-dark-500 mt-1.5">Pagos de membresías</p>
+          <div class="flex items-center gap-3 text-[10px] mt-2 pt-2 border-t border-dark-800/30">
+            <span class="text-primary-500 font-bold">EF: {{ formatMoneda(kpiMesActual.ingresosEfectivo) }}</span>
+            <span class="text-emerald-400 font-bold">TR: {{ formatMoneda(kpiMesActual.ingresosTransferencia) }}</span>
+            <span v-if="kpiMesActual.ingresosOtros > 0" class="text-emerald-400 font-bold">OT: {{ formatMoneda(kpiMesActual.ingresosOtros) }}</span>
+          </div>
         </div>
 
         <!-- Egresos del mes -->
@@ -92,9 +96,15 @@
             <tbody>
               <tr v-for="row in historial" :key="row.key">
                 <td class="text-white font-bold">{{ row.mesLabel }}</td>
-                <td class="font-black text-emerald-400">{{ formatMoneda(row.ingresos) }}</td>
-                <td class="font-black text-rose-400">{{ formatMoneda(row.egresos) }}</td>
-                <td>
+                <td class="py-2">
+                  <div class="font-black text-emerald-400">{{ formatMoneda(row.ingresos) }}</div>
+                  <div class="flex gap-2 text-[10px] font-bold mt-0.5 leading-none">
+                    <span class="text-primary-500">EF: {{ formatMoneda(row.ingresosEfectivo) }}</span>
+                    <span class="text-emerald-400">TR: {{ formatMoneda(row.ingresosTransferencia) }}</span>
+                  </div>
+                </td>
+                <td class="font-black text-rose-400 align-middle">{{ formatMoneda(row.egresos) }}</td>
+                <td class="align-middle">
                   <span class="font-black" :class="row.balance >= 0 ? 'text-emerald-400' : 'text-rose-400'">{{ formatMoneda(row.balance) }}</span>
                 </td>
               </tr>
@@ -121,11 +131,22 @@
                 <span :class="row.balance >= 0 ? 'text-emerald-300' : 'text-rose-300'" class="font-black"> = {{ formatMoneda(row.balance) }} </span>
               </div>
             </div>
-            <!-- Barra ingresos -->
-            <div class="w-full h-2.5 bg-dark-950 rounded-full overflow-hidden border border-dark-900/50 mb-1">
+            <!-- Barra ingresos (Stacked: Efectivo + Transferencia + Otros) -->
+            <div class="w-full h-2.5 bg-dark-950 rounded-full overflow-hidden border border-dark-900/50 mb-1 flex">
               <div
-                class="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-full transition-all duration-500"
-                :style="{ width: `${row.pctIngresos}%` }"
+                class="h-full bg-gradient-to-r from-primary-600 to-primary-400 transition-all duration-500"
+                :style="{ width: `${row.pctIngresosEfectivo}%` }"
+                title="Efectivo"
+              ></div>
+              <div
+                class="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 transition-all duration-500"
+                :style="{ width: `${row.pctOriginalTransferencia || row.pctIngresosTransferencia}%` }"
+                title="Transferencia"
+              ></div>
+              <div
+                class="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 transition-all duration-500"
+                :style="{ width: `${row.pctIngresosOtros}%` }"
+                title="Otros ingresos"
               ></div>
             </div>
             <!-- Barra egresos -->
@@ -138,10 +159,14 @@
           </div>
 
           <!-- Leyenda -->
-          <div class="flex items-center gap-6 pt-2 border-t border-dark-900/40">
+          <div class="flex flex-wrap items-center gap-x-6 gap-y-2 pt-2 border-t border-dark-900/40">
+            <div class="flex items-center gap-2 text-[11px] text-dark-400">
+              <div class="w-3 h-2 rounded-sm bg-gradient-to-r from-primary-600 to-primary-400"></div>
+              <span>Ingresos Efectivo</span>
+            </div>
             <div class="flex items-center gap-2 text-[11px] text-dark-400">
               <div class="w-3 h-2 rounded-sm bg-gradient-to-r from-emerald-600 to-emerald-400"></div>
-              <span>Ingresos</span>
+              <span>Ingresos Transferencia</span>
             </div>
             <div class="flex items-center gap-2 text-[11px] text-dark-400">
               <div class="w-3 h-2 rounded-sm bg-gradient-to-r from-rose-700 to-rose-500"></div>
@@ -206,14 +231,46 @@ const historial = computed(() => {
   payments.value.forEach((p) => {
     const d = new Date(p.fechaPago);
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    if (!map[key]) map[key] = { key, year: d.getFullYear(), month: d.getMonth(), ingresos: 0, egresos: 0 };
-    map[key].ingresos += p.monto || 0;
+    if (!map[key]) {
+      map[key] = {
+        key,
+        year: d.getFullYear(),
+        month: d.getMonth(),
+        ingresos: 0,
+        ingresosEfectivo: 0,
+        ingresosTransferencia: 0,
+        ingresosOtros: 0,
+        egresos: 0,
+      };
+    }
+    const monto = p.monto || 0;
+    map[key].ingresos += monto;
+
+    const metodo = (p.metodoPago || '').trim();
+    if (metodo === 'Efectivo') {
+      map[key].ingresosEfectivo += monto;
+    } else if (metodo === 'Transferencia') {
+      map[key].ingresosTransferencia += monto;
+    } else {
+      map[key].ingresosOtros += monto;
+    }
   });
 
   egresos.value.forEach((e) => {
     const d = new Date(e.fecha);
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-    if (!map[key]) map[key] = { key, year: d.getFullYear(), month: d.getMonth(), ingresos: 0, egresos: 0 };
+    if (!map[key]) {
+      map[key] = {
+        key,
+        year: d.getFullYear(),
+        month: d.getMonth(),
+        ingresos: 0,
+        ingresosEfectivo: 0,
+        ingresosTransferencia: 0,
+        ingresosOtros: 0,
+        egresos: 0,
+      };
+    }
     map[key].egresos += e.monto || 0;
   });
 
@@ -236,6 +293,9 @@ const historialGrafico = computed(() => {
   return historial.value.map((row) => ({
     ...row,
     pctIngresos: Math.round((row.ingresos / maxVal) * 100),
+    pctIngresosEfectivo: Math.round((row.ingresosEfectivo / maxVal) * 100),
+    pctIngresosTransferencia: Math.round((row.ingresosTransferencia / maxVal) * 100),
+    pctIngresosOtros: Math.round((row.ingresosOtros / maxVal) * 100),
     pctEgresos: Math.round((row.egresos / maxVal) * 100),
   }));
 });
@@ -245,7 +305,7 @@ const kpiMesActual = computed(() => {
   const hoy = new Date();
   const mesKey = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}`;
   const row = historial.value.find((r) => r.key === mesKey);
-  if (!row) return { ingresos: 0, egresos: 0, balance: 0 };
+  if (!row) return { ingresos: 0, ingresosEfectivo: 0, ingresosTransferencia: 0, ingresosOtros: 0, egresos: 0, balance: 0 };
   return row;
 });
 

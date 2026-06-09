@@ -336,19 +336,7 @@
           </div>
         </div>
 
-        <!-- Col 3: Panel Comercial Rápido (Recaudación + Alertas por Vencer) -->
         <div class="flex flex-col gap-4 h-[320px]">
-          <!-- Card Recaudación del Mes -->
-          <!-- <div class="p-5 rounded-[2rem] bg-dark-900/40 border border-dark-800/50 backdrop-blur-md relative overflow-hidden group shrink-0">
-            <div
-              class="absolute -right-4 -bottom-4 w-20 h-20 bg-emerald-500/5 rounded-full blur-xl group-hover:bg-emerald-500/10 transition-all duration-500"
-            ></div>
-            <p class="text-[9px] text-dark-500 uppercase tracking-[0.2em] font-black">Recaudación este Mes</p>
-            <p class="text-2xl font-black text-emerald-400 mt-2 tracking-tight leading-none">
-              {{ formatMoneda(pagosMesVal) }}
-            </p>
-          </div> -->
-
           <!-- Card Membresías por Vencer -->
           <div class="flex-1 card p-5 flex flex-col overflow-hidden min-h-[170px]">
             <h3 class="text-xs font-bold text-white uppercase tracking-wider mb-3">Expira en <span class="text-primary-500 font-black">7 días</span></h3>
