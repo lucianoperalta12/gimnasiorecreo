@@ -58,6 +58,7 @@
                 <th>Grupo Muscular</th>
                 <th v-if="authStore.hasRole('Superusuario')">Gimnasio</th>
                 <th>Descripción</th>
+                <th>Video</th>
                 <th class="text-right">Acciones</th>
               </tr>
             </thead>
@@ -67,6 +68,20 @@
                 <td><span class="badge-primary">{{ exercise.grupoMuscular }}</span></td>
                 <td v-if="authStore.hasRole('Superusuario')" class="text-dark-400">{{ exercise.gymNombre || '—' }}</td>
                 <td class="text-dark-400 max-w-xs truncate">{{ exercise.descripcion || '—' }}</td>
+                <td>
+                  <a
+                    v-if="exercise.videoUrl"
+                    :href="exercise.videoUrl"
+                    target="_blank"
+                    class="p-1.5 rounded-lg bg-primary-600/10 text-primary-400 hover:bg-primary-600/20 transition-all inline-flex items-center justify-center"
+                    title="Ver video"
+                  >
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347c-.75.412-1.667-.13-1.667-.986V5.653z" />
+                    </svg>
+                  </a>
+                  <span v-else class="text-dark-600">—</span>
+                </td>
                 <td class="text-right">
                   <div class="flex items-center justify-end gap-2">
                     <button @click="openEditModal(exercise)" class="btn-ghost btn-sm">Editar</button>
