@@ -7,7 +7,7 @@
           <div class="flex gap-2 text-sm font-medium text-dark-400">
             <span class="flex items-center gap-1">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-              {{ store.payments.length }} registros
+              {{ filteredPayments.length }} registros
             </span>
             <span class="flex items-center gap-1 text-emerald-400">
               <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>

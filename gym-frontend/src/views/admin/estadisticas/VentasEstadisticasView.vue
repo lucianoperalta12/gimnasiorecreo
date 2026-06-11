@@ -151,35 +151,78 @@
         </div>
       </div>
 
-      <!-- Tabla de Pagos Recientes -->
+      <!-- Tabla de Alumnos Morosos, Inactivos o No Activos -->
       <div class="card p-6">
         <div class="mb-4 flex items-center justify-between">
           <div>
-            <h3 class="text-sm font-bold text-white uppercase tracking-wider">Historial de Cobros Recientes</h3>
-            <p class="text-xs text-dark-500">Últimos cobros registrados en el sistema comercial</p>
+            <h3 class="text-sm font-bold text-white uppercase tracking-wider">Membresías Morosas, Inactivas o Desfasadas</h3>
+            <p class="text-xs text-dark-500">Alumnos que no están completamente activos en membresía y acceso</p>
           </div>
-          <span class="badge-primary">{{ pagosRecientes.length }} cobros este mes</span>
+          <span class="badge-primary">{{ membresiasFiltradas.length }} alumnos</span>
         </div>
 
         <div class="table-container max-h-[300px] overflow-y-auto custom-scrollbar">
           <table class="table text-xs">
             <thead>
               <tr>
-                <th>Alumno</th>
-                <th class="hidden sm:table-cell">Fecha de Pago</th>
+                <th @click="toggleSortFiltradas('alumno')" class="cursor-pointer hover:text-white select-none transition-colors">
+                  Alumno <span v-if="sortFiltradasBy === 'alumno'">{{ sortFiltradasDesc ? '↓' : '↑' }}</span>
+                </th>
                 <th>Plan</th>
-                <th>Monto</th>
+                <th @click="toggleSortFiltradas('vencimiento')" class="hidden sm:table-cell cursor-pointer hover:text-white select-none transition-colors">
+                  Vencimiento <span v-if="sortFiltradasBy === 'vencimiento'">{{ sortFiltradasDesc ? '↓' : '↑' }}</span>
+                </th>
+                <th>Estado Membresía</th>
+                <th>Estado Acceso</th>
+                <th>Tiene Pago</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="item in pagosRecientes.slice(0, 50)" :key="item.id" class="hover:bg-dark-900/20">
-                <td class="font-medium text-white">{{ item.alumnoNombreCompleto }}</td>
-                <td class="hidden sm:table-cell">{{ formatDateTime(item.fechaPago) }}</td>
+              <tr v-for="item in membresiasFiltradas" :key="item.id" class="hover:bg-dark-900/20" >
+                <td class="font-medium text-white">
+                  <div>
+                    <div>{{ item.alumnoNombreCompleto }}</div>
+                    <div class="text-[10px] text-dark-500">DNI: {{ item.alumnoDni || '—' }}</div>
+                  </div>
+                </td>
                 <td>{{ item.planNombre }}</td>
-                <td class="font-black text-emerald-400">{{ formatMoneda(item.monto) }}</td>
+                <td class="hidden sm:table-cell">{{ formatDate(item.fechaVencimiento) }}</td>
+                <td>
+                  <span
+                    :class="
+                      item.estado === 'Activa'
+                        ? 'px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-500/10 text-emerald-400'
+                        : 'px-2 py-0.5 rounded text-[10px] font-black uppercase bg-red-500/10 text-red-400'
+                    "
+                  >
+                    {{ item.estado }}
+                  </span>
+                </td>
+                <td>
+                  <span
+                    :class="
+                      item.estadoAcceso === 'Activo'
+                        ? 'px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-500/10 text-emerald-400'
+                        : 'px-2 py-0.5 rounded text-[10px] font-black uppercase bg-amber-500/10 text-amber-500'
+                    "
+                  >
+                    {{ item.estadoAcceso }}
+                  </span>
+                </td>
+                <td>
+                  <span
+                    :class="
+                      tienePago(item.id)
+                        ? 'px-2 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-500/10 text-emerald-400'
+                        : 'px-2 py-0.5 rounded text-[10px] font-black uppercase bg-rose-500/10 text-rose-400'
+                    "
+                  >
+                    {{ tienePago(item.id) ? 'Sí' : 'No' }}
+                  </span>
+                </td>
               </tr>
-              <tr v-if="!pagosRecientes.length">
-                <td colspan="4" class="text-center py-6 text-dark-500">No hay pagos registrados en este período.</td>
+              <tr v-if="!membresiasFiltradas.length">
+                <td colspan="6" class="text-center py-6 text-dark-500">No hay membresías morosas o inactivas.</td>
               </tr>
             </tbody>
           </table>
@@ -203,6 +246,8 @@ import { formatLocalDate } from '@/utils/date';
 const { error: showError } = useNotification();
 const authStore = useAuthStore();
 const loading = ref(false);
+const sortFiltradasBy = ref('alumno');
+const sortFiltradasDesc = ref(false);
 
 const memberships = ref([]);
 const payments = ref([]);
@@ -229,6 +274,15 @@ function formatDateTime(val) {
     hour: '2-digit',
     minute: '2-digit',
     hour12: false,
+  });
+}
+
+function formatDate(val) {
+  if (!val) return '—';
+  return new Date(val).toLocaleDateString('es-AR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
   });
 }
 
@@ -261,10 +315,56 @@ async function cargarDatos() {
   }
 }
 
+// Obtener la última membresía por alumno
+const ultimasMembresiasPorAlumno = computed(() => {
+  const map = {};
+  memberships.value.forEach((m) => {
+    const key = m.alumnoId || m.alumnoDni || m.alumnoNombreCompleto;
+    if (!key) return;
+    if (!map[key] || m.id > map[key].id) {
+      map[key] = m;
+    }
+  });
+  return Object.values(map);
+});
+
 // Membresías Activas
 const membershipsActivasCount = computed(() => {
-  return memberships.value.filter((x) => x.estado === 'Activa').length;
+  return ultimasMembresiasPorAlumno.value.filter((x) => x.estadoAcceso === 'Activo' || x.estadoAcceso === 'Moroso').length;
 });
+
+const membresiasFiltradas = computed(() => {
+  const filtered = ultimasMembresiasPorAlumno.value.filter((x) => {
+    if (x.estadoAcceso === 'Moroso') return true;
+    if (x.estadoAcceso === 'Activo' && x.estado !== 'Activa') return true;
+    if (x.estadoAcceso !== 'Activo' && x.estadoAcceso !== 'Moroso' && x.estado === 'Activa') return true;
+    if (x.estado === 'Activa' && !tienePago(x.id)) return true;
+    return false;
+  });
+
+  return filtered.sort((a, b) => {
+    let cmp = 0;
+    if (sortFiltradasBy.value === 'vencimiento') {
+      cmp = new Date(a.fechaVencimiento) - new Date(b.fechaVencimiento);
+    } else {
+      cmp = (a.alumnoNombreCompleto || '').localeCompare(b.alumnoNombreCompleto || '');
+    }
+    return sortFiltradasDesc.value ? -cmp : cmp;
+  });
+});
+
+function toggleSortFiltradas(col) {
+  if (sortFiltradasBy.value === col) {
+    sortFiltradasDesc.value = !sortFiltradasDesc.value;
+  } else {
+    sortFiltradasBy.value = col;
+    sortFiltradasDesc.value = false;
+  }
+}
+
+function tienePago(membershipId) {
+  return payments.value.some((p) => p.membresiaId === membershipId);
+}
 
 // Pagos de este Mes
 const pagosRecientes = computed(() => {
@@ -317,7 +417,7 @@ const ticketPromedio = computed(() => {
 
 // Distribución de Membresías Activas por Plan
 const planesDistribucion = computed(() => {
-  const activas = memberships.value.filter((x) => x.estado === 'Activa');
+  const activas = memberships.value.filter((x) => x.estadoAcceso === 'Activo' || x.estadoAcceso === 'Moroso');
   if (activas.length === 0) return [];
 
   const counts = {};
