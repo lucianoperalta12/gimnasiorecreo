@@ -416,11 +416,32 @@
                   </svg>
                 </a>
                 <button
+                  v-if="m.alumnoEmail && isValidEmail(m.alumnoEmail)"
                   type="button"
-                  class="text-[9px] font-black text-primary-500 hover:text-primary-400 uppercase tracking-widest px-2 py-1"
-                  @click="openRenewModal(m)"
+                  class="p-1.5 rounded-lg text-blue-400 hover:bg-blue-400/10 transition-colors disabled:opacity-50 inline-flex"
+                  :disabled="sendingEmail[m.id]"
+                  @click="sendExpirationEmail(m)"
+                  title="Enviar correo de vencimiento"
+                  aria-label="Enviar correo de vencimiento"
                 >
-                  Renovar
+                  <svg v-if="sendingEmail[m.id]" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="p-1.5 rounded-lg text-primary-500 hover:bg-primary-500/10 transition-colors inline-flex"
+                  @click="openRenewModal(m)"
+                  title="Renovar"
+                  aria-label="Renovar"
+                >
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                  </svg>
                 </button>
               </div>
             </div>
@@ -463,6 +484,23 @@
                           />
                         </svg>
                       </a>
+                      <button
+                        v-if="m.alumnoEmail && isValidEmail(m.alumnoEmail)"
+                        type="button"
+                        class="p-1.5 rounded-lg text-blue-400 hover:bg-blue-400/10 transition-colors disabled:opacity-50 inline-flex"
+                        :disabled="sendingEmail[m.id]"
+                        @click="sendExpirationEmail(m)"
+                        title="Enviar correo de vencimiento"
+                        aria-label="Enviar correo de vencimiento"
+                      >
+                        <svg v-if="sendingEmail[m.id]" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                      </button>
                       <button
                         type="button"
                         class="text-[10px] font-black text-primary-500 hover:text-primary-400 uppercase tracking-widest"
@@ -725,6 +763,12 @@ function buildWhatsAppUrlForMembresia(m) {
   return buildWhatsAppUrl(telefono, message);
 }
 
+function isValidEmail(email) {
+  if (!email) return false;
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return re.test(email);
+}
+
 // Datos ya vienen deduplicados desde el backend; solo agregamos whatsappUrl
 const alumnosMembresiaVencida = computed(() => {
   if (!authStore.hasRole('Superusuario', 'Administrativo')) return [];
@@ -797,6 +841,22 @@ onMounted(async () => {
 });
 
 const { success, error: showError } = useNotification();
+const sendingEmail = ref({});
+
+async function sendExpirationEmail(m) {
+  if (sendingEmail.value[m.id]) return;
+  sendingEmail.value[m.id] = true;
+  try {
+    await membershipsApi.sendExpirationEmail(m.id);
+    success(`Correo enviado con éxito a ${m.alumnoNombreCompleto}`);
+  } catch (err) {
+    console.error(err);
+    showError(err.response?.data?.error || 'Error al enviar el correo electrónico');
+  } finally {
+    sendingEmail.value[m.id] = false;
+  }
+}
+
 const showRenewModal = ref(false);
 const showPaymentModal = ref(false);
 const renewingMembership = ref(null);

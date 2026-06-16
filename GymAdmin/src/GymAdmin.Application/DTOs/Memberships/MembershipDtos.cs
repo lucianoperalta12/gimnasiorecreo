@@ -62,6 +62,7 @@ public record DashboardMembershipItemDto(
     string AlumnoNombreCompleto,
     string? AlumnoDni,
     string? AlumnoTelefono,
+    string? AlumnoEmail,
     string PlanNombre,
     DateTime FechaVencimiento
 );

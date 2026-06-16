@@ -12,11 +12,16 @@ public class MembershipService : IMembershipService
 {
     private readonly AppDbContext _context;
     private readonly Microsoft.AspNetCore.Http.IHttpContextAccessor _httpContextAccessor;
+    private readonly IEmailService _emailService;
 
-    public MembershipService(AppDbContext context, Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor)
+    public MembershipService(
+        AppDbContext context, 
+        Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor,
+        IEmailService emailService)
     {
         _context = context;
         _httpContextAccessor = httpContextAccessor;
+        _emailService = emailService;
     }
 
     public async Task<PagedResult<MembershipListDto>> GetAllAsync(
@@ -212,6 +217,7 @@ public class MembershipService : IMembershipService
                 (m.Alumno.Nombre + " " + m.Alumno.Apellido).Trim(),
                 m.Alumno.Dni,
                 m.Alumno.Telefono,
+                m.Alumno.Email,
                 m.Plan.Nombre,
                 m.FechaVencimiento))
             .ToListAsync();
@@ -238,6 +244,7 @@ public class MembershipService : IMembershipService
                 (m.Alumno.Nombre + " " + m.Alumno.Apellido).Trim(),
                 m.Alumno.Dni,
                 m.Alumno.Telefono,
+                m.Alumno.Email,
                 m.Plan.Nombre,
                 m.FechaVencimiento))
             .ToListAsync();
@@ -460,6 +467,8 @@ public class MembershipService : IMembershipService
     {
         var now = DateTime.UtcNow;
         var query = _context.Memberships
+            .Include(m => m.Alumno)
+            .Include(m => m.Gym)
             .Where(m => m.Estado == MembershipStatus.Activa && m.FechaVencimiento < now);
 
         if (requester?.Rol != UserRole.Superusuario)
@@ -477,9 +486,102 @@ public class MembershipService : IMembershipService
         if (overdue.Count == 0) return;
 
         foreach (var m in overdue)
+        {
             m.Estado = MembershipStatus.Vencida;
+            await SendExpirationEmailInternalAsync(m);
+        }
 
         await _context.SaveChangesAsync();
+    }
+
+    public async Task SendExpirationEmailManualAsync(int requesterId, int id)
+    {
+        var requester = await GetRequesterAsync(requesterId);
+        EnsureCanManageMemberships(requester);
+
+        var m = await _context.Memberships
+            .Include(m => m.Alumno)
+            .Include(m => m.Gym)
+            .FirstOrDefaultAsync(x => x.Id == id);
+
+        if (m == null)
+            throw new KeyNotFoundException("Membresía no encontrada.");
+
+        EnsureSameGym(requester, m.GymId);
+
+        if (m.Alumno == null || string.IsNullOrWhiteSpace(m.Alumno.Email))
+            throw new InvalidOperationException("El alumno no tiene un correo electrónico configurado.");
+
+        if (!IsValidEmail(m.Alumno.Email))
+            throw new InvalidOperationException("El correo electrónico del alumno no es válido.");
+
+        await SendExpirationEmailInternalAsync(m, throwOnError: true);
+    }
+
+    private async Task SendExpirationEmailInternalAsync(Membership m, bool throwOnError = false)
+    {
+        if (m.Alumno == null || string.IsNullOrWhiteSpace(m.Alumno.Email) || !IsValidEmail(m.Alumno.Email))
+        {
+            if (throwOnError)
+                throw new InvalidOperationException("El alumno no tiene un correo electrónico válido.");
+            return;
+        }
+
+        try
+        {
+            var studentName = m.Alumno.Nombre;
+            var gymName = m.Gym?.Nombre ?? "el gimnasio";
+            var gymColor = m.Gym?.ColorPrincipalHex ?? "#ff6600";
+            
+            var logoHtml = !string.IsNullOrWhiteSpace(m.Gym?.LogoUrl)
+                ? $"<div style='text-align: center; margin-bottom: 20px;'><img src='{m.Gym.LogoUrl}' alt='{gymName}' style='max-height: 80px; border-radius: 8px;' /></div>"
+                : $"<div style='font-size: 24px; font-weight: bold; color: {gymColor}; text-align: center; margin-bottom: 20px;'>{gymName}</div>";
+
+            var body = $@"
+<div style=""font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; padding: 40px 20px; color: #333333;"">
+    <div style=""max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); overflow: hidden; border-top: 5px solid {gymColor};"">
+        <div style=""padding: 30px; text-align: center;"">
+            {logoHtml}
+            <h2 style=""color: #2c3e50; margin-top: 10px; font-weight: 600;"">Aviso de Vencimiento</h2>
+        </div>
+        <div style=""padding: 0 40px 40px 40px; line-height: 1.6; font-size: 16px;"">
+            <p>Hola <strong>{studentName}</strong>, ¿cómo estás?</p>
+            <p>Te recordamos que tu cuota del gimnasio se encuentra vencida. Te pedimos que regularices el pago para mantener tu acceso activo y seguir disfrutando de las actividades del gimnasio.</p>
+            <p style=""margin-top: 30px;"">Muchas gracias.</p>
+        </div>
+        <div style=""background-color: #2c3e50; color: #ffffff; padding: 20px; text-align: center; font-size: 12px;"">
+            Este es un correo automático enviado por {gymName}. Por favor, no respondas a este mensaje.
+        </div>
+    </div>
+</div>";
+
+            await _emailService.SendEmailAsync(
+                to: m.Alumno.Email,
+                subject: "Vencimiento de cuota de gimnasio",
+                body: body,
+                from: "fitcenter.manager@gmail.com",
+                bcc: "lucianoperalta12@gmail.com"
+            );
+        }
+        catch (Exception ex)
+        {
+            if (throwOnError)
+                throw new InvalidOperationException($"Error al enviar el correo: {ex.Message}", ex);
+        }
+    }
+
+    private static bool IsValidEmail(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email)) return false;
+        try
+        {
+            var addr = new System.Net.Mail.MailAddress(email);
+            return addr.Address == email;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private async Task CloseActiveMembershipsAsync(int alumnoId)

@@ -95,6 +95,14 @@ public class MembershipsController : ControllerBase
     public async Task<ActionResult<MembershipDto>> Cancel(int id, [FromBody] CancelMembershipRequest request) =>
         Ok(await _membershipService.CancelAsync(GetUserId(), id, request));
 
+    [HttpPost("{id}/send-expiration-email")]
+    [Authorize(Roles = "Superusuario,Administrativo")]
+    public async Task<IActionResult> SendExpirationEmail(int id)
+    {
+        await _membershipService.SendExpirationEmailManualAsync(GetUserId(), id);
+        return NoContent();
+    }
+
     private void AddPaginationHeaders(int totalCount, int? page, int? pageSize)
     {
         Response.Headers["X-Total-Count"] = totalCount.ToString();

@@ -27,5 +27,8 @@ export const membershipsApi = {
   },
   cancel(id, payload) {
     return api.post(`/memberships/${id}/cancel`, payload)
+  },
+  sendExpirationEmail(id) {
+    return api.post(`/memberships/${id}/send-expiration-email`)
   }
 }

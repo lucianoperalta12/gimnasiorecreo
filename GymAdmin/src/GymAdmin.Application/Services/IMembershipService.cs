@@ -26,4 +26,5 @@ public interface IMembershipService
     Task<MembershipDto> CreateAsync(int requesterId, CreateMembershipRequest request);
     Task<MembershipDto> RenewAsync(int requesterId, int studentId, RenewMembershipRequest request);
     Task<MembershipDto> CancelAsync(int requesterId, int id, CancelMembershipRequest request);
+    Task SendExpirationEmailManualAsync(int requesterId, int id);
 }
