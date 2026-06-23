@@ -183,7 +183,7 @@
     </div>
 
     <template v-else>
-      <div class="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 class="page-title">Bienvenido, {{ user?.nombre }}</h1>
           <p class="page-subtitle">{{ greetingMessage }}</p>
@@ -207,8 +207,8 @@
         </div>
       </div>
 
-      <div v-if="authStore.hasRole('Profesor', 'Superusuario', 'Administrativo')" class="mb-8">
-        <h2 class="text-sm font-bold text-dark-500 uppercase tracking-[0.2em] mb-4 ml-1">Accesos Rápidos</h2>
+      <div v-if="authStore.hasRole('Profesor', 'Superusuario', 'Administrativo')" class="mb-4">
+        <h2 class="text-sm font-bold text-dark-500 uppercase tracking-[0.2em] mb-2 ml-1">Accesos Rápidos</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <router-link
             to="/users?create=true&role=Alumno"
@@ -284,9 +284,9 @@
       </div>
 
       <!-- Monitoreo en Tiempo Real (Solo Administrador y Superusuario) -->
-      <div v-if="authStore.hasRole('Superusuario', 'Administrativo')" class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+      <div v-if="authStore.hasRole('Superusuario', 'Administrativo')" class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-4">
         <!-- Col 1 y 2: Ingresos Recientes -->
-        <div class="card p-6 lg:col-span-2 flex flex-col h-[320px]">
+        <div class="card p-6 lg:col-span-2 flex flex-col h-[370px]">
           <div class="flex items-center justify-between mb-4">
             <div>
               <h2 class="text-sm font-bold text-white uppercase tracking-wider">Asistencia de Hoy</h2>
@@ -336,7 +336,7 @@
           </div>
         </div>
 
-        <div class="flex flex-col gap-4 h-[320px]">
+        <div class="flex flex-col gap-4 h-[370px]">
           <!-- Card Membresías por Vencer -->
           <div class="flex-1 card p-5 flex flex-col overflow-hidden min-h-[170px]">
             <h3 class="text-xs font-bold text-white uppercase tracking-wider mb-3">Expira en <span class="text-primary-500 font-black">7 días</span></h3>
@@ -368,7 +368,7 @@
       </div>
 
       <!-- Alumnos con membresía vencida (último mes, sin membresía activa) -->
-      <div v-if="authStore.hasRole('Superusuario', 'Administrativo')" class="card p-4 sm:p-6 mb-8">
+      <div v-if="authStore.hasRole('Superusuario', 'Administrativo')" class="card p-4 sm:p-6 mb-4">
         <div class="flex items-center justify-between mb-4">
           <div>
             <h2 class="text-sm font-bold text-white uppercase tracking-wider">Membresías vencidas</h2>
@@ -426,10 +426,18 @@
                 >
                   <svg v-if="sendingEmail[m.id]" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <path
+                      class="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
                   </svg>
                 </button>
                 <button
@@ -440,7 +448,11 @@
                   aria-label="Renovar"
                 >
                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99"
+                    />
                   </svg>
                 </button>
               </div>
@@ -495,10 +507,18 @@
                       >
                         <svg v-if="sendingEmail[m.id]" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          <path
+                            class="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
                         </svg>
                         <svg v-else class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                          <path stroke-linecap="round" stroke-linejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                          />
                         </svg>
                       </button>
                       <button

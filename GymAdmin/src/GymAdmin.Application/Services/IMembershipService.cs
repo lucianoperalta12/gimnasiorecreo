@@ -1,5 +1,6 @@
 using GymAdmin.Application.DTOs.Common;
 using GymAdmin.Application.DTOs.Memberships;
+using GymAdmin.Domain.Entities;
 
 namespace GymAdmin.Application.Services;
 
@@ -27,4 +28,5 @@ public interface IMembershipService
     Task<MembershipDto> RenewAsync(int requesterId, int studentId, RenewMembershipRequest request);
     Task<MembershipDto> CancelAsync(int requesterId, int id, CancelMembershipRequest request);
     Task SendExpirationEmailManualAsync(int requesterId, int id);
+    Task SendExpirationEmailAsync(Membership m, bool throwOnError = false);
 }

@@ -488,7 +488,7 @@ public class MembershipService : IMembershipService
         foreach (var m in overdue)
         {
             m.Estado = MembershipStatus.Vencida;
-            await SendExpirationEmailInternalAsync(m);
+            await SendExpirationEmailAsync(m);
         }
 
         await _context.SaveChangesAsync();
@@ -515,10 +515,10 @@ public class MembershipService : IMembershipService
         if (!IsValidEmail(m.Alumno.Email))
             throw new InvalidOperationException("El correo electrónico del alumno no es válido.");
 
-        await SendExpirationEmailInternalAsync(m, throwOnError: true);
+        await SendExpirationEmailAsync(m, throwOnError: true);
     }
 
-    private async Task SendExpirationEmailInternalAsync(Membership m, bool throwOnError = false)
+    public async Task SendExpirationEmailAsync(Membership m, bool throwOnError = false)
     {
         if (m.Alumno == null || string.IsNullOrWhiteSpace(m.Alumno.Email) || !IsValidEmail(m.Alumno.Email))
         {
@@ -535,7 +535,8 @@ public class MembershipService : IMembershipService
             
             var logoHtml = !string.IsNullOrWhiteSpace(m.Gym?.LogoUrl)
                 ? $"<div style='text-align: center; margin-bottom: 20px;'><img src='{m.Gym.LogoUrl}' alt='{gymName}' style='max-height: 80px; border-radius: 8px;' /></div>"
-                : $"<div style='font-size: 24px; font-weight: bold; color: {gymColor}; text-align: center; margin-bottom: 20px;'>{gymName}</div>";
+                : "";
+            logoHtml = logoHtml + $"<div style='font-size: 24px; font-weight: bold; color: {gymColor}; text-align: center; margin-bottom: 20px;'>{gymName}</div>";
 
             var body = $@"
 <div style=""font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f6f9; padding: 40px 20px; color: #333333;"">
