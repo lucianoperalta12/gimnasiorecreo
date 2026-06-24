@@ -1,3 +1,4 @@
+using GymAdmin.Domain.Entities;
 using GymAdmin.Domain.Enums;
 using GymAdmin.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -52,8 +53,25 @@ public class MembershipExpirationService : BackgroundService
                 foreach (var m in overdue)
                 {
                     m.Estado = MembershipStatus.Vencida;
+                }
 
-                    if (m.Alumno != null && !string.IsNullOrWhiteSpace(m.Alumno.Email) && IsValidEmail(m.Alumno.Email))
+                try
+                {
+                    await db.SaveChangesAsync(ct);
+                }
+                catch (Exception saveEx)
+                {
+                    await LogToDbAsync(
+                        saveEx,
+                        "BackgroundService: ExpireOverdueMembershipsAsync - SaveChangesAsync",
+                        "BACKGROUND");
+                    return;
+                }
+
+                foreach (var m in overdue)
+                {
+                    if (m.Alumno != null &&
+                        await IsValidEmail(m.Alumno.Email))
                     {
                         try
                         {
@@ -61,26 +79,66 @@ public class MembershipExpirationService : BackgroundService
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogError(ex, "Error al enviar email de vencimiento para membresía {Id}", m.Id);
+                            var alumnoInfo = $"Email: {m.Alumno.Email} | Nombre: {m.Alumno.Nombre} {m.Alumno.Apellido} |" +
+                                $" DNI: {m.Alumno.Dni} | Vencimiento: {m.FechaVencimiento:yyyy-MM-dd}";
+                            await LogToDbAsync(
+                                ex,
+                                "BackgroundService: ExpireOverdueMembershipsAsync - SendExpirationEmailAsync",
+                                alumnoInfo);
                         }
                     }
                 }
 
-                await db.SaveChangesAsync(ct);
-                _logger.LogInformation("MembershipExpirationService: {Count} membresías marcadas como Vencida.", overdue.Count);
+                _logger.LogInformation(
+                    "MembershipExpirationService: {Count} membresías marcadas como Vencida.",
+                    overdue.Count);
             }
-        }
-        catch (OperationCanceledException)
-        {
-            // Shutdown normal, no loguear como error
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "MembershipExpirationService: error al expirar membresías.");
+            await LogToDbAsync(
+                ex,
+                "BackgroundService: ExpireOverdueMembershipsAsync",
+                "BACKGROUND");
         }
     }
 
-    private static bool IsValidEmail(string email)
+    private async Task LogToDbAsync(Exception exception, string path, string method)
+    {
+        try
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            db.ErrorLogs.Add(new ErrorLog
+            {
+                Message = exception.Message,
+                StackTrace = exception.StackTrace,
+                Path = path,
+                Method = method,
+                Timestamp = DateTime.Now
+            });
+
+            await db.SaveChangesAsync();
+
+            // Mantener máximo 100 registros
+            var oldestToKeep = await db.ErrorLogs
+                .OrderByDescending(e => e.Id)
+                .Skip(99)
+                .Select(e => e.Id)
+                .FirstOrDefaultAsync();
+
+            if (oldestToKeep > 0)
+            {
+                await db.ErrorLogs
+                    .Where(e => e.Id < oldestToKeep)
+                    .ExecuteDeleteAsync();
+            }
+        }
+        catch { /* Si falla el log en DB no hay donde persistirlo */ }
+    }
+
+    private async Task<bool> IsValidEmail(string email)
     {
         if (string.IsNullOrWhiteSpace(email)) return false;
         try
@@ -88,8 +146,12 @@ public class MembershipExpirationService : BackgroundService
             var addr = new System.Net.Mail.MailAddress(email);
             return addr.Address == email;
         }
-        catch
+        catch (Exception ex)
         {
+            await LogToDbAsync(
+                                ex,
+                                "IsValidEmail",
+                                email);
             return false;
         }
     }
