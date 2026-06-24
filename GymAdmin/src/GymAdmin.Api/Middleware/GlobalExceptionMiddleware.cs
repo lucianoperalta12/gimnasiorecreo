@@ -81,7 +81,7 @@ public class GlobalExceptionMiddleware
                 StackTrace = exception.StackTrace,
                 Path = context.Request.Path.Value,
                 Method = context.Request.Method,
-                Timestamp = DateTime.Now
+                Timestamp = DateTime.Now.AddHours(-3)
             });
 
             await dbContext.SaveChangesAsync();

@@ -39,7 +39,7 @@ public class MembershipExpirationService : BackgroundService
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             var membershipService = scope.ServiceProvider.GetRequiredService<IMembershipService>();
 
-            var now = DateTime.Now;
+            var now = DateTime.Now.AddHours(-3);
             _logger.LogInformation("Hora actual: {Now}", now.ToString("yyyy-MM-dd HH:mm:ss"));
 
             var overdue = await db.Memberships
@@ -116,7 +116,7 @@ public class MembershipExpirationService : BackgroundService
                 StackTrace = exception.StackTrace,
                 Path = path,
                 Method = method,
-                Timestamp = DateTime.Now
+                Timestamp = DateTime.Now.AddHours(-3)
             });
 
             await db.SaveChangesAsync();
