@@ -463,6 +463,11 @@ public class MembershipService : IMembershipService
             .Include(m => m.Gym)
             .FirstOrDefaultAsync(m => m.Id == id);
 
+    /// <summary>
+    /// Expira en tiempo real las membresías vencidas acotadas al gimnasio del alumno en cuestión.
+    /// Se ejecuta on-demand antes de crear o renovar una membresía para garantizar consistencia inmediata
+    /// en las validaciones de negocio antes de guardar los datos.
+    /// </summary>
     private async Task ExpireOverdueMembershipsAsync(User? requester, int? gymId)
     {
         var now = DateTime.UtcNow;

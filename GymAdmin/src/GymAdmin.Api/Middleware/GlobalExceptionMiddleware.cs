@@ -7,6 +7,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace GymAdmin.Api.Middleware;
 
+/// <summary>
+/// Middleware global para la captura y manejo unificado de excepciones en la API.
+/// </summary>
 public class GlobalExceptionMiddleware
 {
     private readonly RequestDelegate _next;
@@ -18,6 +21,9 @@ public class GlobalExceptionMiddleware
         _logger = logger;
     }
 
+    /// <summary>
+    /// Método de entrada que intercepta la petición HTTP y captura cualquier excepción no controlada.
+    /// </summary>
     public async Task InvokeAsync(HttpContext context)
     {
         try
@@ -30,6 +36,9 @@ public class GlobalExceptionMiddleware
         }
     }
 
+    /// <summary>
+    /// Mapea la excepción a un código de estado HTTP adecuado y formatea la respuesta en formato JSON.
+    /// </summary>
     private async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
         var (statusCode, message) = exception switch
@@ -69,6 +78,9 @@ public class GlobalExceptionMiddleware
         await context.Response.WriteAsync(response);
     }
 
+    /// <summary>
+    /// Registra las excepciones de error interno (500) en la base de datos y rota los logs manteniendo un tope de 100 registros.
+    /// </summary>
     private async Task LogInternalServerErrorAsync(HttpContext context, Exception exception)
     {
         try
@@ -105,6 +117,9 @@ public class GlobalExceptionMiddleware
         }
     }
 
+    /// <summary>
+    /// Determina si un error de base de datos se debe a que falta la migración/esquema del módulo de asistencia.
+    /// </summary>
     private static bool IsAttendanceSchemaError(Exception exception)
     {
         var message = $"{exception.Message} {exception.InnerException?.Message}".ToLowerInvariant();

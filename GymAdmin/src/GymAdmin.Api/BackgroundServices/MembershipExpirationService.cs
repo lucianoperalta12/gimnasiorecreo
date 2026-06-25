@@ -6,6 +6,9 @@ using GymAdmin.Application.Services;
 
 namespace GymAdmin.Api.BackgroundServices;
 
+/// <summary>
+/// Servicio en segundo plano (BackgroundService) que automatiza la expiración de membresías y el envío de notificaciones de vencimiento.
+/// </summary>
 public class MembershipExpirationService : BackgroundService
 {
     private static readonly TimeSpan Interval = TimeSpan.FromHours(6);
@@ -19,6 +22,9 @@ public class MembershipExpirationService : BackgroundService
         _logger = logger;
     }
 
+    /// <summary>
+    /// Bucle principal del servicio en segundo plano. Se ejecuta inmediatamente al iniciar y luego repite la expiración cada 6 horas.
+    /// </summary>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation("MembershipExpirationService iniciado. Intervalo: {Interval}h.", Interval.TotalHours);
@@ -31,6 +37,10 @@ public class MembershipExpirationService : BackgroundService
         }
     }
 
+    /// <summary>
+    /// Expira de manera masiva y global (para todos los gimnasios del sistema) las membresías activas cuya fecha de vencimiento ya pasó.
+    /// Ejecutado en segundo plano de forma periódica (cada 6 horas).
+    /// </summary>
     private async Task ExpireOverdueMembershipsAsync(CancellationToken ct)
     {
         try
@@ -76,6 +86,7 @@ public class MembershipExpirationService : BackgroundService
                         try
                         {
                             await membershipService.SendExpirationEmailAsync(m);
+                            await Task.Delay(100, ct);
                         }
                         catch (Exception ex)
                         {
@@ -103,6 +114,9 @@ public class MembershipExpirationService : BackgroundService
         }
     }
 
+    /// <summary>
+    /// Registra errores producidos en el servicio en segundo plano dentro de la tabla de logs de errores en la base de datos (con tope de 100 registros).
+    /// </summary>
     private async Task LogToDbAsync(Exception exception, string path, string method)
     {
         try
@@ -138,6 +152,9 @@ public class MembershipExpirationService : BackgroundService
         catch { /* Si falla el log en DB no hay donde persistirlo */ }
     }
 
+    /// <summary>
+    /// Valida si una cadena de texto tiene una estructura de correo electrónico válida.
+    /// </summary>
     private async Task<bool> IsValidEmail(string email)
     {
         if (string.IsNullOrWhiteSpace(email)) return false;
