@@ -29,4 +29,5 @@ public interface IMembershipService
     Task<MembershipDto> CancelAsync(int requesterId, int id, CancelMembershipRequest request);
     Task SendExpirationEmailManualAsync(int requesterId, int id);
     Task SendExpirationEmailAsync(Membership m, bool throwOnError = false);
+    Task<List<MembershipRenovationReportDto>> GetRenovationsReportAsync(int requesterId, int? gymId);
 }

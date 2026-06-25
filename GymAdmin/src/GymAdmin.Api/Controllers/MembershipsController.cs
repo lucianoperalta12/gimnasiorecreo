@@ -103,6 +103,14 @@ public class MembershipsController : ControllerBase
         return NoContent();
     }
 
+    [HttpGet("renovations-report")]
+    [Authorize(Roles = "Superusuario,Administrativo")]
+    public async Task<ActionResult<List<MembershipRenovationReportDto>>> GetRenovationsReport([FromQuery] int? gymId)
+    {
+        var result = await _membershipService.GetRenovationsReportAsync(GetUserId(), gymId);
+        return Ok(result);
+    }
+
     private void AddPaginationHeaders(int totalCount, int? page, int? pageSize)
     {
         Response.Headers["X-Total-Count"] = totalCount.ToString();

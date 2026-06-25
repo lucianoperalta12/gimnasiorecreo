@@ -30,5 +30,8 @@ export const membershipsApi = {
   },
   sendExpirationEmail(id) {
     return api.post(`/memberships/${id}/send-expiration-email`)
+  },
+  getRenovationsReport(params = {}) {
+    return api.get('/memberships/renovations-report', { params })
   }
 }

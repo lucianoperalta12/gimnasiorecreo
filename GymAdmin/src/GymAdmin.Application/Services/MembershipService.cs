@@ -806,4 +806,147 @@ public class MembershipService : IMembershipService
         int AlumnoId,
         MembershipStatus Estado,
         DateTime FechaVencimiento);
+
+    public async Task<List<MembershipRenovationReportDto>> GetRenovationsReportAsync(int requesterId, int? gymId)
+    {
+        var requester = await GetRequesterAsync(requesterId);
+
+        int effectiveGymId;
+        if (requester.Rol == UserRole.Superusuario)
+        {
+            if (!gymId.HasValue)
+                throw new InvalidOperationException("El Superusuario debe especificar un GymId.");
+            effectiveGymId = gymId.Value;
+        }
+        else
+        {
+            effectiveGymId = requester.GymId;
+        }
+
+        var sql = $"""
+            WITH historial AS (
+                SELECT
+                    m."AlumnoId",
+                    COUNT(*) FILTER (
+                        WHERE m."Estado" <> 'Cancelada'
+                          AND EXISTS (
+                              SELECT 1
+                              FROM "MembershipPayments" mp
+                              WHERE mp."MembresiaId" = m."Id"
+                                AND mp."Estado" = 'Completado'
+                          )
+                    ) AS total_membresias,
+                    GREATEST(
+                        COUNT(*) FILTER (
+                            WHERE m."Estado" <> 'Cancelada'
+                              AND EXISTS (
+                                  SELECT 1
+                                  FROM "MembershipPayments" mp
+                                  WHERE mp."MembresiaId" = m."Id"
+                                    AND mp."Estado" = 'Completado'
+                              )
+                        ) - 1,
+                        0
+                    ) AS renovaciones,
+                    MIN(m."FechaInicio") FILTER (
+                        WHERE m."Estado" <> 'Cancelada'
+                          AND EXISTS (
+                              SELECT 1
+                              FROM "MembershipPayments" mp
+                              WHERE mp."MembresiaId" = m."Id"
+                                AND mp."Estado" = 'Completado'
+                          )
+                    ) AS primera_membresia,
+                    MAX(m."FechaInicio") FILTER (
+                        WHERE m."Estado" <> 'Cancelada'
+                          AND EXISTS (
+                              SELECT 1
+                              FROM "MembershipPayments" mp
+                              WHERE mp."MembresiaId" = m."Id"
+                                AND mp."Estado" = 'Completado'
+                          )
+                    ) AS ultima_renovacion
+                FROM "Memberships" m
+                GROUP BY m."AlumnoId"
+            ),
+            membresia_actual AS (
+                SELECT DISTINCT ON (m."AlumnoId")
+                    m."AlumnoId",
+                    m."Estado",
+                    m."FechaVencimiento",
+                    mp."Nombre" AS plan_actual
+                FROM "Memberships" m
+                INNER JOIN "MembershipPlans" mp ON mp."Id" = m."PlanId"
+                ORDER BY m."AlumnoId", m."FechaInicio" DESC
+            )
+            SELECT
+                u."Id",
+                u."Nombre",
+                u."Apellido",
+                u."Dni",
+                gu."GymId",
+                COALESCE(h.total_membresias, 0) AS total_membresias,
+                COALESCE(h.renovaciones, 0) AS renovaciones,
+                CASE WHEN COALESCE(h.renovaciones, 0) > 0 THEN 'Sí' ELSE 'No' END AS renovo,
+                h.primera_membresia,
+                h.ultima_renovacion,
+                ma.plan_actual,
+                ma."Estado" AS estado_actual,
+                ma."FechaVencimiento",
+                CASE
+                    WHEN ma."Estado" = 'Activa'
+                     AND ma."FechaVencimiento" BETWEEN NOW() AND NOW() + INTERVAL '7 days'
+                    THEN 'VENCE PRONTO'
+                    ELSE NULL
+                END AS alerta
+            FROM "Users" u
+            INNER JOIN "GymUsers" gu ON gu."UserId" = u."Id" AND gu."Activo" = TRUE
+            LEFT JOIN historial h ON h."AlumnoId" = u."Id"
+            LEFT JOIN membresia_actual ma ON ma."AlumnoId" = u."Id"
+            WHERE u."Activo" = TRUE
+              AND gu."GymId" = {effectiveGymId}
+              AND COALESCE(h.renovaciones, 0) > 0
+            ORDER BY renovaciones DESC, total_membresias DESC, u."Apellido", u."Nombre"
+            LIMIT 20
+            """;
+
+        var raw = await _context.Database
+            .SqlQueryRaw<RenovationRawRow>(sql)
+            .ToListAsync();
+
+        return raw.Select(r => new MembershipRenovationReportDto(
+            r.Id,
+            r.Nombre,
+            r.Apellido,
+            r.Dni,
+            r.GymId,
+            r.total_membresias,
+            r.renovaciones,
+            r.renovo,
+            r.primera_membresia,
+            r.ultima_renovacion,
+            r.plan_actual,
+            r.estado_actual,
+            r.FechaVencimiento,
+            r.alerta
+        )).ToList();
+    }
+
+    private sealed class RenovationRawRow
+    {
+        public int Id { get; set; }
+        public string Nombre { get; set; } = "";
+        public string Apellido { get; set; } = "";
+        public string Dni { get; set; } = "";
+        public int GymId { get; set; }
+        public int total_membresias { get; set; }
+        public int renovaciones { get; set; }
+        public string renovo { get; set; } = "";
+        public DateTime? primera_membresia { get; set; }
+        public DateTime? ultima_renovacion { get; set; }
+        public string? plan_actual { get; set; }
+        public string? estado_actual { get; set; }
+        public DateTime? FechaVencimiento { get; set; }
+        public string? alerta { get; set; }
+    }
 }

@@ -47,7 +47,7 @@ public class GlobalExceptionMiddleware
             _ => (HttpStatusCode.InternalServerError, "Ocurrio un error interno en el servidor.")
         };
 
-        if (statusCode == HttpStatusCode.InternalServerError)
+        if ((int)statusCode >= 500)
         {
             _logger.LogError(exception, "Unhandled exception");
             await LogInternalServerErrorAsync(context, exception);

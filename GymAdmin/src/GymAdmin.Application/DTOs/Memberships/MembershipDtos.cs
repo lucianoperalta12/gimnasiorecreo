@@ -85,3 +85,20 @@ public record StudentAccessDto(
     int? DiasRestantes,
     string? Moneda = null
 );
+
+public record MembershipRenovationReportDto(
+    int Id,
+    string Nombre,
+    string Apellido,
+    string Dni,
+    int GymId,
+    int TotalMembresias,
+    int Renovaciones,
+    string Renovo,
+    DateTime? PrimeraMembresia,
+    DateTime? UltimaRenovacion,
+    string? PlanActual,
+    string? EstadoActual,
+    DateTime? FechaVencimiento,
+    string? Alerta
+);

@@ -178,7 +178,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="item in membresiasFiltradas" :key="item.id" class="hover:bg-dark-900/20" >
+              <tr v-for="item in membresiasFiltradas" :key="item.id" class="hover:bg-dark-900/20">
                 <td class="font-medium text-white">
                   <div>
                     <div>{{ item.alumnoNombreCompleto }}</div>
@@ -228,6 +228,58 @@
           </table>
         </div>
       </div>
+
+      <!-- Historial de Renovaciones -->
+      <div class="card p-6">
+        <div class="mb-4 flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-bold text-white uppercase tracking-wider">Historial de Renovaciones ⭐</h3>
+            <p class="text-xs text-dark-500">Top 20 alumnos con al menos una renovación, ordenados de mayor a menor</p>
+          </div>
+          <span class="badge-primary">{{ renovaciones.length }} alumnos</span>
+        </div>
+
+        <div class="table-container max-h-[400px] overflow-y-auto custom-scrollbar">
+          <table class="table text-xs">
+            <thead>
+              <tr>
+                <th>Alumno</th>
+                <th>DNI</th>
+                <th class="text-center">Total Memb.</th>
+                <th class="text-center">Renovaciones</th>
+                <th class="hidden sm:table-cell">Primera Memb.</th>
+                <th class="hidden sm:table-cell">Última Renov.</th>
+                <th>Plan Actual</th>
+                <th class="hidden md:table-cell">Vencimiento</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="item in renovaciones" :key="item.id" class="hover:bg-dark-900/20">
+                <td class="font-medium text-white">
+                  <div>{{ item.nombre }} {{ item.apellido }}</div>
+                </td>
+                <td class="text-dark-400">{{ item.dni || '—' }}</td>
+                <td class="text-center font-black text-white">{{ item.totalMembresias }}</td>
+                <td class="text-center">
+                  <span
+                    class="px-2 py-0.5 rounded text-[10px] font-black"
+                    :class="item.renovaciones > 0 ? 'bg-primary-500/10 text-primary-400' : 'bg-dark-800 text-dark-500'"
+                  >
+                    {{ item.renovaciones }}
+                  </span>
+                </td>
+                <td class="hidden sm:table-cell text-dark-400">{{ formatDate(item.primeraMembresia) }}</td>
+                <td class="hidden sm:table-cell text-dark-400">{{ formatDate(item.ultimaRenovacion) }}</td>
+                <td>{{ item.planActual || '—' }}</td>
+                <td class="hidden md:table-cell text-dark-400">{{ formatDate(item.fechaVencimiento) }}</td>
+              </tr>
+              <tr v-if="!renovaciones.length">
+                <td colspan="8" class="text-center py-6 text-dark-500">No hay datos de renovaciones.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
     </template>
   </div>
 </template>
@@ -252,6 +304,7 @@ const sortFiltradasDesc = ref(false);
 const memberships = ref([]);
 const payments = ref([]);
 const ingresosMes = ref([]);
+const renovaciones = ref([]);
 const gymId = ref(null);
 const gyms = ref([]);
 
@@ -299,15 +352,18 @@ async function cargarDatos() {
     }
 
     // Obtener rangos para pagos y memberships
-    const [membershipsRes, paymentsRes, ingresosRes] = await Promise.all([
+    const renovParams = authStore.hasRole('Superusuario') && gymId.value ? { gymId: gymId.value } : {};
+    const [membershipsRes, paymentsRes, ingresosRes, renovacionesRes] = await Promise.all([
       membershipsApi.getAll(params),
       paymentsApi.getAll(params),
       ingresosApi.getAll({ fechaDesde: inicioMes, fechaHasta: finMes, ...params }),
+      membershipsApi.getRenovationsReport(renovParams),
     ]);
 
     memberships.value = membershipsRes.data || [];
     payments.value = paymentsRes.data || [];
     ingresosMes.value = ingresosRes.data || [];
+    renovaciones.value = renovacionesRes.data || [];
   } catch (err) {
     showError(err.response?.data?.error || 'No se pudieron cargar los datos de facturación');
   } finally {
@@ -453,7 +509,7 @@ const alumnosMasActivos = computed(() => {
 
   return Object.values(counts)
     .sort((a, b) => b.cantidad - a.cantidad)
-    .slice(0, 5);
+    .slice(0, 7);
 });
 
 onMounted(async () => {
