@@ -492,7 +492,7 @@ public class MembershipService : IMembershipService
     /// </param>
     public async Task ExpireOverdueMembershipsAsync()
     {
-        var now = DateTime.UtcNow.AddHours(-3);
+        var now = DateTime.UtcNow.AddDays(1).AddHours(-3);
         var query = _context.Memberships
             .Include(m => m.Alumno)
             .Include(m => m.Gym)
@@ -539,7 +539,8 @@ public class MembershipService : IMembershipService
 
     public async Task SendExpirationEmailAsync(Membership m, bool throwOnError = false)
     {
-        if (m.Alumno == null || string.IsNullOrWhiteSpace(m.Alumno.Email) || !await EmailValidator.IsValidEmailAsync(m.Alumno.Email, _scopeFactory))
+        if (m.Alumno == null || string.IsNullOrWhiteSpace(m.Alumno.Email) ||
+            !await EmailValidator.IsValidEmailAsync(m.Alumno.Email, _scopeFactory))
         {
             if (throwOnError)
                 throw new InvalidOperationException("El alumno no tiene un correo electrónico válido.");
@@ -579,8 +580,7 @@ public class MembershipService : IMembershipService
                 to: m.Alumno.Email,
                 subject: "Vencimiento de cuota de gimnasio",
                 body: body,
-                from: "fitcenter.manager@gmail.com",
-                bcc: "lucianoperalta12@gmail.com"
+                from: "fitcenter.manager@gmail.com" //, bcc: "lucianoperalta12@gmail.com"
             );
         }
         catch (Exception ex)
