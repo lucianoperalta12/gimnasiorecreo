@@ -5,6 +5,7 @@ using GymAdmin.Domain.Entities;
 using GymAdmin.Domain.Enums;
 using GymAdmin.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace GymAdmin.Application.Services;
 
@@ -13,15 +14,18 @@ public class MembershipService : IMembershipService
     private readonly AppDbContext _context;
     private readonly Microsoft.AspNetCore.Http.IHttpContextAccessor _httpContextAccessor;
     private readonly IEmailService _emailService;
+    private readonly Microsoft.Extensions.DependencyInjection.IServiceScopeFactory _scopeFactory;
 
     public MembershipService(
-        AppDbContext context, 
+        AppDbContext context,
         Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor,
-        IEmailService emailService)
+        IEmailService emailService,
+        Microsoft.Extensions.DependencyInjection.IServiceScopeFactory scopeFactory)
     {
         _context = context;
         _httpContextAccessor = httpContextAccessor;
         _emailService = emailService;
+        _scopeFactory = scopeFactory;
     }
 
     public async Task<PagedResult<MembershipListDto>> GetAllAsync(
@@ -103,7 +107,6 @@ public class MembershipService : IMembershipService
         EnsureSameGym(requester, student.GymId);
 
         var plan = await GetActivePlanAsync(request.PlanId, student.GymId);
-        await ExpireOverdueMembershipsAsync(requester, student.GymId);
 
         if (await HasActiveMembershipAsync(student.Id))
             throw new InvalidOperationException("El alumno ya tiene una membresía activa. Use renovación para extender.");
@@ -135,7 +138,6 @@ public class MembershipService : IMembershipService
         EnsureSameGym(requester, student.GymId);
 
         var plan = await GetActivePlanAsync(request.PlanId, student.GymId);
-        await ExpireOverdueMembershipsAsync(requester, student.GymId);
         await CloseActiveMembershipsAsync(student.Id);
 
         var fechaInicio = NormalizeDate(request.FechaInicio ?? DateTime.UtcNow);
@@ -464,39 +466,51 @@ public class MembershipService : IMembershipService
             .FirstOrDefaultAsync(m => m.Id == id);
 
     /// <summary>
-    /// Expira en tiempo real las membresías vencidas acotadas al gimnasio del alumno en cuestión.
-    /// Se ejecuta on-demand antes de crear o renovar una membresía para garantizar consistencia inmediata
-    /// en las validaciones de negocio antes de guardar los datos.
+    /// Punto unificado de expiración de membresías vencidas. Marca como <c>Vencida</c> toda membresía
+    /// cuya <c>FechaVencimiento</c> ya pasó y que aún figure como <c>Activa</c>, luego envía el email
+    /// de notificación a cada alumno afectado.
     /// </summary>
-    private async Task ExpireOverdueMembershipsAsync(User? requester, int? gymId)
+    /// <remarks>
+    /// <para>El estado se persiste en base de datos <b>antes</b> de intentar el envío de emails,
+    /// de modo que un fallo en el envío no deja la membresía sin expirar.</para>
+    /// <para>Llamado en dos contextos distintos:</para>
+    /// <list type="bullet">
+    ///   <item><b>On-demand</b> — desde <c>CreateAsync</c> y <c>RenewAsync</c>, con <paramref name="requester"/>
+    ///   y <paramref name="gymId"/> del gimnasio del alumno, para garantizar consistencia inmediata antes
+    ///   de validar y guardar la nueva membresía.</item>
+    ///   <item><b>Background</b> — desde <see cref="GymAdmin.Api.BackgroundServices.MembershipExpirationService"/>
+    ///   cada 6 horas, con ambos parámetros en <c>null</c> para operar globalmente sobre todos los gimnasios.</item>
+    /// </list>
+    /// </remarks>
+    /// <param name="requester">
+    /// Usuario que origina la operación. Si es <c>null</c> o su rol es <c>Superusuario</c>, no se aplica
+    /// filtro de gimnasio (salvo que <paramref name="gymId"/> sea un valor concreto).
+    /// </param>
+    /// <param name="gymId">
+    /// Identificador del gimnasio sobre el que restringir la expiración. <c>null</c> indica sin restricción
+    /// adicional (útil para la ejecución global del background service).
+    /// </param>
+    public async Task ExpireOverdueMembershipsAsync()
     {
-        var now = DateTime.UtcNow;
+        var now = DateTime.UtcNow.AddHours(-3);
         var query = _context.Memberships
             .Include(m => m.Alumno)
             .Include(m => m.Gym)
             .Where(m => m.Estado == MembershipStatus.Activa && m.FechaVencimiento < now);
 
-        if (requester?.Rol != UserRole.Superusuario)
-        {
-            var filterGymId = gymId ?? requester?.GymId;
-            if (filterGymId.HasValue)
-                query = query.Where(m => m.GymId == filterGymId.Value);
-        }
-        else if (gymId.HasValue && gymId.Value > 0)
-        {
-            query = query.Where(m => m.GymId == gymId.Value);
-        }
-
         var overdue = await query.ToListAsync();
         if (overdue.Count == 0) return;
 
         foreach (var m in overdue)
-        {
             m.Estado = MembershipStatus.Vencida;
-            await SendExpirationEmailAsync(m);
-        }
 
         await _context.SaveChangesAsync();
+
+        foreach (var m in overdue)
+        {
+            await SendExpirationEmailAsync(m);
+            await Task.Delay(100, CancellationToken.None);
+        }
     }
 
     public async Task SendExpirationEmailManualAsync(int requesterId, int id)
@@ -517,7 +531,7 @@ public class MembershipService : IMembershipService
         if (m.Alumno == null || string.IsNullOrWhiteSpace(m.Alumno.Email))
             throw new InvalidOperationException("El alumno no tiene un correo electrónico configurado.");
 
-        if (!IsValidEmail(m.Alumno.Email))
+        if (!await EmailValidator.IsValidEmailAsync(m.Alumno.Email, _scopeFactory))
             throw new InvalidOperationException("El correo electrónico del alumno no es válido.");
 
         await SendExpirationEmailAsync(m, throwOnError: true);
@@ -525,7 +539,7 @@ public class MembershipService : IMembershipService
 
     public async Task SendExpirationEmailAsync(Membership m, bool throwOnError = false)
     {
-        if (m.Alumno == null || string.IsNullOrWhiteSpace(m.Alumno.Email) || !IsValidEmail(m.Alumno.Email))
+        if (m.Alumno == null || string.IsNullOrWhiteSpace(m.Alumno.Email) || !await EmailValidator.IsValidEmailAsync(m.Alumno.Email, _scopeFactory))
         {
             if (throwOnError)
                 throw new InvalidOperationException("El alumno no tiene un correo electrónico válido.");
@@ -537,7 +551,7 @@ public class MembershipService : IMembershipService
             var studentName = m.Alumno.Nombre;
             var gymName = m.Gym?.Nombre ?? "el gimnasio";
             var gymColor = m.Gym?.ColorPrincipalHex ?? "#ff6600";
-            
+
             var logoHtml = !string.IsNullOrWhiteSpace(m.Gym?.LogoUrl)
                 ? $"<div style='text-align: center; margin-bottom: 20px;'><img src='{m.Gym.LogoUrl}' alt='{gymName}' style='max-height: 80px; border-radius: 8px;' /></div>"
                 : "";
@@ -573,20 +587,6 @@ public class MembershipService : IMembershipService
         {
             if (throwOnError)
                 throw new InvalidOperationException($"Error al enviar el correo: {ex.Message}", ex);
-        }
-    }
-
-    private static bool IsValidEmail(string email)
-    {
-        if (string.IsNullOrWhiteSpace(email)) return false;
-        try
-        {
-            var addr = new System.Net.Mail.MailAddress(email);
-            return addr.Address == email;
-        }
-        catch
-        {
-            return false;
         }
     }
 
