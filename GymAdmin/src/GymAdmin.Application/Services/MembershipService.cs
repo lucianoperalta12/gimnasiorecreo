@@ -112,7 +112,7 @@ public class MembershipService : IMembershipService
             throw new InvalidOperationException("El alumno ya tiene una membresía activa. Use renovación para extender.");
 
         var argentina = TimeZoneInfo.FindSystemTimeZoneById("America/Argentina/Buenos_Aires");
-        var fechaInicio = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, argentina).Date;
+        var fechaInicio = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, argentina);
         var membership = new Membership
         {
             GymId = student.GymId,
@@ -142,7 +142,7 @@ public class MembershipService : IMembershipService
         await CloseActiveMembershipsAsync(student.Id);
 
         var argentina = TimeZoneInfo.FindSystemTimeZoneById("America/Argentina/Buenos_Aires");
-        var fechaInicio = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, argentina).Date;
+        var fechaInicio = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, argentina);
         var membership = new Membership
         {
             GymId = student.GymId,
@@ -198,7 +198,8 @@ public class MembershipService : IMembershipService
             ? gymId
             : (int?)requester.GymId;
 
-        var now = DateTime.UtcNow.AddHours(-3);
+        var argentina = TimeZoneInfo.FindSystemTimeZoneById("America/Argentina/Buenos_Aires");
+        var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, argentina);
         var limite7 = now.AddDays(7).AddDays(1).AddTicks(-1);
         var haceUnMes = now.AddMonths(-1);
         var finHoy = now.AddDays(1).AddTicks(-1);
@@ -495,7 +496,7 @@ public class MembershipService : IMembershipService
     public async Task ExpireOverdueMembershipsAsync()
     {
         var argentina = TimeZoneInfo.FindSystemTimeZoneById("America/Argentina/Buenos_Aires");
-        var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, argentina).AddDays(1);
+        var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, argentina);
 
         var query = _context.Memberships
             .Include(m => m.Alumno)
