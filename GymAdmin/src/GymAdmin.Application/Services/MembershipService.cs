@@ -505,7 +505,6 @@ public class MembershipService : IMembershipService
                 m.FechaVencimiento <= now);
 
         var overdue = await query.ToListAsync();
-        var querystring = query.ToQueryString();
         if (overdue.Count == 0) return;
 
         foreach (var m in overdue)
