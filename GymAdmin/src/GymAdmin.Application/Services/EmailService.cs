@@ -51,6 +51,9 @@ public class EmailService : IEmailService
 
     public async Task SendEmailAsync(string to, string subject, string body, TipoCorreo tipo, string nombre, string apellido, string dni, int? gymId = null, string? from = null, string? bcc = null)
     {
+        var argentina = TimeZoneInfo.FindSystemTimeZoneById("America/Argentina/Buenos_Aires");
+        var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, argentina);
+
         var log = new EmailLog
         {
             TipoCorreo = tipo,
@@ -59,7 +62,7 @@ public class EmailService : IEmailService
             DestinatarioDni = dni,
             DestinatarioEmail = to,
             GymId = gymId,
-            FechaEnvio = DateTime.Now
+            FechaEnvio = now
         };
 
         try
