@@ -20,6 +20,7 @@ public class AppDbContext : DbContext
     public DbSet<Ingreso> Ingresos => Set<Ingreso>();
     public DbSet<Egreso> Egresos => Set<Egreso>();
     public DbSet<ErrorLog> ErrorLogs => Set<ErrorLog>();
+    public DbSet<EmailLog> EmailLogs => Set<EmailLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

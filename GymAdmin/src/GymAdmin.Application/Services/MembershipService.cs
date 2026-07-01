@@ -111,7 +111,8 @@ public class MembershipService : IMembershipService
         if (await HasActiveMembershipAsync(student.Id))
             throw new InvalidOperationException("El alumno ya tiene una membresía activa. Use renovación para extender.");
 
-        var fechaInicio = NormalizeDate(request.FechaInicio);
+        var argentina = TimeZoneInfo.FindSystemTimeZoneById("America/Argentina/Buenos_Aires");
+        var fechaInicio = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, argentina).Date;
         var membership = new Membership
         {
             GymId = student.GymId,
@@ -140,7 +141,8 @@ public class MembershipService : IMembershipService
         var plan = await GetActivePlanAsync(request.PlanId, student.GymId);
         await CloseActiveMembershipsAsync(student.Id);
 
-        var fechaInicio = NormalizeDate(request.FechaInicio ?? DateTime.UtcNow);
+        var argentina = TimeZoneInfo.FindSystemTimeZoneById("America/Argentina/Buenos_Aires");
+        var fechaInicio = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, argentina).Date;
         var membership = new Membership
         {
             GymId = student.GymId,
@@ -196,7 +198,7 @@ public class MembershipService : IMembershipService
             ? gymId
             : (int?)requester.GymId;
 
-        var now = DateTime.UtcNow.Date;
+        var now = DateTime.UtcNow.AddHours(-3);
         var limite7 = now.AddDays(7).AddDays(1).AddTicks(-1);
         var haceUnMes = now.AddMonths(-1);
         var finHoy = now.AddDays(1).AddTicks(-1);
@@ -492,13 +494,17 @@ public class MembershipService : IMembershipService
     /// </param>
     public async Task ExpireOverdueMembershipsAsync()
     {
-        var now = DateTime.UtcNow.AddDays(1).AddHours(-3);
+        var argentina = TimeZoneInfo.FindSystemTimeZoneById("America/Argentina/Buenos_Aires");
+        var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, argentina).AddDays(1);
+
         var query = _context.Memberships
             .Include(m => m.Alumno)
             .Include(m => m.Gym)
-            .Where(m => m.Estado == MembershipStatus.Activa && m.FechaVencimiento < now);
+          .Where(m => m.Estado == MembershipStatus.Activa &&
+                m.FechaVencimiento <= now);
 
         var overdue = await query.ToListAsync();
+        var querystring = query.ToQueryString();
         if (overdue.Count == 0) return;
 
         foreach (var m in overdue)
@@ -580,7 +586,12 @@ public class MembershipService : IMembershipService
                 to: m.Alumno.Email,
                 subject: "Vencimiento de cuota de gimnasio",
                 body: body,
-                from: "fitcenter.manager@gmail.com" //, bcc: "lucianoperalta12@gmail.com"
+                tipo: TipoCorreo.VencimientoMembresia,
+                nombre: m.Alumno.Nombre,
+                apellido: m.Alumno.Apellido,
+                dni: m.Alumno.Dni,
+                gymId: m.GymId,
+                from: "fitcenter.manager@gmail.com"
             );
         }
         catch (Exception ex)

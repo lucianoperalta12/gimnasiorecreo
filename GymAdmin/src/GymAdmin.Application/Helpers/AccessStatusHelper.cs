@@ -14,7 +14,7 @@ public static class AccessStatusHelper
         bool hasPendingPayments = false,
         DateTime? utcNow = null)
     {
-        var now = utcNow ?? DateTime.Now;
+        var now = utcNow ?? DateTime.UtcNow.AddHours(-3);
 
         if (membresia is null)
             return AccessStatus.SinMembresia;
@@ -25,7 +25,7 @@ public static class AccessStatusHelper
         if (membresia.Estado == MembershipStatus.Cancelada)
             return AccessStatus.SinMembresia;
 
-        if (membresia.Estado == MembershipStatus.Vencida || membresia.FechaVencimiento < now)
+        if (membresia.Estado == MembershipStatus.Vencida || membresia.FechaVencimiento.Date < now.Date)
             return AccessStatus.Vencido;
 
         if (membresia.Estado == MembershipStatus.Activa)
@@ -40,7 +40,7 @@ public static class AccessStatusHelper
 
     public static int DiasRestantes(Membership membresia, DateTime? utcNow = null)
     {
-        var now = (utcNow ?? DateTime.Now).Date;
+        var now = (utcNow ?? DateTime.UtcNow.AddHours(-3)).Date;
         var vencimiento = membresia.FechaVencimiento.Date;
         return Math.Max(0, (vencimiento - now).Days);
     }
