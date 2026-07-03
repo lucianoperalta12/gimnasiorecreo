@@ -103,6 +103,14 @@ public class MembershipsController : ControllerBase
         return NoContent();
     }
 
+    [HttpPost("{id}/log-whatsapp")]
+    [Authorize(Roles = "Superusuario,Administrativo")]
+    public async Task<IActionResult> LogWhatsapp(int id)
+    {
+        await _membershipService.LogWhatsappContactAsync(GetUserId(), id);
+        return NoContent();
+    }
+
     [HttpGet("renovations-report")]
     [Authorize(Roles = "Superusuario,Administrativo")]
     public async Task<ActionResult<List<MembershipRenovationReportDto>>> GetRenovationsReport([FromQuery] int? gymId)

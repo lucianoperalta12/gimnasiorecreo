@@ -42,5 +42,7 @@ public interface IMembershipService
 
     Task<List<MembershipRenovationReportDto>> GetRenovationsReportAsync(int requesterId, int? gymId);
 
+    Task LogWhatsappContactAsync(int requesterId, int id);
+
     Task ExpireOverdueMembershipsAsync();
 }

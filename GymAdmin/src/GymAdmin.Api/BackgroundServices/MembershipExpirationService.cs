@@ -10,7 +10,7 @@ namespace GymAdmin.Api.BackgroundServices;
 /// </summary>
 public class MembershipExpirationService : BackgroundService
 {
-    private static readonly TimeSpan Interval = TimeSpan.FromHours(6);
+    private static readonly TimeSpan Interval = TimeSpan.FromHours(3);
 
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<MembershipExpirationService> _logger;
@@ -23,13 +23,13 @@ public class MembershipExpirationService : BackgroundService
 
     /// <summary>
     /// Bucle principal del servicio. Invoca la expiración al arrancar la aplicación y luego la repite
-    /// cada <c>6 horas</c> hasta que se cancele el token de parada.
+    /// cada <c>3 horas</c> hasta que se cancele el token de parada.
     /// </summary>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation("MembershipExpirationService iniciado. Intervalo: {Interval}h.", Interval.TotalHours);
 
-        // Ejecutar inmediatamente al iniciar la app y luego cada 6 horas
+        // Ejecutar inmediatamente al iniciar la app y luego cada 3 horas
         while (!stoppingToken.IsCancellationRequested)
         {
             await ExpireOverdueMembershipsAsync(stoppingToken);

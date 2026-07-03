@@ -6,5 +6,6 @@ public enum TipoCorreo
     CambioPassword = 2,
     VencimientoMembresia = 3,
     ConfirmacionPago = 4,
+    VencimientoWhatsapp = 5,
     Generico = 99
 }

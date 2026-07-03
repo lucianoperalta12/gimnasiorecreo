@@ -369,12 +369,24 @@
 
       <!-- Alumnos con membresía vencida (último mes, sin membresía activa) -->
       <div v-if="authStore.hasRole('Superusuario', 'Administrativo')" class="card p-4 sm:p-6 mb-4">
-        <div class="flex items-center justify-between mb-4">
-          <div>
+        <div class="flex items-center gap-3 mb-4">
+          <div class="flex-shrink-0">
             <h2 class="text-sm font-bold text-white uppercase tracking-wider">Membresías vencidas</h2>
             <p class="text-xs text-dark-500">Alumnos sin membresía activa que vencieron en el último mes</p>
           </div>
-          <button type="button" class="p-2 rounded-lg text-dark-400 hover:text-white hover:bg-dark-900/60 transition-colors" @click="fetchDashboardSummary">
+          <!-- Filtro inline — solo desktop -->
+          <div v-if="!isMobile" class="flex-1 relative">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-dark-500 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+            </svg>
+            <input
+              v-model="filtroVencidas"
+              type="text"
+              placeholder="Filtrar por nombre, apellido o DNI…"
+              class="w-full pl-8 pr-3 py-2 text-xs bg-dark-950/60 border border-dark-800/60 rounded-xl text-white placeholder-dark-600 focus:outline-none focus:border-primary-500/60 transition-colors"
+            />
+          </div>
+          <button type="button" class="ml-auto flex-shrink-0 p-2 rounded-lg text-dark-400 hover:text-white hover:bg-dark-900/60 transition-colors" @click="fetchDashboardSummary">
             <svg class="w-4 h-4" :class="{ 'animate-spin': loadingVencidas }" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path
                 stroke-linecap="round"
@@ -385,12 +397,27 @@
           </button>
         </div>
 
+        <!-- Filtro bloque — solo mobile -->
+        <div v-if="isMobile" class="mb-3">
+          <div class="relative">
+            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-dark-500 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+            </svg>
+            <input
+              v-model="filtroVencidas"
+              type="text"
+              placeholder="Filtrar por nombre, apellido o DNI…"
+              class="w-full pl-8 pr-3 py-2 text-xs bg-dark-950/60 border border-dark-800/60 rounded-xl text-white placeholder-dark-600 focus:outline-none focus:border-primary-500/60 transition-colors"
+            />
+          </div>
+        </div>
+
         <LoadingSpinner v-if="loadingVencidas" />
 
         <template v-else>
           <!-- Móvil: tarjetas apiladas, sin scroll horizontal -->
-          <div v-if="alumnosMembresiaVencida.length && isMobile" class="max-h-[360px] overflow-y-auto custom-scrollbar space-y-2.5">
-            <div v-for="m in alumnosMembresiaVencida" :key="m.id" class="flex items-center gap-3 p-3.5 rounded-2xl bg-dark-950/40 border border-dark-900/60">
+          <div v-if="alumnosMembresiaVencidaFiltrados.length && isMobile" class="max-h-[360px] overflow-y-auto custom-scrollbar space-y-2.5">
+            <div v-for="m in alumnosMembresiaVencidaFiltrados" :key="m.id" class="flex items-center gap-3 p-3.5 rounded-2xl bg-dark-950/40 border border-dark-900/60">
               <div class="w-9 h-9 rounded-full bg-red-500/10 text-red-400 flex items-center justify-center text-xs font-black flex-shrink-0">
                 {{ m.alumnoNombreCompleto?.charAt(0)?.toUpperCase() }}
               </div>
@@ -408,6 +435,7 @@
                   class="p-1.5 rounded-lg text-[#25D366] hover:bg-[#25D366]/10 transition-colors"
                   title="Contactar por WhatsApp"
                   aria-label="Contactar por WhatsApp"
+                  @click="logWhatsappClick(m)"
                 >
                   <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                     <path
@@ -460,7 +488,7 @@
           </div>
 
           <!-- Escritorio: tabla -->
-          <div v-else-if="alumnosMembresiaVencida.length" class="table-container max-h-[360px] overflow-y-auto custom-scrollbar">
+          <div v-else-if="alumnosMembresiaVencidaFiltrados.length" class="table-container max-h-[360px] overflow-y-auto custom-scrollbar">
             <table class="table">
               <thead class="sticky top-0 z-20" style="background: #050505; opacity: 1">
                 <tr>
@@ -468,17 +496,17 @@
                   <th>Dni</th>
                   <th>Plan</th>
                   <th>Vencimiento</th>
-                  <th>Hace</th>
+                  <th>Días</th>
                   <th class="text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="m in alumnosMembresiaVencida" :key="m.id">
+                <tr v-for="m in alumnosMembresiaVencidaFiltrados" :key="m.id">
                   <td class="font-medium text-white">{{ m.alumnoNombreCompleto }}</td>
                   <td class="font-medium text-white">{{ m.alumnoDni }}</td>
                   <td>{{ m.planNombre }}</td>
                   <td>{{ formatDate(m.fechaVencimiento) }}</td>
-                  <td class="text-dark-400">{{ diasDesdeVencimiento(m.fechaVencimiento) }} días</td>
+                  <td class="text-dark-400">{{ diasDesdeVencimiento(m.fechaVencimiento) }}</td>
                   <td class="text-right">
                     <div class="flex items-center justify-end gap-2">
                       <a
@@ -489,6 +517,7 @@
                         class="p-1.5 rounded-lg text-[#25D366] hover:bg-[#25D366]/10 transition-colors inline-flex"
                         title="Contactar por WhatsApp"
                         aria-label="Contactar por WhatsApp"
+                        @click="logWhatsappClick(m)"
                       >
                         <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                           <path
@@ -536,7 +565,9 @@
           </div>
 
           <div v-else class="py-8 text-center">
-            <p class="text-xs text-dark-500 font-bold">No hay alumnos con membresía vencida en el último mes.</p>
+            <p class="text-xs text-dark-500 font-bold">
+              {{ filtroVencidas ? 'No se encontraron resultados para la búsqueda.' : 'No hay alumnos con membresía vencida en el último mes.' }}
+            </p>
           </div>
         </template>
       </div>
@@ -790,12 +821,24 @@ function isValidEmail(email) {
 }
 
 // Datos ya vienen deduplicados desde el backend; solo agregamos whatsappUrl
+const filtroVencidas = ref('');
+
 const alumnosMembresiaVencida = computed(() => {
   if (!authStore.hasRole('Superusuario', 'Administrativo')) return [];
   return membershipsVencidasRaw.value.map((m) => ({
     ...m,
     whatsappUrl: buildWhatsAppUrlForMembresia(m),
   }));
+});
+
+const alumnosMembresiaVencidaFiltrados = computed(() => {
+  const q = filtroVencidas.value.trim().toLowerCase();
+  if (!q) return alumnosMembresiaVencida.value;
+  return alumnosMembresiaVencida.value.filter(
+    (m) =>
+      m.alumnoNombreCompleto?.toLowerCase().includes(q) ||
+      String(m.alumnoDni ?? '').includes(q),
+  );
 });
 
 async function fetchDashboardSummary() {
@@ -875,6 +918,10 @@ async function sendExpirationEmail(m) {
   } finally {
     sendingEmail.value[m.id] = false;
   }
+}
+
+function logWhatsappClick(m) {
+  membershipsApi.logWhatsapp(m.id).catch(() => {});
 }
 
 const showRenewModal = ref(false);

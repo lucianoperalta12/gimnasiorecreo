@@ -601,6 +601,39 @@ public class MembershipService : IMembershipService
         }
     }
 
+    public async Task LogWhatsappContactAsync(int requesterId, int id)
+    {
+        var requester = await GetRequesterAsync(requesterId);
+        EnsureCanManageMemberships(requester);
+
+        var m = await _context.Memberships
+            .Include(m => m.Alumno)
+            .FirstOrDefaultAsync(x => x.Id == id);
+
+        if (m == null)
+            throw new KeyNotFoundException("Membresía no encontrada.");
+
+        EnsureSameGym(requester, m.GymId);
+
+        var argentina = TimeZoneInfo.FindSystemTimeZoneById("America/Argentina/Buenos_Aires");
+        var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, argentina);
+
+        var log = new EmailLog
+        {
+            TipoCorreo = TipoCorreo.VencimientoWhatsapp,
+            DestinatarioNombre = m.Alumno?.Nombre ?? string.Empty,
+            DestinatarioApellido = m.Alumno?.Apellido ?? string.Empty,
+            DestinatarioDni = m.Alumno?.Dni ?? string.Empty,
+            DestinatarioEmail = string.Empty,
+            GymId = m.GymId,
+            FechaEnvio = now,
+            Exitoso = true
+        };
+
+        _context.EmailLogs.Add(log);
+        await _context.SaveChangesAsync();
+    }
+
     private async Task CloseActiveMembershipsAsync(int alumnoId)
     {
         var actives = await _context.Memberships
