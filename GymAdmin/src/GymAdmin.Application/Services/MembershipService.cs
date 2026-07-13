@@ -630,8 +630,7 @@ public class MembershipService : IMembershipService
             Exitoso = true
         };
 
-        _context.EmailLogs.Add(log);
-        await _context.SaveChangesAsync();
+        await _emailService.SaveLogAsync(log);
     }
 
     private async Task CloseActiveMembershipsAsync(int alumnoId)

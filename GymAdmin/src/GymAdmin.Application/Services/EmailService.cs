@@ -78,22 +78,27 @@ public class EmailService : IEmailService
         }
         finally
         {
-            _context.EmailLogs.Add(log);
+            await SaveLogAsync(log);
+        }
+    }
+
+    public async Task SaveLogAsync(EmailLog log)
+    {
+        _context.EmailLogs.Add(log);
+        await _context.SaveChangesAsync();
+
+        // Mantener solo los últimos 1000 registros y eliminar el resto
+        var totalCount = await _context.EmailLogs.CountAsync();
+        if (totalCount > 1000)
+        {
+            var logsToDelete = await _context.EmailLogs
+                .OrderBy(x => x.FechaEnvio)
+                .ThenBy(x => x.Id)
+                .Take(totalCount - 1000)
+                .ToListAsync();
+
+            _context.EmailLogs.RemoveRange(logsToDelete);
             await _context.SaveChangesAsync();
-
-            // Mantener solo los últimos 1000 registros y eliminar el resto
-            var totalCount = await _context.EmailLogs.CountAsync();
-            if (totalCount > 1000)
-            {
-                var logsToDelete = await _context.EmailLogs
-                    .OrderBy(x => x.FechaEnvio)
-                    .ThenBy(x => x.Id)
-                    .Take(totalCount - 1000)
-                    .ToListAsync();
-
-                _context.EmailLogs.RemoveRange(logsToDelete);
-                await _context.SaveChangesAsync();
-            }
         }
     }
 }
