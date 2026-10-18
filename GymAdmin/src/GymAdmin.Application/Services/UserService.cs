@@ -18,7 +18,7 @@ public class UserService : IUserService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<PagedResult<UserDto>> GetAllUsersAsync(int requesterId, string? search = null, string? rol = null, int? gymId = null, int? page = null, int? pageSize = null)
+    public async Task<PagedResult<UserDto>> GetAllUsersAsync(int requesterId, string? search = null, string? rol = null, int? gymId = null, bool? activo = null, int? page = null, int? pageSize = null)
     {
         var requester = await GetRequester(requesterId);
         var defaultGymId = requester.GymId;
@@ -69,9 +69,9 @@ public class UserService : IUserService
             }
         }
 
-        var totalCount = await query.CountAsync();
         var activeCount = await query.CountAsync(gu => gu.Activo && gu.User.Activo);
-        var inactiveCount = totalCount - activeCount;
+        var totalBeforeFilter = await query.CountAsync();
+        var inactiveCount = totalBeforeFilter - activeCount;
 
         var httpContext = _httpContextAccessor.HttpContext;
         if (httpContext != null)
@@ -79,6 +79,20 @@ public class UserService : IUserService
             httpContext.Response.Headers["X-Active-Count"] = activeCount.ToString();
             httpContext.Response.Headers["X-Inactive-Count"] = inactiveCount.ToString();
         }
+
+        if (activo.HasValue)
+        {
+            if (activo.Value)
+            {
+                query = query.Where(gu => gu.Activo && gu.User.Activo);
+            }
+            else
+            {
+                query = query.Where(gu => !gu.Activo || !gu.User.Activo);
+            }
+        }
+
+        var totalCount = await query.CountAsync();
 
         var pagedQuery = ApplyPagination(
             query.OrderBy(gu => gu.User.Nombre)

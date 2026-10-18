@@ -26,10 +26,11 @@ public class UsersController : ControllerBase
         [FromQuery] string? search,
         [FromQuery] string? rol,
         [FromQuery] int? gymId,
+        [FromQuery] bool? activo,
         [FromQuery] int? page,
         [FromQuery] int? pageSize)
     {
-        var result = await _userService.GetAllUsersAsync(GetUserId(), search, rol, gymId, page, pageSize);
+        var result = await _userService.GetAllUsersAsync(GetUserId(), search, rol, gymId, activo, page, pageSize);
         AddPaginationHeaders(result.TotalCount, result.Page, result.PageSize);
         return Ok(result.Items);
     }

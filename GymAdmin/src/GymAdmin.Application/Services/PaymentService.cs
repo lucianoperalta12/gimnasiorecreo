@@ -23,6 +23,7 @@ public class PaymentService : IPaymentService
     int requesterId,
     int? gymId = null,
     int? membresiaId = null,
+    int? alumnoId = null,
     DateOnly? fechaDesde = null,
     DateOnly? fechaHasta = null,
     int? page = null,
@@ -43,6 +44,9 @@ public class PaymentService : IPaymentService
 
         if (membresiaId.HasValue)
             query = query.Where(p => p.MembresiaId == membresiaId.Value);
+
+        if (alumnoId.HasValue)
+            query = query.Where(p => p.Membresia.AlumnoId == alumnoId.Value);
 
         if (fechaDesde.HasValue)
             query = query.Where(p =>

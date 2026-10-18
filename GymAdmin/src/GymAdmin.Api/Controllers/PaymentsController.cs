@@ -21,6 +21,7 @@ public class PaymentsController : ControllerBase
     public async Task<ActionResult<List<PaymentListDto>>> GetAll(
       [FromQuery] int? gymId,
       [FromQuery] int? membresiaId,
+      [FromQuery] int? alumnoId,
       [FromQuery] DateOnly? fechaDesde,
       [FromQuery] DateOnly? fechaHasta,
       [FromQuery] int? page,
@@ -30,6 +31,7 @@ public class PaymentsController : ControllerBase
             GetUserId(),
             gymId,
             membresiaId,
+            alumnoId,
             fechaDesde,
             fechaHasta,
             page,

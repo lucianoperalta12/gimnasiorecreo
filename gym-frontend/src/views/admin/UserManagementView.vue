@@ -43,6 +43,8 @@
       <div class="flex flex-col sm:flex-row gap-3">
         <AppSearchSelect v-model="roleFilter" :options="roleOptions" placeholder="Todos los roles" class="w-full sm:w-auto sm:min-w-[160px]" />
 
+        <AppSearchSelect v-model="statusFilter" :options="statusOptions" placeholder="Todos los estados" class="w-full sm:w-auto sm:min-w-[150px]" />
+
         <AppSearchSelect
           v-if="authStore.hasRole('Superusuario')"
           v-model="gymFilter"
@@ -117,6 +119,16 @@
                   stroke-width="2"
                   d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                 />
+              </svg>
+            </button>
+            <button
+              v-if="u.rol === 'Alumno'"
+              class="text-emerald-500 hover:text-emerald-400 transition-colors p-1"
+              title="Ver desglose de pagos"
+              @click="openPaymentsModal(u)"
+            >
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
             </button>
             <button
@@ -222,6 +234,16 @@
                         stroke-width="2"
                         d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
                       />
+                    </svg>
+                  </button>
+                  <button
+                    v-if="u.rol === 'Alumno'"
+                    class="text-emerald-500 hover:text-emerald-400 transition-colors p-1 shrink-0"
+                    title="Ver desglose de pagos"
+                    @click="openPaymentsModal(u)"
+                  >
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                   </button>
                   <button
@@ -377,6 +399,60 @@
         </div>
       </div>
     </AppModal>
+
+    <!-- Student Payments Breakdown Modal -->
+    <AppModal v-model="showPaymentsModal" :title="`Pagos de ${selectedStudent ? fullName(selectedStudent) : 'Alumno'}`" size="lg">
+      <div v-if="paymentsLoading" class="py-12 flex justify-center">
+        <LoadingSpinner />
+      </div>
+
+      <div v-else-if="!studentPayments.length" class="text-center py-8">
+        <div class="w-12 h-12 rounded-full bg-dark-800 flex items-center justify-center mx-auto mb-3 text-dark-500">
+          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+        </div>
+        <p class="text-sm text-dark-400">No se encontraron pagos registrados para este alumno.</p>
+      </div>
+
+      <div v-else class="space-y-4">
+        <div class="flex items-center justify-between p-3.5 rounded-xl bg-dark-800/60 border border-dark-700/50">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-medium text-dark-400">Total registrado:</span>
+            <span class="text-xs font-semibold text-dark-300">{{ studentPayments.length }} {{ studentPayments.length === 1 ? 'pago' : 'pagos' }}</span>
+          </div>
+          <span class="text-base font-black text-emerald-400 font-mono">{{ formatCurrency(studentPaymentsTotal) }}</span>
+        </div>
+
+        <div class="overflow-hidden rounded-xl border border-dark-800 bg-dark-900/30">
+          <div class="max-h-[360px] overflow-y-auto divide-y divide-dark-800/60">
+            <div
+              v-for="p in studentPayments"
+              :key="p.id"
+              class="p-3.5 flex items-center justify-between hover:bg-dark-800/30 transition-colors"
+            >
+              <div class="min-w-0 flex-1 pr-3">
+                <div class="flex items-center gap-2">
+                  <span class="font-semibold text-white text-sm">{{ p.planNombre || 'Membresía' }}</span>
+                  <span :class="paymentEstadoBadgeClass(p.estado)" class="text-[10px] px-2 py-0.5 rounded-full">{{ p.estado }}</span>
+                </div>
+                <div class="flex items-center gap-3 text-xs text-dark-400 mt-1">
+                  <span>{{ formatDate(p.fechaPago) }}</span>
+                  <span v-if="p.metodoPago" class="text-dark-500">• {{ p.metodoPago }}</span>
+                </div>
+              </div>
+              <div class="text-right shrink-0">
+                <span class="text-sm font-bold text-emerald-400 font-mono">{{ formatCurrency(p.monto) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end pt-2">
+          <button type="button" class="btn-secondary" @click="showPaymentsModal = false">Cerrar</button>
+        </div>
+      </div>
+    </AppModal>
   </div>
 </template>
 
@@ -388,6 +464,8 @@ import { useUserStore } from '@/stores/user.store';
 import { useAuthStore } from '@/stores/auth.store';
 import { useNotification } from '@/composables/useNotification';
 import { gymsApi } from '@/api/gyms.api';
+import { paymentsApi } from '@/api/payments.api';
+import { formatCurrency, formatDate, paymentEstadoBadgeClass } from '@/constants/membershipStatus';
 import AppButton from '@/components/ui/AppButton.vue';
 import AppInput from '@/components/ui/AppInput.vue';
 import AppModal from '@/components/ui/AppModal.vue';
@@ -402,6 +480,7 @@ const { success, error: showError } = useNotification();
 const { isMobile } = useIsMobile();
 const search = ref('');
 const roleFilter = ref('');
+const statusFilter = ref('');
 const gymFilter = ref('');
 const gyms = ref([]);
 const showCreateModal = ref(false);
@@ -412,6 +491,10 @@ const isUpdatingPassword = ref(false);
 const userToEdit = ref(null);
 const userToDelete = ref(null);
 const showDeleteModal = ref(false);
+const showPaymentsModal = ref(false);
+const paymentsLoading = ref(false);
+const studentPayments = ref([]);
+const selectedStudent = ref(null);
 const newPassword = ref('');
 const formError = ref('');
 const pageSize = ref(15);
@@ -447,6 +530,12 @@ const roleOptions = computed(() => {
   return list;
 });
 
+const statusOptions = [
+  { id: '', label: 'Todos los estados' },
+  { id: 'true', label: 'Activo' },
+  { id: 'false', label: 'Inactivo' },
+];
+
 const gymOptions = computed(() => {
   const list = [{ id: '', label: 'Todos los gimnasios' }];
   if (gyms.value) {
@@ -472,6 +561,7 @@ const filteredUsers = computed(() => {
   const q = search.value.toLowerCase();
   const r = roleFilter.value;
   const g = gymFilter.value;
+  const a = statusFilter.value;
 
   return userStore.users.filter((u) => {
     const matchesSearch =
@@ -484,7 +574,9 @@ const filteredUsers = computed(() => {
     const matchesRole = !r || u.rol === r;
     const matchesGym = !g || u.gymId === Number(g);
 
-    return matchesSearch && matchesRole && matchesGym;
+    const matchesStatus = !a || (a === 'true' ? u.activo : !u.activo);
+
+    return matchesSearch && matchesRole && matchesGym && matchesStatus;
   });
 });
 
@@ -538,6 +630,7 @@ async function loadUsers(targetPage = 1) {
   if (search.value.trim()) params.search = search.value.trim();
   if (roleFilter.value) params.rol = roleFilter.value;
   if (gymFilter.value) params.gymId = Number(gymFilter.value);
+  if (statusFilter.value !== '') params.activo = statusFilter.value === 'true';
 
   await userStore.fetchUsers(params);
   currentPage.value = userStore.usersPage ?? targetPage;
@@ -551,7 +644,7 @@ async function goToPage(targetPage) {
 // Reset/reload when filters change
 let searchDebounce = null;
 
-watch([roleFilter, gymFilter], async () => {
+watch([roleFilter, statusFilter, gymFilter], async () => {
   await loadUsers(1);
 });
 
@@ -788,6 +881,25 @@ async function confirmPasswordChange() {
     showError(err.response?.data?.error || 'Error al actualizar contraseña');
   } finally {
     isUpdatingPassword.value = false;
+  }
+}
+
+const studentPaymentsTotal = computed(() => {
+  return studentPayments.value.reduce((acc, p) => acc + (p.monto || 0), 0);
+});
+
+async function openPaymentsModal(user) {
+  selectedStudent.value = user;
+  showPaymentsModal.value = true;
+  paymentsLoading.value = true;
+  studentPayments.value = [];
+  try {
+    const response = await paymentsApi.getAll({ alumnoId: user.id, gymId: user.gymId });
+    studentPayments.value = Array.isArray(response.data) ? response.data : (response.data?.items || []);
+  } catch (err) {
+    showError(err.response?.data?.error || 'Error al cargar pagos del alumno');
+  } finally {
+    paymentsLoading.value = false;
   }
 }
 
