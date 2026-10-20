@@ -101,6 +101,7 @@
 
       <div v-if="filteredPlans.length === 0" class="card text-center py-12">
         <p class="text-dark-400">No hay planes configurados</p>
+        <p class="text-xs text-dark-500 mt-1">Crea un plan para poder emitir membresías.</p>
       </div>
     </template>
 

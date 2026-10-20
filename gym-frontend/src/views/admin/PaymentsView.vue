@@ -178,6 +178,7 @@
 
         <div v-else-if="!filteredPayments.length" class="card text-center py-12">
           <p class="text-dark-400">No hay pagos registrados</p>
+          <p class="text-xs text-dark-500 mt-1">Registra un cobro con el botón superior.</p>
         </div>
       </div>
     </template>

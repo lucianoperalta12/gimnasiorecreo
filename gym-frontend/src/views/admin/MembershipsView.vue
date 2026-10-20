@@ -168,6 +168,7 @@
 
       <div v-if="store.memberships.length === 0" class="card text-center py-12">
         <p class="text-dark-400">No hay membresias que coincidan con los filtros</p>
+        <p class="text-xs text-dark-500 mt-1">Ajusta los filtros o crea una nueva membresía.</p>
       </div>
     </template>
 
@@ -231,6 +232,7 @@
     <AppModal v-model="showRenewModal" title="Renovar membresia">
       <form class="space-y-4" @submit.prevent="handleRenew">
         <p class="text-sm text-dark-400">Alumno: <strong class="text-white">{{ renewingMembership?.alumnoNombreCompleto }}</strong></p>
+        <p class="text-[11px] text-dark-500">Inicia un nuevo período y pasa la membresía anterior a vencida.</p>
         <label class="label">Plan</label>
         <AppSearchSelect
           v-model.number="renewForm.planId"

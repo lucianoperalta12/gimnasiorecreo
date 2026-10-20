@@ -60,6 +60,7 @@
     <!-- Mobile: Card Layout -->
     <div v-else-if="filteredUsers.length === 0" class="card text-center py-8">
       <p class="text-dark-400">No hay usuarios para mostrar.</p>
+      <p class="text-xs text-dark-500 mt-1">Revisa la búsqueda o los filtros de rol y estado.</p>
     </div>
 
     <template v-else>
@@ -402,6 +403,7 @@
 
     <!-- Student Payments Breakdown Modal -->
     <AppModal v-model="showPaymentsModal" :title="`Pagos de ${selectedStudent ? fullName(selectedStudent) : 'Alumno'}`" size="lg">
+      <p class="text-xs text-dark-400 -mt-2 mb-4">Historial de cobros registrados</p>
       <div v-if="paymentsLoading" class="py-12 flex justify-center">
         <LoadingSpinner />
       </div>

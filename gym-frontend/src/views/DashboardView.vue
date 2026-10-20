@@ -339,7 +339,10 @@
         <div class="flex flex-col gap-4 h-[370px]">
           <!-- Card Membresías por Vencer -->
           <div class="flex-1 card p-5 flex flex-col overflow-hidden min-h-[170px]">
-            <h3 class="text-xs font-bold text-white uppercase tracking-wider mb-3">Expira en <span class="text-primary-500 font-black">7 días</span></h3>
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-xs font-bold text-white uppercase tracking-wider">Expira en <span class="text-primary-500 font-black">7 días</span></h3>
+              <span class="text-[10px] text-dark-500">Próximos a renovar</span>
+            </div>
 
             <div class="flex-1 overflow-y-auto custom-scrollbar space-y-2">
               <div
