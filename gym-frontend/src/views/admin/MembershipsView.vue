@@ -2,7 +2,28 @@
   <div class="animate-fade-in">
     <div class="flex items-center justify-between mb-6">
       <div>
-        <h1 class="page-title">Membresias</h1>
+        <div class="flex flex-wrap items-center gap-3">
+          <h1 class="page-title">Membresias</h1>
+          <div
+            class="inline-flex items-center gap-2 px-3 py-1 rounded-full border transition-all"
+            :class="statusBadgeContainerClass"
+          >
+            <span class="relative flex h-2 w-2">
+              <span
+                v-if="filterEstado === 'Activa'"
+                class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                :class="statusDotClass"
+              ></span>
+              <span class="relative inline-flex rounded-full h-2 w-2" :class="statusDotClass"></span>
+            </span>
+            <span class="text-base font-black text-white tracking-tight leading-none font-mono">
+              {{ totalCount }}
+            </span>
+            <span class="text-[11px] font-bold uppercase tracking-wider leading-none" :class="statusTextClass">
+              {{ statusLabelText }}
+            </span>
+          </div>
+        </div>
         <p class="page-subtitle">Alumnos, vencimientos y estado de acceso</p>
       </div>
       <div class="flex items-center gap-3">
@@ -368,6 +389,34 @@ const metodoPagoOptions = [
 const paymentEstadoOptions = computed(() => PAYMENT_ESTADOS.map(e => ({ id: e, label: e })))
 
 const totalCount = computed(() => store.membershipsTotalCount || store.memberships.length)
+
+const statusLabelText = computed(() => {
+  if (filterEstado.value === 'Activa') return totalCount.value === 1 ? 'activa' : 'activas'
+  if (filterEstado.value === 'Vencida') return totalCount.value === 1 ? 'vencida' : 'vencidas'
+  if (filterEstado.value === 'Cancelada') return totalCount.value === 1 ? 'cancelada' : 'canceladas'
+  return totalCount.value === 1 ? 'total' : 'totales'
+})
+
+const statusBadgeContainerClass = computed(() => {
+  if (filterEstado.value === 'Activa') return 'bg-emerald-500/10 border-emerald-500/30'
+  if (filterEstado.value === 'Vencida') return 'bg-red-500/10 border-red-500/30'
+  if (filterEstado.value === 'Cancelada') return 'bg-amber-500/10 border-amber-500/30'
+  return 'bg-dark-800/80 border-dark-700'
+})
+
+const statusDotClass = computed(() => {
+  if (filterEstado.value === 'Activa') return 'bg-emerald-500'
+  if (filterEstado.value === 'Vencida') return 'bg-red-500'
+  if (filterEstado.value === 'Cancelada') return 'bg-amber-500'
+  return 'bg-primary-500'
+})
+
+const statusTextClass = computed(() => {
+  if (filterEstado.value === 'Activa') return 'text-emerald-400'
+  if (filterEstado.value === 'Vencida') return 'text-red-400'
+  if (filterEstado.value === 'Cancelada') return 'text-amber-400'
+  return 'text-dark-300'
+})
 const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / pageSize.value)))
 const pageStart = computed(() => (store.memberships.length ? (currentPage.value - 1) * pageSize.value + 1 : 0))
 const pageEnd = computed(() => (store.memberships.length ? pageStart.value + store.memberships.length - 1 : 0))
