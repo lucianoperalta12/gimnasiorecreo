@@ -1,53 +1,73 @@
 <template>
   <div class="animate-fade-in">
-    <div class="flex items-center justify-between mb-6">
-      <div>
-        <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          <h1 class="page-title">Pagos</h1>
-          <div class="flex gap-2 text-sm font-medium text-dark-400">
-            <span class="flex items-center gap-1">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-              {{ filteredPayments.length }} registros
-            </span>
-            <span class="flex items-center gap-1 text-emerald-400">
-              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-              {{ formatCurrency(totalAmount) }}
-            </span>
-            filtrado
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4 sm:mb-6">
+      <div class="flex items-start justify-between gap-3 sm:block">
+        <div>
+          <div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <h1 class="page-title">Pagos</h1>
+            <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs sm:text-sm font-medium text-dark-400">
+              <span class="flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                {{ filteredPayments.length }} registros
+              </span>
+              <span class="flex items-center gap-1 text-emerald-400">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                {{ formatCurrency(totalAmount) }}
+              </span>
+              <span>filtrado</span>
+            </div>
           </div>
+          <p class="page-subtitle text-xs sm:text-sm mt-0.5 sm:mt-1">Registro de pagos de membresías</p>
         </div>
-        <p class="page-subtitle">Registro de pagos de membresías</p>
+
+        <div class="flex sm:hidden items-center gap-2 shrink-0">
+          <AppButton variant="secondary" @click="router.push('/dashboard')" class="!p-2.5 !rounded-xl" title="Volver">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+            </svg>
+          </AppButton>
+          <AppButton variant="primary" @click="openCreateModal" class="!p-2.5 !rounded-xl" title="Registrar Pago">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+          </AppButton>
+        </div>
       </div>
-      <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-        <!-- Ingresos del mes -->
-        <div class="px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl bg-dark-900/40 border border-dark-800/50 backdrop-blur-md relative overflow-hidden group">
+
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3">
+        <div class="w-full sm:w-auto px-4 py-2 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl bg-dark-900/40 border border-dark-800/50 backdrop-blur-md relative overflow-hidden group">
           <div
-            class="absolute -right-3 -bottom-3 w-10 sm:w-16 h-10 sm:h-16 bg-emerald-500/5 rounded-full blur-lg group-hover:bg-emerald-500/10 transition-all duration-500 pointer-events-none"
+            class="absolute -right-3 -bottom-3 w-16 h-16 bg-emerald-500/5 rounded-full blur-lg group-hover:bg-emerald-500/10 transition-all duration-500 pointer-events-none"
           ></div>
-          <p class="text-[9px] sm:text-[10px] text-dark-500 uppercase tracking-[0.15em] sm:tracking-[0.2em] font-black leading-none">
-            Ingresos del Mes
-          </p>
-          <p class="text-base sm:text-xl font-black text-emerald-400 mt-1 tracking-tight leading-none">
-            {{ formatCurrency(ingresosMesActual.total) }}
-          </p>
-          <div class="flex items-center gap-2 sm:gap-2.5 text-[9px] sm:text-[10px] mt-1 pt-1 border-t border-dark-800/30 leading-none">
+          <div class="flex sm:block items-center justify-between">
+            <p class="text-[9px] sm:text-[10px] text-dark-500 uppercase tracking-[0.15em] sm:tracking-[0.2em] font-black leading-none">
+              Ingresos del Mes
+            </p>
+            <p class="text-base sm:text-xl font-black text-emerald-400 sm:mt-1 tracking-tight leading-none">
+              {{ formatCurrency(ingresosMesActual.total) }}
+            </p>
+          </div>
+          <div class="flex items-center gap-3 text-[10px] mt-1.5 sm:mt-1 pt-1.5 sm:pt-1 border-t border-dark-800/30 leading-none">
             <span class="text-primary-500 font-bold">EF: {{ formatCurrency(ingresosMesActual.efectivo) }}</span>
             <span class="text-emerald-400 font-bold">TR: {{ formatCurrency(ingresosMesActual.transferencia) }}</span>
             <span v-if="ingresosMesActual.otros > 0" class="text-emerald-400 font-bold">OT: {{ formatCurrency(ingresosMesActual.otros) }}</span>
           </div>
         </div>
-        <AppButton variant="secondary" @click="router.push('/dashboard')" class="md:px-4 px-2.5 !rounded-xl md:!rounded-lg">
-          <svg class="w-5 h-5 md:w-3 md:h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-          </svg>
-          <span class="hidden md:inline ml-1 text-[10px] font-black uppercase tracking-[0.2em]">Volver</span>
-        </AppButton>
-        <AppButton variant="primary" @click="openCreateModal" class="md:px-4 px-2.5 !rounded-xl md:!rounded-lg">
-          <svg class="w-5 h-5 md:w-4 md:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-          </svg>
-          <span class="hidden md:inline ml-1">Registrar Pago</span>
-        </AppButton>
+
+        <div class="hidden sm:flex items-center gap-3">
+          <AppButton variant="secondary" @click="router.push('/dashboard')" class="md:px-4 px-2.5 !rounded-xl md:!rounded-lg">
+            <svg class="w-5 h-5 md:w-3 md:h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+            </svg>
+            <span class="hidden md:inline ml-1 text-[10px] font-black uppercase tracking-[0.2em]">Volver</span>
+          </AppButton>
+          <AppButton variant="primary" @click="openCreateModal" class="md:px-4 px-2.5 !rounded-xl md:!rounded-lg">
+            <svg class="w-5 h-5 md:w-4 md:h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            <span class="hidden md:inline ml-1">Registrar Pago</span>
+          </AppButton>
+        </div>
       </div>
     </div>
 
