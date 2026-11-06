@@ -13,7 +13,7 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 var builder = WebApplication.CreateBuilder(args);
 
 // ===== HOST =====
-builder.WebHost.UseUrls("http://0.0.0.0:5000");
+builder.WebHost.UseUrls("http://0.0.0.0:8080");
 
 // ===== Database =====
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
