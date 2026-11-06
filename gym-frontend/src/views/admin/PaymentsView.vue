@@ -18,7 +18,24 @@
         </div>
         <p class="page-subtitle">Registro de pagos de membresías</p>
       </div>
-      <div class="flex items-center gap-3">
+      <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+        <!-- Ingresos del mes -->
+        <div class="px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl bg-dark-900/40 border border-dark-800/50 backdrop-blur-md relative overflow-hidden group">
+          <div
+            class="absolute -right-3 -bottom-3 w-10 sm:w-16 h-10 sm:h-16 bg-emerald-500/5 rounded-full blur-lg group-hover:bg-emerald-500/10 transition-all duration-500 pointer-events-none"
+          ></div>
+          <p class="text-[9px] sm:text-[10px] text-dark-500 uppercase tracking-[0.15em] sm:tracking-[0.2em] font-black leading-none">
+            Ingresos del Mes
+          </p>
+          <p class="text-base sm:text-xl font-black text-emerald-400 mt-1 tracking-tight leading-none">
+            {{ formatCurrency(ingresosMesActual.total) }}
+          </p>
+          <div class="flex items-center gap-2 sm:gap-2.5 text-[9px] sm:text-[10px] mt-1 pt-1 border-t border-dark-800/30 leading-none">
+            <span class="text-primary-500 font-bold">EF: {{ formatCurrency(ingresosMesActual.efectivo) }}</span>
+            <span class="text-emerald-400 font-bold">TR: {{ formatCurrency(ingresosMesActual.transferencia) }}</span>
+            <span v-if="ingresosMesActual.otros > 0" class="text-emerald-400 font-bold">OT: {{ formatCurrency(ingresosMesActual.otros) }}</span>
+          </div>
+        </div>
         <AppButton variant="secondary" @click="router.push('/dashboard')" class="md:px-4 px-2.5 !rounded-xl md:!rounded-lg">
           <svg class="w-5 h-5 md:w-3 md:h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
             <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
@@ -327,6 +344,36 @@ const filteredPayments = computed(() => {
   return items;
 });
 
+const ingresosMesActual = computed(() => {
+  const hoy = new Date();
+  const currentYear = hoy.getFullYear();
+  const currentMonth = hoy.getMonth();
+
+  let total = 0;
+  let efectivo = 0;
+  let transferencia = 0;
+  let otros = 0;
+
+  store.payments.forEach((p) => {
+    if (!p.fechaPago) return;
+    const d = new Date(p.fechaPago);
+    if (d.getFullYear() === currentYear && d.getMonth() === currentMonth) {
+      const monto = p.monto || 0;
+      total += monto;
+      const metodo = (p.metodoPago || '').trim();
+      if (metodo === 'Efectivo') {
+        efectivo += monto;
+      } else if (metodo === 'Transferencia') {
+        transferencia += monto;
+      } else {
+        otros += monto;
+      }
+    }
+  });
+
+  return { total, efectivo, transferencia, otros };
+});
+
 const totalAmount = computed(() => {
   return filteredPayments.value.reduce((sum, p) => sum + (p.monto || 0), 0);
 });
@@ -340,6 +387,10 @@ const paginatedPayments = computed(() => {
 
 watch([search, dateFrom, dateTo, selectedGymId, selectedPaymentMethod, sortBy, sortDesc], () => {
   currentPage.value = 1;
+});
+
+watch(selectedGymId, () => {
+  loadData();
 });
 
 const gymOptions = computed(() => {

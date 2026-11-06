@@ -472,7 +472,19 @@ const penultimoMes = computed(() => dataMensual.value.length > 1 ? dataMensual.v
 
 const kpiRetencion = computed(() => ultimoMes.value?.retencion ?? 0);
 const kpiChurn = computed(() => ultimoMes.value?.churn ?? 0);
-const kpiActivos = computed(() => ultimoMes.value?.activosFin ?? 0);
+const kpiActivos = computed(() => {
+  const map = {};
+  membershipsRaw.value.forEach((m) => {
+    const key = m.alumnoId || m.alumnoDni || m.alumnoNombreCompleto;
+    if (!key) return;
+    if (!map[key] || m.id > map[key].id) {
+      map[key] = m;
+    }
+  });
+  return Object.values(map).filter((x) =>
+    x.estadoAcceso ? (x.estadoAcceso === 'Activo' || x.estadoAcceso === 'Moroso') : x.estado === 'Activa'
+  ).length;
+});
 const kpiNuevos = computed(() => ultimoMes.value?.nuevos ?? 0);
 
 const kpiRetencionTendencia = computed(() => {
